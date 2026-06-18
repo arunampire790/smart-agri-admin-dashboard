@@ -1,73 +1,78 @@
-import React from 'react';
+const robots = [
+  { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
+  { name: 'AgriBot Beta', id: 'AgriBot-002', farm: 'Sunrise Orchards', model: 'AB-X1000', battery: 62, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
+  { name: 'AgriBot Gamma', id: 'AgriBot-003', farm: 'Golden Harvest', model: 'AB-X2000', battery: 45, batCls: 'bg-warning-text', status: 'Idle', stCls: 'bg-warning-bg text-warning-text' },
+  { name: 'AgriBot Delta', id: 'AgriBot-004', farm: 'Maple Ridge Farm', model: 'AB-X1000', battery: 12, batCls: 'bg-danger-text', status: 'Offline', stCls: 'bg-danger-bg text-danger-text' },
+];
 
 export default function Robots() {
   return (
     <>
-      <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="page-title">Robot Management</div>
-          <div className="page-sub">Monitor and control agricultural robots</div>
+          <div className="text-2xl font-semibold">Robot Management</div>
+          <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
-        <button className="btn-primary"><i className="ti ti-plus" aria-hidden="true"></i> Add Robot</button>
+        <button className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+          <i className="ti ti-plus" /> Add Robot
+        </button>
       </div>
 
-      <div className="robot-status-cards">
-        <div className="rscard">
-          <div className="rscard-main">
-            <div className="rscard-icon rscard-online"><i className="ti ti-robot" aria-hidden="true"></i></div>
-            <div className="rscard-info">
-              <div className="rscard-val">4</div>
-              <div className="rscard-label">Online</div>
+      <div className="flex gap-3 mb-4 flex-wrap">
+        {[
+          { icon: 'ti-robot', cls: 'bg-brand-light text-[#137333]', val: '4', label: 'Online', foot: '85–100% battery' },
+          { icon: 'ti-player-pause', cls: 'bg-warning-bg text-warning-text', val: '3', label: 'Idle', foot: '45–62% battery' },
+          { icon: 'ti-tool', cls: 'bg-[#E8EAF6] text-[#1A73E8]', val: '0', label: 'Maintenance', foot: 'N/A' },
+          { icon: 'ti-plug-off', cls: 'bg-danger-bg text-danger-text', val: '1', label: 'Offline', foot: '12% battery last seen' },
+        ].map((item, i) => (
+          <div key={i} className="flex-1 min-w-[160px] bg-white border border-[#EAEAEA] rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${item.cls}`}>
+                <i className={`ti ${item.icon}`} />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-[#111] leading-tight">{item.val}</div>
+                <div className="text-xs text-text-secondary">{item.label}</div>
+              </div>
             </div>
+            <div className="text-[10px] text-text-secondary border-t border-[#EAEAEA] pt-2">{item.foot}</div>
           </div>
-          <div className="rscard-foot">85–100% battery</div>
-        </div>
-        <div className="rscard">
-          <div className="rscard-main">
-            <div className="rscard-icon rscard-idle"><i className="ti ti-player-pause" aria-hidden="true"></i></div>
-            <div className="rscard-info">
-              <div className="rscard-val">3</div>
-              <div className="rscard-label">Idle</div>
-            </div>
-          </div>
-          <div className="rscard-foot">45–62% battery</div>
-        </div>
-        <div className="rscard">
-          <div className="rscard-main">
-            <div className="rscard-icon rscard-maint"><i className="ti ti-tool" aria-hidden="true"></i></div>
-            <div className="rscard-info">
-              <div className="rscard-val">0</div>
-              <div className="rscard-label">Maintenance</div>
-            </div>
-          </div>
-          <div className="rscard-foot">N/A</div>
-        </div>
-        <div className="rscard">
-          <div className="rscard-main">
-            <div className="rscard-icon rscard-offline"><i className="ti ti-plug-off" aria-hidden="true"></i></div>
-            <div className="rscard-info">
-              <div className="rscard-val">1</div>
-              <div className="rscard-label">Offline</div>
-            </div>
-          </div>
-          <div className="rscard-foot">12% battery last seen</div>
-        </div>
+        ))}
       </div>
-      
-      <div className="section-card">
-        <div className="section-header" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-          <div className="section-title" style={{ marginBottom: '12px' }}>All Robots (8)</div>
-          <input className="form-input" placeholder="Search robots by ID or model..." aria-label="Search robots" style={{ width: '100%' }} />
+
+      <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex flex-col items-stretch mb-4">
+          <div className="text-sm font-semibold mb-3">All Robots (8)</div>
+          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full" />
         </div>
-        <table>
+        <table className="w-full border-collapse text-sm">
           <thead>
-            <tr><th>Name</th><th>ID</th><th>Farm</th><th>Model</th><th>Battery</th><th>Status</th><th>Actions</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th></tr>
           </thead>
           <tbody>
-            <tr><td><strong>AgriBot Alpha</strong></td><td><code>AgriBot-001</code></td><td>Green Valley Farm</td><td>AB-X1000</td><td><div className="battery"><div className="battery-track"><div className="battery-fill" style={{ width: '85%', background: '#137333' }}></div></div><div className="pct">85%</div></div></td><td><span className="pill active">Active</span></td><td><div className="action-icons"><button className="icon-btn" title="Edit"><i className="ti ti-edit" aria-hidden="true"></i></button><button className="icon-btn del" title="Delete"><i className="ti ti-trash" aria-hidden="true"></i></button></div></td></tr>
-            <tr><td><strong>AgriBot Beta</strong></td><td><code>AgriBot-002</code></td><td>Sunrise Orchards</td><td>AB-X1000</td><td><div className="battery"><div className="battery-track"><div className="battery-fill" style={{ width: '62%', background: '#137333' }}></div></div><div className="pct">62%</div></div></td><td><span className="pill active">Active</span></td><td><div className="action-icons"><button className="icon-btn" title="Edit"><i className="ti ti-edit" aria-hidden="true"></i></button><button className="icon-btn del" title="Delete"><i className="ti ti-trash" aria-hidden="true"></i></button></div></td></tr>
-            <tr><td><strong>AgriBot Gamma</strong></td><td><code>AgriBot-003</code></td><td>Golden Harvest</td><td>AB-X2000</td><td><div className="battery"><div className="battery-track"><div className="battery-fill" style={{ width: '45%', background: '#B06000' }}></div></div><div className="pct">45%</div></div></td><td><span className="pill idle">Idle</span></td><td><div className="action-icons"><button className="icon-btn" title="Edit"><i className="ti ti-edit" aria-hidden="true"></i></button><button className="icon-btn del" title="Delete"><i className="ti ti-trash" aria-hidden="true"></i></button></div></td></tr>
-            <tr><td><strong>AgriBot Delta</strong></td><td><code>AgriBot-004</code></td><td>Maple Ridge Farm</td><td>AB-X1000</td><td><div className="battery"><div className="battery-track"><div className="battery-fill" style={{ width: '12%', background: '#C5221F' }}></div></div><div className="pct">12%</div></div></td><td><span className="pill offline">Offline</span></td><td><div className="action-icons"><button className="icon-btn" title="Edit"><i className="ti ti-edit" aria-hidden="true"></i></button><button className="icon-btn del" title="Delete"><i className="ti ti-trash" aria-hidden="true"></i></button></div></td></tr>
+            {robots.map((r, i) => (
+              <tr key={i}>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{r.name}</strong></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><code className="text-xs bg-[#F1F3F4] px-1.5 py-0.5 rounded">{r.id}</code></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{r.farm}</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{r.model}</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-1.5 bg-[#F1F3F4] rounded overflow-hidden">
+                      <div className={`h-full rounded ${r.batCls}`} style={{ width: `${r.battery}%` }} />
+                    </div>
+                    <span className="text-xs font-medium">{r.battery}%</span>
+                  </div>
+                </td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${r.stCls}`}>{r.status}</span></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                  <div className="flex gap-3 items-center">
+                    <button title="Edit" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-edit" /></button>
+                    <button title="Delete" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ti ti-trash" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

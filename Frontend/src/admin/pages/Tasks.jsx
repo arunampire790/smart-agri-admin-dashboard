@@ -1,70 +1,102 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
+const tabs = [
+  { key: 'all', label: 'All (10)' },
+  { key: 'pending', label: 'Pending (5)' },
+  { key: 'inprog', label: 'In Progress (2)' },
+  { key: 'done', label: 'Completed (3)' },
+];
 
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('all');
 
   return (
     <>
-      <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="page-title">Task Management</div>
-          <div className="page-sub">Assign and track agricultural tasks</div>
+          <div className="text-2xl font-semibold">Task Management</div>
+          <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button className="btn-primary"><i className="ti ti-plus" aria-hidden="true"></i> Assign Task</button>
+        <button className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+          <i className="ti ti-plus" /> Assign Task
+        </button>
       </div>
 
-      <div className="task-stats">
-        <div className="tscard">
-          <i className="ti ti-list-check tscard-icon" aria-hidden="true"></i>
-          <div className="tscard-body">
-            <div className="tscard-val">10</div>
-            <div className="tscard-label">Total Tasks</div>
+      <div className="flex gap-3 mb-4 flex-wrap">
+        {[
+          { icon: 'ti-list-check', val: '10', label: 'Total Tasks' },
+          { icon: 'ti-clock', val: '5', label: 'Pending' },
+          { icon: 'ti-circle-check', val: '3', label: 'Completed' },
+        ].map((item, i) => (
+          <div key={i} className="flex-1 min-w-[140px] flex items-center gap-3 bg-white border border-[#EAEAEA] rounded-lg p-4">
+            <i className={`ti ${item.icon} text-2xl shrink-0`} style={{ color: '#2B7A3E' }} />
+            <div>
+              <div className="text-2xl font-bold text-[#111] leading-tight">{item.val}</div>
+              <div className="text-xs text-text-secondary">{item.label}</div>
+            </div>
           </div>
-        </div>
-        <div className="tscard">
-          <i className="ti ti-clock tscard-icon" aria-hidden="true"></i>
-          <div className="tscard-body">
-            <div className="tscard-val">5</div>
-            <div className="tscard-label">Pending</div>
-          </div>
-        </div>
-        <div className="tscard">
-          <i className="ti ti-circle-check tscard-icon" aria-hidden="true"></i>
-          <div className="tscard-body">
-            <div className="tscard-val">3</div>
-            <div className="tscard-label">Completed</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="section-card">
-        <div className="tab-bar">
-          <div className={`tab ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>All (10)</div>
-          <div className={`tab ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>Pending (5)</div>
-          <div className={`tab ${activeTab === 'inprog' ? 'active' : ''}`} onClick={() => setActiveTab('inprog')}>In Progress (2)</div>
-          <div className={`tab ${activeTab === 'done' ? 'active' : ''}`} onClick={() => setActiveTab('done')}>Completed (3)</div>
-        </div>
-        
-        <div style={{ marginBottom: '16px' }}>
-          <input className="form-input" placeholder="Search tasks by title or assignee..." aria-label="Search tasks" style={{ width: '100%' }} />
+      <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex gap-6 mb-5 border-b border-[#EAEAEA]">
+          {tabs.map((tab) => (
+            <div
+              key={tab.key}
+              className={`pb-2 text-sm cursor-pointer border-b-2 -mb-px transition-colors ${
+                activeTab === tab.key ? 'text-brand border-brand font-medium' : 'text-text-secondary border-transparent'
+              }`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </div>
+          ))}
         </div>
 
-        <table>
+        <div className="mb-4">
+          <input placeholder="Search tasks by title or assignee..." aria-label="Search tasks" className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full" />
+        </div>
+
+        <table className="w-full border-collapse text-sm">
           <thead>
-            <tr><th>Task</th><th>Assigned to</th><th>Farm</th><th>Type</th><th>Priority</th><th>Due date</th><th>Action</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Task</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Assigned to</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Type</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Priority</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Due date</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Action</th></tr>
           </thead>
           <tbody>
             {(activeTab === 'all' || activeTab === 'pending') && (
               <>
-                <tr><td><strong>Water wheat fields</strong></td><td>John Smith</td><td>Green Valley Farm</td><td><span className="pill irr">Irrigation</span></td><td><span className="pill offline">High</span></td><td>2026-04-09</td><td><button className="btn-sm">Complete</button></td></tr>
-                <tr><td><strong>Apply nitrogen fertilizer</strong></td><td>Michael Brown</td><td>Golden Harvest</td><td><span className="pill fert">Fertilizer</span></td><td><span className="pill idle">Medium</span></td><td>2026-04-10</td><td><button className="btn-sm">Start</button></td></tr>
+                <tr>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">Water wheat fields</strong></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">John Smith</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">Green Valley Farm</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#F1F3F4] text-text-secondary">Irrigation</span></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-danger-bg text-danger-text">High</span></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">2026-04-09</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><button className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white font-medium hover:bg-[#F1F3F4]">Complete</button></td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">Apply nitrogen fertilizer</strong></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">Michael Brown</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">Golden Harvest</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#F1F3F4] text-text-secondary">Fertilizer</span></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text">Medium</span></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">2026-04-10</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><button className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white font-medium hover:bg-[#F1F3F4]">Start</button></td>
+                </tr>
               </>
             )}
             {(activeTab === 'all' || activeTab === 'inprog') && (
-              <tr><td><strong>Inspect apple trees</strong></td><td>Sarah Johnson</td><td>Sunrise Orchards</td><td><span className="pill insp">Inspection</span></td><td><span className="pill active">Low</span></td><td>2026-04-07</td><td><button className="btn-sm">Start</button></td></tr>
+              <tr>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">Inspect apple trees</strong></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">Sarah Johnson</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">Sunrise Orchards</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#F1F3F4] text-text-secondary">Inspection</span></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-brand-light text-[#137333]">Low</span></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">2026-04-07</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><button className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white font-medium hover:bg-[#F1F3F4]">Start</button></td>
+              </tr>
             )}
             {activeTab === 'done' && (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-secondary)' }}>No newly completed tasks to show.</td></tr>
+              <tr><td colSpan="7" className="text-center py-6 text-text-secondary">No newly completed tasks to show.</td></tr>
             )}
           </tbody>
         </table>

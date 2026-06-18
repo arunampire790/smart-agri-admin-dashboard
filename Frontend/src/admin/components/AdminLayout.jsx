@@ -1,90 +1,87 @@
-import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import '../styles/admin.css';
+
+const navItems = [
+  { to: '/admin/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
+  { to: '/admin/users', icon: 'ti-users', label: 'Users' },
+  { to: '/admin/farms', icon: 'ti-building-cottage', label: 'Farms' },
+  { to: '/admin/robots', icon: 'ti-robot', label: 'Robots' },
+  { to: '/admin/tasks', icon: 'ti-checklist', label: 'Tasks' },
+  { to: '/admin/analytics', icon: 'ti-chart-bar', label: 'Analytics' },
+  { to: '/admin/settings', icon: 'ti-settings', label: 'Settings' },
+];
 
 export default function AdminLayout() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate('/admin/login');
-  };
-
   return (
-    <div className="admin-app-container">
-      <div className="app">
-        <div className="sidebar">
-          <div className="logo">
-            <div className="logo-icon"><i className="ti ti-plant-2" aria-hidden="true"></i></div>
+    <div className="font-sans bg-[#F8F9FA] text-[#111] h-screen overflow-hidden flex">
+      <aside className="w-60 min-w-[240px] bg-white border-r border-[#EAEAEA] flex flex-col py-4">
+        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[#EAEAEA] mb-4">
+          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center text-white text-base">
+            <i className="ti ti-plant-2" />
+          </div>
+          <div>
+            <div className="text-base font-bold">Smart Agriculture</div>
+            <div className="text-xs text-text-secondary">Admin Panel</div>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-0.5">
+          {navItems.map(({ to, icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-lg text-sm text-text-secondary no-underline transition-all duration-150 ${
+                  isActive ? 'bg-brand text-white' : 'hover:bg-[#F1F3F4] hover:text-[#111]'
+                }`
+              }
+            >
+              <i className={`ti ${icon} text-lg`} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-auto px-4 py-4 border-t border-[#EAEAEA]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#137333] text-white flex items-center justify-center text-xs font-semibold">AD</div>
             <div>
-              <div className="logo-text">Smart Agriculture</div>
-              <div className="logo-sub">Admin Panel</div>
-            </div>
-          </div>
-          <nav>
-            <NavLink to="/admin/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
-            </NavLink>
-            <NavLink to="/admin/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-users" aria-hidden="true"></i> Users
-            </NavLink>
-            <NavLink to="/admin/farms" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-building-cottage" aria-hidden="true"></i> Farms
-            </NavLink>
-            <NavLink to="/admin/robots" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-robot" aria-hidden="true"></i> Robots
-            </NavLink>
-            <NavLink to="/admin/tasks" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-checklist" aria-hidden="true"></i> Tasks
-            </NavLink>
-            <NavLink to="/admin/analytics" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-chart-bar" aria-hidden="true"></i> Analytics
-            </NavLink>
-            <NavLink to="/admin/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <i className="ti ti-settings" aria-hidden="true"></i> Settings
-            </NavLink>
-          </nav>
-          <div className="sidebar-footer">
-            <div className="admin-info">
-              <div className="avatar">AD</div>
-              <div>
-                <div className="admin-name">Admin User</div>
-                <div className="admin-email">admin@smartagri.com</div>
-              </div>
+              <div className="text-sm font-medium">Admin User</div>
+              <div className="text-xs text-text-secondary">admin@smartagri.com</div>
             </div>
           </div>
         </div>
+      </aside>
 
-        <div className="main-content-layout">
-          <div className="topbar">
-            <div className="search">
-              <i className="ti ti-search" style={{ color: 'var(--color-text-placeholder)' }} aria-hidden="true"></i>
-              <input placeholder="Search..." aria-label="Search" />
-            </div>
-            <div className="topbar-right">
-              <div className="capsule">
-                EN / 日本語
-              </div>
-              <div className="capsule" style={{ gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#137333', display: 'inline-block' }}></span>
-                System Online
-              </div>
-              <button className="notif" aria-label="Notifications" style={{ margin: '0 8px' }}>
-                <i className="ti ti-bell" aria-hidden="true"></i>
-                <span className="notif-badge">3</span>
-              </button>
-              <button className="icon-btn" aria-label="Profile" style={{ marginLeft: '4px' }}>
-                <i className="ti ti-user" aria-hidden="true"></i>
-              </button>
-              <button className="icon-btn" onClick={handleLogout} aria-label="Logout" style={{ marginLeft: '4px' }}>
-                <i className="ti ti-logout" aria-hidden="true"></i>
-              </button>
-            </div>
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <header className="bg-white border-b border-[#EAEAEA] px-5 h-[70px] flex items-center gap-4 sticky top-0 z-10">
+          <div className="flex-1 flex items-center gap-2.5 bg-white border border-[#EAEAEA] rounded-lg px-3 py-2 max-w-[400px]">
+            <i className="ti ti-search text-text-placeholder" />
+            <input placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-[#111] w-full outline-none placeholder:text-text-placeholder" />
           </div>
+          <div className="flex items-center gap-4 ml-auto">
+            <div className="flex items-center px-3 py-1.5 rounded-full border border-[#EAEAEA] text-xs text-text-secondary font-medium">EN / 日本語</div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#EAEAEA] text-xs text-text-secondary font-medium">
+              <span className="w-2 h-2 rounded-full bg-[#137333] inline-block" />
+              System Online
+            </div>
+            <button aria-label="Notifications" className="relative cursor-pointer bg-none border-none text-lg text-text-secondary mx-2">
+              <i className="ti ti-bell" />
+              <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">3</span>
+            </button>
+            <button aria-label="Profile" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary ml-1">
+              <i className="ti ti-user" />
+            </button>
+            <button onClick={() => navigate('/admin/login')} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary ml-1">
+              <i className="ti ti-logout" />
+            </button>
+          </div>
+        </header>
 
-          <div className="content">
-            <Outlet />
-          </div>
-        </div>
+        <main className="p-6 flex-1">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

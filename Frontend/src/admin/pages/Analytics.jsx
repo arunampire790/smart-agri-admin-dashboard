@@ -1,43 +1,75 @@
-import React from 'react';
-
 export default function Analytics() {
   return (
     <>
-      <div className="page-header">
-        <div className="page-title">Analytics</div>
-        <div className="page-sub">System-wide performance metrics</div>
-      </div>
-      
-      <div className="analytics-metrics">
-        <div className="amcard"><i className="ti ti-chart-arrows-vertical am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">86.5%</div><div className="am-label">Avg Farm Productivity</div><div className="am-change up">↑ +5.2%</div></div></div>
-        <div className="amcard"><i className="ti ti-checklist am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">92.3%</div><div className="am-label">Task Completion Rate</div><div className="am-change up">↑ +3.1%</div></div></div>
-        <div className="amcard"><i className="ti ti-activity am-icon" style={{ background: '#FCE8E6', color: '#C5221F' }}></i><div className="am-body"><div className="am-val">78.4%</div><div className="am-label">Robot Efficiency</div><div className="am-change down">↓ -1.8%</div></div></div>
-        <div className="amcard"><i className="ti ti-plant-2 am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">24</div><div className="am-label">Crop Yield (t/ha)</div><div className="am-change up">↑ +2.1%</div></div></div>
+      <div className="mb-6">
+        <div className="text-2xl font-semibold">Analytics</div>
+        <div className="text-sm text-text-secondary mt-1">System-wide performance metrics</div>
       </div>
 
-      <div className="donut-row">
-        <div className="chart-card">
-          <div className="chart-title">Crop distribution</div>
-          <div style={{ marginBottom: '8px' }}>
-            <div className="mini-bar-row"><div className="mini-bar-label">Wheat</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '25%', background: '#2B7A3E' }}></div></div><div className="mini-bar-val">25%</div></div>
-            <div className="mini-bar-row"><div className="mini-bar-label">Others</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '22%', background: '#66bb6a' }}></div></div><div className="mini-bar-val">22%</div></div>
-            <div className="mini-bar-row"><div className="mini-bar-label">Corn</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '20%', background: '#81c784' }}></div></div><div className="mini-bar-val">20%</div></div>
-            <div className="mini-bar-row"><div className="mini-bar-label">Soybeans</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '18%', background: '#a5d6a7' }}></div></div><div className="mini-bar-val">18%</div></div>
-            <div className="mini-bar-row"><div className="mini-bar-label">Rice</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '15%', background: '#c8e6c9' }}></div></div><div className="mini-bar-val">15%</div></div>
-          </div>
-        </div>
-        <div className="chart-card">
-          <div className="chart-title">Robot status</div>
-          <div className="legend-item"><span className="dot dot-active"></span>Active<span className="legend-val">4</span></div>
-          <div className="legend-item"><span className="dot dot-idle"></span>Idle<span className="legend-val">3</span></div>
-          <div className="legend-item"><span className="dot dot-offline"></span>Offline<span className="legend-val">1</span></div>
-          <div className="stacked-bar">
-            <div className="stacked-bar-track">
-              <div className="stacked-bar-fill fill-active" style={{ width: '50%' }}></div>
-              <div className="stacked-bar-fill fill-idle" style={{ width: '37.5%' }}></div>
-              <div className="stacked-bar-fill fill-offline" style={{ width: '12.5%' }}></div>
+      <div className="flex gap-3 mb-4 flex-wrap">
+        {[
+          { icon: 'ti-chart-arrows-vertical', bg: '#E6F4EA', color: '#137333', val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', up: true },
+          { icon: 'ti-checklist', bg: '#E6F4EA', color: '#137333', val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', up: true },
+          { icon: 'ti-activity', bg: '#FCE8E6', color: '#C5221F', val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', up: false },
+          { icon: 'ti-plant-2', bg: '#E6F4EA', color: '#137333', val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', up: true },
+        ].map((item, i) => (
+          <div key={i} className="flex-1 min-w-[180px] flex items-center gap-3 bg-white border border-[#EAEAEA] rounded-lg p-4">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0" style={{ background: item.bg, color: item.color }}>
+              <i className={`ti ${item.icon}`} />
             </div>
-            <div className="stacked-bar-labels"><span>Active 50%</span><span>Idle 37.5%</span><span>Offline 12.5%</span></div>
+            <div>
+              <div className="text-lg font-bold text-[#111] leading-tight">{item.val}</div>
+              <div className="text-[10px] text-text-secondary mt-0.5">{item.label}</div>
+              <div className={`text-[10px] mt-1 ${item.up ? 'text-[#137333]' : 'text-danger-text'}`}>{item.change}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <div className="flex-1 min-w-[240px] bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+          <div className="text-sm font-semibold mb-4">Crop distribution</div>
+          {[
+            { label: 'Wheat', pct: 25, color: '#2B7A3E' },
+            { label: 'Others', pct: 22, color: '#66bb6a' },
+            { label: 'Corn', pct: 20, color: '#81c784' },
+            { label: 'Soybeans', pct: 18, color: '#a5d6a7' },
+            { label: 'Rice', pct: 15, color: '#c8e6c9' },
+          ].map((crop) => (
+            <div key={crop.label} className="flex items-center gap-3 mb-3">
+              <div className="text-xs text-text-secondary w-10 text-right">{crop.label}</div>
+              <div className="flex-1 h-2 bg-[#F1F3F4] rounded overflow-hidden">
+                <div className="h-full rounded" style={{ width: `${crop.pct}%`, background: crop.color }} />
+              </div>
+              <div className="text-xs font-medium w-8 text-[#111]">{crop.pct}%</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex-1 min-w-[240px] bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+          <div className="text-sm font-semibold mb-4">Robot status</div>
+          {[
+            { label: 'Active', val: '4', dot: 'bg-[#137333]' },
+            { label: 'Idle', val: '3', dot: 'bg-warning-text' },
+            { label: 'Offline', val: '1', dot: 'bg-danger-text' },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-2 text-xs text-text-secondary mb-2">
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} />
+              {item.label}
+              <span className="ml-auto font-medium text-[#111]">{item.val}</span>
+            </div>
+          ))}
+          <div className="mt-4">
+            <div className="h-2 rounded overflow-hidden flex">
+              <div className="h-full bg-[#137333]" style={{ width: '50%' }} />
+              <div className="h-full bg-warning-text" style={{ width: '37.5%' }} />
+              <div className="h-full bg-danger-text" style={{ width: '12.5%' }} />
+            </div>
+            <div className="flex justify-between text-[10px] text-text-secondary mt-1.5">
+              <span>Active 50%</span>
+              <span>Idle 37.5%</span>
+              <span>Offline 12.5%</span>
+            </div>
           </div>
         </div>
       </div>

@@ -1,130 +1,105 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const statCards = [
+  { label: 'Total Users', value: '8', note: '↑ +12% from last month', icon: 'ti-users', bg: '#E6F4EA', color: '#137333' },
+  { label: 'Total Farms', value: '8', note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E6F4EA', color: '#137333' },
+  { label: 'Total Robots', value: '8', note: '3 offline', icon: 'ti-robot', bg: '#FCE8E6', color: '#C5221F' },
+  { label: 'Active Robots', value: '4', note: 'Currently operating', icon: 'ti-activity', bg: '#E6F4EA', color: '#137333' },
+  { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FEF7E0', color: '#B06000' },
+  { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E6F4EA', color: '#137333' },
+];
+
+const userGrowth = [
+  { label: 'Jan', pct: 50, val: 40 },
+  { label: 'Feb', pct: 56, val: 45 },
+  { label: 'Mar', pct: 63, val: 52 },
+  { label: 'Apr', pct: 72, val: 58 },
+  { label: 'May', pct: 84, val: 67 },
+  { label: 'Jun', pct: 100, val: 80 },
+];
+
+const farmRegs = [
+  { label: 'Jan', pct: 28, val: 10 },
+  { label: 'Feb', pct: 33, val: 12 },
+  { label: 'Mar', pct: 44, val: 16 },
+  { label: 'Apr', pct: 61, val: 22 },
+  { label: 'May', pct: 75, val: 27 },
+  { label: 'Jun', pct: 100, val: 36 },
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
   return (
     <>
-      <div className="page-header">
-        <div className="page-title">Dashboard</div>
-        <div className="page-sub">Welcome back — here's what's happening today</div>
-      </div>
-      
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Total Users</div>
-            <div className="stat-val">8</div>
-            <div className="stat-note" style={{ color: '#2B7A3E' }}>↑ +12% from last month</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-users" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Total Farms</div>
-            <div className="stat-val">8</div>
-            <div className="stat-note" style={{ color: '#2B7A3E' }}>↑ +8% from last month</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-building-cottage" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Total Robots</div>
-            <div className="stat-val">8</div>
-            <div className="stat-note" style={{ color: '#C5221F' }}>3 offline</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#FCE8E6', color: '#C5221F' }}>
-            <i className="ti ti-robot" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Active Robots</div>
-            <div className="stat-val">4</div>
-            <div className="stat-note">Currently operating</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-activity" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Active Tasks</div>
-            <div className="stat-val">7</div>
-            <div className="stat-note" style={{ color: '#B06000' }}>5 high priority</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#FEF7E0', color: '#B06000' }}>
-            <i className="ti ti-clock" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Completed Tasks</div>
-            <div className="stat-val">3</div>
-            <div className="stat-note">This week</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-circle-check" aria-hidden="true"></i>
-          </div>
-        </div>
+      <div className="mb-6">
+        <div className="text-2xl font-semibold">Dashboard</div>
+        <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
       </div>
 
-      <div className="charts-row">
-        <div className="chart-card">
-          <div className="chart-title">User Growth Over Time</div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Jan</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '50%' }}></div></div><div className="mini-bar-val">40</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Feb</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '56%' }}></div></div><div className="mini-bar-val">45</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Mar</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '63%' }}></div></div><div className="mini-bar-val">52</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Apr</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '72%' }}></div></div><div className="mini-bar-val">58</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">May</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '84%' }}></div></div><div className="mini-bar-val">67</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Jun</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '100%' }}></div></div><div className="mini-bar-val">80</div></div>
-        </div>
-        
-        <div className="chart-card">
-          <div className="chart-title">Farm Registrations</div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Jan</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '28%' }}></div></div><div className="mini-bar-val">10</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Feb</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '33%' }}></div></div><div className="mini-bar-val">12</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Mar</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '44%' }}></div></div><div className="mini-bar-val">16</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Apr</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '61%' }}></div></div><div className="mini-bar-val">22</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">May</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '75%' }}></div></div><div className="mini-bar-val">27</div></div>
-          <div className="mini-bar-row"><div className="mini-bar-label">Jun</div><div className="mini-bar-track"><div className="mini-bar-fill" style={{ width: '100%' }}></div></div><div className="mini-bar-val">36</div></div>
-        </div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {statCards.map((card) => (
+          <div key={card.label} className="bg-white rounded-xl p-5 flex items-start justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="flex-1">
+              <div className="text-xs font-medium text-text-secondary mb-2">{card.label}</div>
+              <div className="text-3xl font-bold">{card.value}</div>
+              <div className="text-xs mt-2 text-text-secondary" style={{ color: card.color }}>{card.note}</div>
+            </div>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg" style={{ background: card.bg, color: card.color }}>
+              <i className={`ti ${card.icon}`} />
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <div className="section-title">Recent Tasks</div>
-          <button className="btn-sm" onClick={() => navigate('/admin/tasks')}>
-            <i className="ti ti-arrow-right" aria-hidden="true"></i> View all
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {[{ title: 'User Growth Over Time', data: userGrowth }, { title: 'Farm Registrations', data: farmRegs }].map((chart) => (
+          <div key={chart.title} className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="text-sm font-semibold mb-4">{chart.title}</div>
+            {chart.data.map((row) => (
+              <div key={row.label} className="flex items-center gap-3 mb-3">
+                <div className="text-xs text-text-secondary w-10 text-right">{row.label}</div>
+                <div className="flex-1 h-2 bg-[#F1F3F4] rounded overflow-hidden">
+                  <div className="h-full rounded bg-brand" style={{ width: `${row.pct}%` }} />
+                </div>
+                <div className="text-xs font-medium w-8 text-[#111]">{row.val}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl p-5 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm font-semibold">Recent Tasks</div>
+          <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white flex items-center gap-1.5 font-medium hover:bg-[#F1F3F4]">
+            <i className="ti ti-arrow-right" /> View all
           </button>
         </div>
-        <table>
+        <table className="w-full border-collapse text-sm">
           <thead>
-            <tr><th>Task</th><th>User</th><th>Farm</th><th>Priority</th><th>Status</th></tr>
+            <tr>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Task</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">User</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Priority</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th>
+            </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>Water wheat fields</strong></td><td>John Smith</td><td>Green Valley Farm</td>
-              <td><span className="pill offline">High</span></td><td><span className="pill idle">Pending</span></td>
-            </tr>
-            <tr>
-              <td><strong>Apply nitrogen fertilizer</strong></td><td>Michael Brown</td><td>Golden Harvest</td>
-              <td><span className="pill idle">Medium</span></td><td><span className="pill idle">Pending</span></td>
-            </tr>
-            <tr>
-              <td><strong>Inspect apple trees</strong></td><td>Sarah Johnson</td><td>Sunrise Orchards</td>
-              <td><span className="pill active">Low</span></td><td><span className="pill idle">In progress</span></td>
-            </tr>
+            {[
+              { task: 'Water wheat fields', user: 'John Smith', farm: 'Green Valley Farm', priority: 'High', priClass: 'bg-danger-bg text-danger-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
+              { task: 'Apply nitrogen fertilizer', user: 'Michael Brown', farm: 'Golden Harvest', priority: 'Medium', priClass: 'bg-warning-bg text-warning-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
+              { task: 'Inspect apple trees', user: 'Sarah Johnson', farm: 'Sunrise Orchards', priority: 'Low', priClass: 'bg-brand-light text-[#137333]', status: 'In progress', stClass: 'bg-warning-bg text-warning-text' },
+            ].map((row, i) => (
+              <tr key={i}>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{row.task}</strong></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{row.user}</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{row.farm}</td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
