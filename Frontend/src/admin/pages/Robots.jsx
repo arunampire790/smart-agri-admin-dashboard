@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const initialRobots = [
   { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
@@ -19,11 +19,89 @@ const statusOpts = {
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
 const labelClass = "text-xs font-medium text-[#111]";
-const selectClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]";
 const submitBtnClass = "bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
 const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm";
 const modalBox = "bg-white rounded-xl p-6 w-[450px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative";
+
+function Select({ options, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] w-full flex items-center justify-between cursor-pointer border-none ${
+          open ? 'shadow-[0_0_0_2px_rgba(43,122,62,0.2)]' : ''
+        }`}
+      >
+        <span className={value ? 'text-[#111]' : 'text-text-placeholder'}>
+          {value || placeholder}
+        </span>
+        <i className={`ti ti-chevron-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-white rounded-lg border border-[#EAEAEA] shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div
+                key={opt}
+                onClick={() => { onChange(opt); setOpen(false); }}
+                className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer ${
+                  selected ? 'bg-brand-light text-[#137333]' : 'text-[#111] hover:bg-brand-light hover:text-[#137333]'
+                }`}
+              >
+                <span>{opt}</span>
+                {selected && <i className="ti ti-check text-sm text-[#137333]" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FormFields({ form, setForm, errors }) {
+  return (
+    <>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Robot Name</label>
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., AgriBot Alpha" className={inputClass} />
+        {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Robot ID</label>
+        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass} />
+        {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Model</label>
+        <Select options={models} value={form.model} onChange={(v) => setForm({ ...form, model: v })} />
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Assigned Farm</label>
+        <Select options={farms} value={form.farm} onChange={(v) => setForm({ ...form, farm: v })} />
+      </div>
+      <div className="flex flex-col gap-1.5 mb-6">
+        <label className={labelClass}>Status</label>
+        <Select options={statuses} value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
+      </div>
+    </>
+  );
+}
 
 export default function Robots() {
   const [robots, setRobots] = useState(initialRobots);
@@ -80,15 +158,7 @@ export default function Robots() {
     setRobots((prev) =>
       prev.map((r) =>
         r === editRobot
-          ? {
-              ...r,
-              name: form.name.trim(),
-              id: form.id.trim(),
-              farm: form.farm,
-              model: form.model,
-              status: form.status,
-              stCls: statusOpts[form.status].stCls,
-            }
+          ? { ...r, name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, status: form.status, stCls: statusOpts[form.status].stCls }
           : r
       )
     );
@@ -171,13 +241,10 @@ export default function Robots() {
         </table>
       </div>
 
-      {/* Add Robot Modal */}
       {showAddModal && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
-              <i className="ti ti-x" />
-            </button>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-x" /></button>
             <div className="text-lg font-bold text-[#111] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
             <form onSubmit={handleAdd}>
@@ -191,13 +258,10 @@ export default function Robots() {
         </div>
       )}
 
-      {/* Edit Robot Modal */}
       {editRobot && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
-              <i className="ti ti-x" />
-            </button>
+            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-x" /></button>
             <div className="text-lg font-bold text-[#111] mb-1">Edit Robot</div>
             <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
             <form onSubmit={handleEdit}>
@@ -211,7 +275,6 @@ export default function Robots() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteRobot && (
         <div className={modalOverlay} onClick={() => setDeleteRobot(null)}>
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
@@ -228,50 +291,6 @@ export default function Robots() {
           </div>
         </div>
       )}
-    </>
-  );
-}
-
-function FormFields({ form, setForm, errors }) {
-  return (
-    <>
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className={labelClass}>Robot Name</label>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., AgriBot Alpha" className={inputClass} />
-        {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
-      </div>
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className={labelClass}>Robot ID</label>
-        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass} />
-        {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
-      </div>
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className={labelClass}>Model</label>
-        <div className="relative">
-          <select value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} className={selectClass}>
-            {models.map((m) => <option key={m} value={m} className="bg-white text-[#111]">{m}</option>)}
-          </select>
-          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className={labelClass}>Assigned Farm</label>
-        <div className="relative">
-          <select value={form.farm} onChange={(e) => setForm({ ...form, farm: e.target.value })} className={selectClass}>
-            {farms.map((f) => <option key={f} value={f} className="bg-white text-[#111]">{f}</option>)}
-          </select>
-          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1.5 mb-6">
-        <label className={labelClass}>Status</label>
-        <div className="relative">
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={selectClass}>
-            {statuses.map((s) => <option key={s} value={s} className="bg-white text-[#111]">{s}</option>)}
-          </select>
-          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-        </div>
-      </div>
     </>
   );
 }
