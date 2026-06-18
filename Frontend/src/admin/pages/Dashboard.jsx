@@ -1,13 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-
-const statCards = [
-  { label: 'Total Users', value: '8', note: '↑ +12% from last month', icon: 'ti-users', bg: '#E6F4EA', color: '#137333' },
-  { label: 'Total Farms', value: '8', note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E6F4EA', color: '#137333' },
-  { label: 'Total Robots', value: '8', note: '3 offline', icon: 'ti-robot', bg: '#FCE8E6', color: '#C5221F' },
-  { label: 'Active Robots', value: '4', note: 'Currently operating', icon: 'ti-activity', bg: '#E6F4EA', color: '#137333' },
-  { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FEF7E0', color: '#B06000' },
-  { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E6F4EA', color: '#137333' },
-];
+import { useUsers } from '../../context/UserContext';
 
 const userGrowth = [
   { label: 'Jan', pct: 50, val: 40 },
@@ -29,6 +21,16 @@ const farmRegs = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { users } = useUsers();
+
+  const statCards = [
+    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ti-users', bg: '#E6F4EA', color: '#137333' },
+    { label: 'Total Farms', value: '8', note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E6F4EA', color: '#137333' },
+    { label: 'Total Robots', value: '8', note: '3 offline', icon: 'ti-robot', bg: '#FCE8E6', color: '#C5221F' },
+    { label: 'Active Robots', value: '4', note: 'Currently operating', icon: 'ti-activity', bg: '#E6F4EA', color: '#137333' },
+    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FEF7E0', color: '#B06000' },
+    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E6F4EA', color: '#137333' },
+  ];
 
   return (
     <>

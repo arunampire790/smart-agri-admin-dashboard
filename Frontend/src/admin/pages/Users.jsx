@@ -1,15 +1,8 @@
 import { useState, useMemo } from 'react';
-
-const initialUsers = [
-  { name: 'John Smith', email: 'john.smith@example.com', phone: '+1-555-0101', farms: 3, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: '2025-12-15' },
-  { name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1-555-0102', farms: 2, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: '2026-01-10' },
-  { name: 'Michael Brown', email: 'michael.b@example.com', phone: '+1-555-0103', farms: 5, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: '2025-11-20' },
-  { name: 'Emily Davis', email: 'emily.davis@example.com', phone: '+1-555-0104', farms: 1, status: 'Inactive', cls: 'bg-danger-bg text-danger-text', joined: '2026-02-05' },
-  { name: 'David Wilson', email: 'david.w@example.com', phone: '+1-555-0105', farms: 4, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: '2025-10-12' },
-];
+import { useUsers } from '../../context/UserContext';
 
 export default function Users() {
-  const [users, setUsers] = useState(initialUsers);
+  const { users, addUser, removeUser, updateUser } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -56,26 +49,19 @@ export default function Users() {
     e.preventDefault();
     if (!validate()) return;
     const today = new Date().toISOString().slice(0, 10);
-    setUsers((prev) => [
-      ...prev,
-      { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: today },
-    ]);
+    addUser({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: today });
     setShowAddModal(false);
   };
 
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setUsers((prev) =>
-      prev.map((u) =>
-        u === editUser ? { ...u, name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() } : u
-      )
-    );
+    updateUser(editUser, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() });
     setEditUser(null);
   };
 
   const handleDelete = () => {
-    setUsers((prev) => prev.filter((u) => u !== deleteUser));
+    removeUser(deleteUser);
     setDeleteUser(null);
   };
 
