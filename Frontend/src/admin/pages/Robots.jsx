@@ -1,11 +1,66 @@
-const robots = [
+import { useState } from 'react';
+
+const initialRobots = [
   { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
   { name: 'AgriBot Beta', id: 'AgriBot-002', farm: 'Sunrise Orchards', model: 'AB-X1000', battery: 62, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
   { name: 'AgriBot Gamma', id: 'AgriBot-003', farm: 'Golden Harvest', model: 'AB-X2000', battery: 45, batCls: 'bg-warning-text', status: 'Idle', stCls: 'bg-warning-bg text-warning-text' },
   { name: 'AgriBot Delta', id: 'AgriBot-004', farm: 'Maple Ridge Farm', model: 'AB-X1000', battery: 12, batCls: 'bg-danger-text', status: 'Offline', stCls: 'bg-danger-bg text-danger-text' },
 ];
 
+const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
+const farms = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
+const statuses = ['Active', 'Idle', 'Offline'];
+
+const statusOpts = {
+  Active: { stCls: 'bg-brand-light text-[#137333]' },
+  Idle: { stCls: 'bg-warning-bg text-warning-text' },
+  Offline: { stCls: 'bg-danger-bg text-danger-text' },
+};
+
 export default function Robots() {
+  const [robots, setRobots] = useState(initialRobots);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
+  const [errors, setErrors] = useState({});
+
+  const openModal = () => {
+    setForm({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
+    setErrors({});
+    setShowModal(true);
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Robot name is required';
+    if (!form.id.trim()) errs.id = 'Robot ID is required';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setRobots((prev) => [
+      ...prev,
+      {
+        name: form.name.trim(),
+        id: form.id.trim(),
+        farm: form.farm,
+        model: form.model,
+        battery: 100,
+        batCls: 'bg-[#137333]',
+        status: form.status,
+        stCls: statusOpts[form.status].stCls,
+      },
+    ]);
+    setShowModal(false);
+  };
+
+  const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
+  const labelClass = "text-xs font-medium text-[#111]";
+  const selectClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer";
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -13,7 +68,7 @@ export default function Robots() {
           <div className="text-2xl font-semibold">Robot Management</div>
           <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
-        <button className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+        <button onClick={openModal} className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
           <i className="ti ti-plus" /> Add Robot
         </button>
       </div>
@@ -42,8 +97,8 @@ export default function Robots() {
 
       <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold mb-3">All Robots (8)</div>
-          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full" />
+          <div className="text-sm font-semibold mb-3">All Robots ({robots.length})</div>
+          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
@@ -76,6 +131,100 @@ export default function Robots() {
           </tbody>
         </table>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-6 w-[450px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative">
+            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
+              <i className="ti ti-x" />
+            </button>
+
+            <div className="text-lg font-bold text-[#111] mb-1">Add New Robot</div>
+            <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Robot Name</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g., AgriBot Alpha"
+                  className={inputClass}
+                />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+              </div>
+
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Robot ID</label>
+                <input
+                  value={form.id}
+                  onChange={(e) => setForm({ ...form, id: e.target.value })}
+                  placeholder="e.g., AgriBot-001"
+                  className={inputClass}
+                />
+                {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
+              </div>
+
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Model</label>
+                <div className="relative">
+                  <select
+                    value={form.model}
+                    onChange={(e) => setForm({ ...form, model: e.target.value })}
+                    className={selectClass}
+                  >
+                    {models.map((m) => (
+                      <option key={m} value={m} className="bg-white text-[#111] hover:bg-brand-light hover:text-brand">{m}</option>
+                    ))}
+                  </select>
+                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Assigned Farm</label>
+                <div className="relative">
+                  <select
+                    value={form.farm}
+                    onChange={(e) => setForm({ ...form, farm: e.target.value })}
+                    className={selectClass}
+                  >
+                    {farms.map((f) => (
+                      <option key={f} value={f} className="bg-white text-[#111]">{f}</option>
+                    ))}
+                  </select>
+                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Status</label>
+                <div className="relative">
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    className={selectClass}
+                  >
+                    {statuses.map((s) => (
+                      <option key={s} value={s} className="bg-white text-[#111]">{s}</option>
+                    ))}
+                  </select>
+                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowModal(false)} className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+                  Add Robot
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
