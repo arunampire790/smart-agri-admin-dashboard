@@ -67,6 +67,23 @@ export default function Settings() {
         </div>
       </div>
 
+      <div className="settings-section">
+        <div className="settings-group-title">System Settings</div>
+        <div className="settings-group-sub">Configure automation and data preferences</div>
+        <div className="settings-row">
+          <div><div className="settings-label">Auto-assign Tasks</div><div className="settings-sublabel">Automatically assign tasks to available robots</div></div>
+          <label className="toggle"><input type="checkbox" defaultChecked /><span className="toggle-slider"></span></label>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Auto-scheduling</div><div className="settings-sublabel">Schedule tasks based on weather and soil conditions</div></div>
+          <label className="toggle"><input type="checkbox" defaultChecked /><span className="toggle-slider"></span></label>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Cloud Backup</div><div className="settings-sublabel">Auto-backup farm data to cloud daily</div></div>
+          <label className="toggle"><input type="checkbox" /><span className="toggle-slider"></span></label>
+        </div>
+      </div>
+
       <div className="save-bar">
         <button className="btn-sm">Cancel</button>
         <button className="btn-primary">Save Changes</button>

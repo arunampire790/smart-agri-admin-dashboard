@@ -8,42 +8,14 @@ export default function Analytics() {
         <div className="page-sub">System-wide performance metrics</div>
       </div>
       
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Avg farm productivity</div>
-            <div className="stat-val">86.5%</div>
-            <div className="stat-note" style={{ color: '#2B7A3E' }}>↑ +5.2% from last month</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-chart-arrows-vertical" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Task completion rate</div>
-            <div className="stat-val">92.3%</div>
-            <div className="stat-note" style={{ color: '#2B7A3E' }}>↑ +3.1% from last month</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#E6F4EA', color: '#137333' }}>
-            <i className="ti ti-check" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div style={{ flex: 1 }}>
-            <div className="stat-label">Robot efficiency</div>
-            <div className="stat-val">78.4%</div>
-            <div className="stat-note" style={{ color: '#C5221F' }}>↓ -1.8% from last month</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#FCE8E6', color: '#C5221F' }}>
-            <i className="ti ti-activity" aria-hidden="true"></i>
-          </div>
-        </div>
+      <div className="analytics-metrics">
+        <div className="amcard"><i className="ti ti-chart-arrows-vertical am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">86.5%</div><div className="am-label">Avg Farm Productivity</div><div className="am-change up">↑ +5.2%</div></div></div>
+        <div className="amcard"><i className="ti ti-checklist am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">92.3%</div><div className="am-label">Task Completion Rate</div><div className="am-change up">↑ +3.1%</div></div></div>
+        <div className="amcard"><i className="ti ti-activity am-icon" style={{ background: '#FCE8E6', color: '#C5221F' }}></i><div className="am-body"><div className="am-val">78.4%</div><div className="am-label">Robot Efficiency</div><div className="am-change down">↓ -1.8%</div></div></div>
+        <div className="amcard"><i className="ti ti-plant-2 am-icon" style={{ background: '#E6F4EA', color: '#137333' }}></i><div className="am-body"><div className="am-val">24</div><div className="am-label">Crop Yield (t/ha)</div><div className="am-change up">↑ +2.1%</div></div></div>
       </div>
 
-      <div className="charts-row">
+      <div className="donut-row">
         <div className="chart-card">
           <div className="chart-title">Crop distribution</div>
           <div style={{ marginBottom: '8px' }}>
@@ -56,24 +28,16 @@ export default function Analytics() {
         </div>
         <div className="chart-card">
           <div className="chart-title">Robot status</div>
-          <div style={{ display: 'flex', alignItems: 'center', fontSize: '13px', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#137333', marginRight: '6px' }}></span>Active<span style={{ marginLeft: 'auto', fontWeight: '500', color: 'var(--color-text-primary)' }}>4</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', fontSize: '13px', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#B06000', marginRight: '6px' }}></span>Idle<span style={{ marginLeft: 'auto', fontWeight: '500', color: 'var(--color-text-primary)' }}>3</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', fontSize: '13px', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#C5221F', marginRight: '6px' }}></span>Offline<span style={{ marginLeft: 'auto', fontWeight: '500', color: 'var(--color-text-primary)' }}>1</span>
-          </div>
-          <div style={{ marginTop: '16px' }}>
-            <div style={{ height: '8px', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
-              <div style={{ background: '#137333', width: '50%' }}></div>
-              <div style={{ background: '#B06000', width: '37.5%' }}></div>
-              <div style={{ background: '#C5221F', width: '12.5%' }}></div>
+          <div className="legend-item"><span className="dot dot-active"></span>Active<span className="legend-val">4</span></div>
+          <div className="legend-item"><span className="dot dot-idle"></span>Idle<span className="legend-val">3</span></div>
+          <div className="legend-item"><span className="dot dot-offline"></span>Offline<span className="legend-val">1</span></div>
+          <div className="stacked-bar">
+            <div className="stacked-bar-track">
+              <div className="stacked-bar-fill fill-active" style={{ width: '50%' }}></div>
+              <div className="stacked-bar-fill fill-idle" style={{ width: '37.5%' }}></div>
+              <div className="stacked-bar-fill fill-offline" style={{ width: '12.5%' }}></div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
-              <span>Active 50%</span><span>Idle 37.5%</span><span>Offline 12.5%</span>
-            </div>
+            <div className="stacked-bar-labels"><span>Active 50%</span><span>Idle 37.5%</span><span>Offline 12.5%</span></div>
           </div>
         </div>
       </div>

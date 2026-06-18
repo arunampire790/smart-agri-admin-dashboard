@@ -701,3 +701,189 @@ input:checked + .toggle-slider:before {
   height: 100%;
   border-radius: 3px;
 }
+
+/* ---- info-banner ---- */
+.info-banner {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ib-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.ib-item i {
+  font-size: 18px;
+  color: var(--color-primary);
+}
+.ib-item strong {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  margin-right: 2px;
+}
+
+/* ---- robot-status-cards ---- */
+.robot-status-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.rscard {
+  flex: 1;
+  min-width: 160px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.rscard-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.rscard-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.rscard-online { background: #E6F4EA; color: #137333; }
+.rscard-idle { background: #FEF7E0; color: #B06000; }
+.rscard-maint { background: #E8EAF6; color: #1A73E8; }
+.rscard-offline { background: #FCE8E6; color: #C5221F; }
+.rscard-info { }
+.rscard-val { font-size: 24px; font-weight: 700; color: var(--color-text-primary); line-height: 1.2; }
+.rscard-label { font-size: 13px; color: var(--color-text-secondary); }
+.rscard-foot { font-size: 12px; color: var(--color-text-secondary); border-top: 1px solid var(--color-border); padding-top: 8px; }
+
+/* ---- task-stats ---- */
+.task-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tscard {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.tscard-icon {
+  font-size: 28px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.tscard-body { }
+.tscard-val { font-size: 24px; font-weight: 700; color: var(--color-text-primary); line-height: 1.2; }
+.tscard-label { font-size: 13px; color: var(--color-text-secondary); }
+
+/* ---- analytics-metrics ---- */
+.analytics-metrics {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.amcard {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.am-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.am-body { }
+.am-val { font-size: 20px; font-weight: 700; color: var(--color-text-primary); line-height: 1.2; }
+.am-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.am-change { font-size: 12px; margin-top: 4px; }
+.am-change.up { color: #137333; }
+.am-change.down { color: #C5221F; }
+
+/* ---- donut-row ---- */
+.donut-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.donut-row .chart-card {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* ---- legend-item & dot ---- */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.legend-item .legend-val {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-active { background: #137333; }
+.dot-idle { background: #B06000; }
+.dot-offline { background: #C5221F; }
+
+/* ---- stacked-bar ---- */
+.stacked-bar { margin-top: 16px; }
+.stacked-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+.stacked-bar-fill { height: 100%; }
+.fill-active { background: #137333; }
+.fill-idle { background: #B06000; }
+.fill-offline { background: #C5221F; }
+.stacked-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+}

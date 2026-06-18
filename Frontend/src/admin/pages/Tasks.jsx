@@ -13,6 +13,30 @@ export default function Tasks() {
         <button className="btn-primary"><i className="ti ti-plus" aria-hidden="true"></i> Assign Task</button>
       </div>
 
+      <div className="task-stats">
+        <div className="tscard">
+          <i className="ti ti-list-check tscard-icon" aria-hidden="true"></i>
+          <div className="tscard-body">
+            <div className="tscard-val">10</div>
+            <div className="tscard-label">Total Tasks</div>
+          </div>
+        </div>
+        <div className="tscard">
+          <i className="ti ti-clock tscard-icon" aria-hidden="true"></i>
+          <div className="tscard-body">
+            <div className="tscard-val">5</div>
+            <div className="tscard-label">Pending</div>
+          </div>
+        </div>
+        <div className="tscard">
+          <i className="ti ti-circle-check tscard-icon" aria-hidden="true"></i>
+          <div className="tscard-body">
+            <div className="tscard-val">3</div>
+            <div className="tscard-label">Completed</div>
+          </div>
+        </div>
+      </div>
+
       <div className="section-card">
         <div className="tab-bar">
           <div className={`tab ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>All (10)</div>

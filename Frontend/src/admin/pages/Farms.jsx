@@ -9,6 +9,12 @@ export default function Farms() {
           <div className="page-sub">View and manage agricultural properties</div>
         </div>
       </div>
+      <div className="info-banner">
+        <div className="ib-item"><i className="ti ti-building-cottage" aria-hidden="true"></i><strong>8</strong> Total Farms</div>
+        <div className="ib-item"><i className="ti ti-map-pin" aria-hidden="true"></i><strong>4</strong> Regions</div>
+        <div className="ib-item"><i className="ti ti-seedling" aria-hidden="true"></i><strong>6</strong> Crop Types</div>
+        <div className="ib-item"><i className="ti ti-robot" aria-hidden="true"></i><strong>8</strong> Active Robots</div>
+      </div>
       <div className="section-card">
         <div className="section-header" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
           <div className="section-title" style={{ marginBottom: '12px' }}>All Farms (8)</div>

@@ -10,6 +10,49 @@ export default function Robots() {
         </div>
         <button className="btn-primary"><i className="ti ti-plus" aria-hidden="true"></i> Add Robot</button>
       </div>
+
+      <div className="robot-status-cards">
+        <div className="rscard">
+          <div className="rscard-main">
+            <div className="rscard-icon rscard-online"><i className="ti ti-robot" aria-hidden="true"></i></div>
+            <div className="rscard-info">
+              <div className="rscard-val">4</div>
+              <div className="rscard-label">Online</div>
+            </div>
+          </div>
+          <div className="rscard-foot">85–100% battery</div>
+        </div>
+        <div className="rscard">
+          <div className="rscard-main">
+            <div className="rscard-icon rscard-idle"><i className="ti ti-player-pause" aria-hidden="true"></i></div>
+            <div className="rscard-info">
+              <div className="rscard-val">3</div>
+              <div className="rscard-label">Idle</div>
+            </div>
+          </div>
+          <div className="rscard-foot">45–62% battery</div>
+        </div>
+        <div className="rscard">
+          <div className="rscard-main">
+            <div className="rscard-icon rscard-maint"><i className="ti ti-tool" aria-hidden="true"></i></div>
+            <div className="rscard-info">
+              <div className="rscard-val">0</div>
+              <div className="rscard-label">Maintenance</div>
+            </div>
+          </div>
+          <div className="rscard-foot">N/A</div>
+        </div>
+        <div className="rscard">
+          <div className="rscard-main">
+            <div className="rscard-icon rscard-offline"><i className="ti ti-plug-off" aria-hidden="true"></i></div>
+            <div className="rscard-info">
+              <div className="rscard-val">1</div>
+              <div className="rscard-label">Offline</div>
+            </div>
+          </div>
+          <div className="rscard-foot">12% battery last seen</div>
+        </div>
+      </div>
       
       <div className="section-card">
         <div className="section-header" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
