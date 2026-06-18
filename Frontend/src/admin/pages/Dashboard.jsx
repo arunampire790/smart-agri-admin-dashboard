@@ -24,12 +24,12 @@ export default function Dashboard() {
   const { users } = useUsers();
 
   const statCards = [
-    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ti-users', bg: '#E6F4EA', color: '#137333' },
-    { label: 'Total Farms', value: '8', note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E6F4EA', color: '#137333' },
-    { label: 'Total Robots', value: '8', note: '3 offline', icon: 'ti-robot', bg: '#FCE8E6', color: '#C5221F' },
-    { label: 'Active Robots', value: '4', note: 'Currently operating', icon: 'ti-activity', bg: '#E6F4EA', color: '#137333' },
-    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FEF7E0', color: '#B06000' },
-    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E6F4EA', color: '#137333' },
+    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ti-users', bg: '#E6F4EA', color: '#137333', route: '/admin/users' },
+    { label: 'Total Farms', value: '8', note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E6F4EA', color: '#137333', route: '/admin/farms' },
+    { label: 'Total Robots', value: '8', note: '3 offline', icon: 'ti-robot', bg: '#FCE8E6', color: '#C5221F', route: '/admin/robots' },
+    { label: 'Active Robots', value: '4', note: 'Currently operating', icon: 'ti-activity', bg: '#E6F4EA', color: '#137333', route: '/admin/robots' },
+    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FEF7E0', color: '#B06000', route: '/admin/tasks' },
+    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E6F4EA', color: '#137333', route: '/admin/tasks' },
   ];
 
   return (
@@ -41,7 +41,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         {statCards.map((card) => (
-          <div key={card.label} className="bg-white rounded-xl p-5 flex items-start justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+          <div
+            key={card.label}
+            onClick={() => navigate(card.route)}
+            className="bg-white rounded-xl p-5 flex items-start justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)] cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-md"
+          >
             <div className="flex-1">
               <div className="text-xs font-medium text-text-secondary mb-2">{card.label}</div>
               <div className="text-3xl font-bold">{card.value}</div>
