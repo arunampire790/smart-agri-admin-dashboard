@@ -17,17 +17,35 @@ const statusOpts = {
   Offline: { stCls: 'bg-danger-bg text-danger-text' },
 };
 
+const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
+const labelClass = "text-xs font-medium text-[#111]";
+const selectClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]";
+const submitBtnClass = "bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm";
+const modalBox = "bg-white rounded-xl p-6 w-[450px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative";
+
 export default function Robots() {
   const [robots, setRobots] = useState(initialRobots);
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editRobot, setEditRobot] = useState(null);
+  const [deleteRobot, setDeleteRobot] = useState(null);
   const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
-  const openModal = () => {
+  const openAdd = () => {
     setForm({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
     setErrors({});
-    setShowModal(true);
+    setShowAddModal(true);
   };
+
+  const openEdit = (robot) => {
+    setForm({ name: robot.name, id: robot.id, model: robot.model, farm: robot.farm, status: robot.status });
+    setErrors({});
+    setEditRobot(robot);
+  };
+
+  const openDelete = (robot) => setDeleteRobot(robot);
 
   const validate = () => {
     const errs = {};
@@ -37,10 +55,9 @@ export default function Robots() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     setRobots((prev) => [
       ...prev,
       {
@@ -54,12 +71,34 @@ export default function Robots() {
         stCls: statusOpts[form.status].stCls,
       },
     ]);
-    setShowModal(false);
+    setShowAddModal(false);
   };
 
-  const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
-  const labelClass = "text-xs font-medium text-[#111]";
-  const selectClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer";
+  const handleEdit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setRobots((prev) =>
+      prev.map((r) =>
+        r === editRobot
+          ? {
+              ...r,
+              name: form.name.trim(),
+              id: form.id.trim(),
+              farm: form.farm,
+              model: form.model,
+              status: form.status,
+              stCls: statusOpts[form.status].stCls,
+            }
+          : r
+      )
+    );
+    setEditRobot(null);
+  };
+
+  const handleDelete = () => {
+    setRobots((prev) => prev.filter((r) => r !== deleteRobot));
+    setDeleteRobot(null);
+  };
 
   return (
     <>
@@ -68,7 +107,7 @@ export default function Robots() {
           <div className="text-2xl font-semibold">Robot Management</div>
           <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
-        <button onClick={openModal} className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+        <button onClick={openAdd} className={submitBtnClass}>
           <i className="ti ti-plus" /> Add Robot
         </button>
       </div>
@@ -122,8 +161,8 @@ export default function Robots() {
                 <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${r.stCls}`}>{r.status}</span></td>
                 <td className="px-4 py-4 border-b border-[#F1F3F4]">
                   <div className="flex gap-3 items-center">
-                    <button title="Edit" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-edit" /></button>
-                    <button title="Delete" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ti ti-trash" /></button>
+                    <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-edit" /></button>
+                    <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ti ti-trash" /></button>
                   </div>
                 </td>
               </tr>
@@ -132,99 +171,107 @@ export default function Robots() {
         </table>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl p-6 w-[450px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative">
-            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
+      {/* Add Robot Modal */}
+      {showAddModal && (
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
               <i className="ti ti-x" />
             </button>
-
             <div className="text-lg font-bold text-[#111] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Robot Name</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g., AgriBot Alpha"
-                  className={inputClass}
-                />
-                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
-              </div>
-
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Robot ID</label>
-                <input
-                  value={form.id}
-                  onChange={(e) => setForm({ ...form, id: e.target.value })}
-                  placeholder="e.g., AgriBot-001"
-                  className={inputClass}
-                />
-                {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
-              </div>
-
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Model</label>
-                <div className="relative">
-                  <select
-                    value={form.model}
-                    onChange={(e) => setForm({ ...form, model: e.target.value })}
-                    className={selectClass}
-                  >
-                    {models.map((m) => (
-                      <option key={m} value={m} className="bg-white text-[#111] hover:bg-brand-light hover:text-brand">{m}</option>
-                    ))}
-                  </select>
-                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Assigned Farm</label>
-                <div className="relative">
-                  <select
-                    value={form.farm}
-                    onChange={(e) => setForm({ ...form, farm: e.target.value })}
-                    className={selectClass}
-                  >
-                    {farms.map((f) => (
-                      <option key={f} value={f} className="bg-white text-[#111]">{f}</option>
-                    ))}
-                  </select>
-                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mb-6">
-                <label className={labelClass}>Status</label>
-                <div className="relative">
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className={selectClass}
-                  >
-                    {statuses.map((s) => (
-                      <option key={s} value={s} className="bg-white text-[#111]">{s}</option>
-                    ))}
-                  </select>
-                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
-                </div>
-              </div>
-
+            <form onSubmit={handleAdd}>
+              <FormFields form={form} setForm={setForm} errors={errors} />
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]">
-                  Cancel
-                </button>
-                <button type="submit" className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
-                  Add Robot
-                </button>
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}>Add Robot</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Edit Robot Modal */}
+      {editRobot && (
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
+              <i className="ti ti-x" />
+            </button>
+            <div className="text-lg font-bold text-[#111] mb-1">Edit Robot</div>
+            <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
+            <form onSubmit={handleEdit}>
+              <FormFields form={form} setForm={setForm} errors={errors} />
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setEditRobot(null)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}>Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteRobot && (
+        <div className={modalOverlay} onClick={() => setDeleteRobot(null)}>
+          <div className="bg-white rounded-xl p-6 w-[400px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-[#111] mb-2">Delete Robot?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              Are you sure you want to remove <strong className="text-[#111] font-medium">{deleteRobot.name}</strong> ({deleteRobot.id}) from the fleet registry? This action cannot be reverted.
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteRobot(null)} className={cancelBtnClass}>Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+                <i className="ti ti-trash" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function FormFields({ form, setForm, errors }) {
+  return (
+    <>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Robot Name</label>
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., AgriBot Alpha" className={inputClass} />
+        {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Robot ID</label>
+        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass} />
+        {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Model</label>
+        <div className="relative">
+          <select value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} className={selectClass}>
+            {models.map((m) => <option key={m} value={m} className="bg-white text-[#111]">{m}</option>)}
+          </select>
+          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Assigned Farm</label>
+        <div className="relative">
+          <select value={form.farm} onChange={(e) => setForm({ ...form, farm: e.target.value })} className={selectClass}>
+            {farms.map((f) => <option key={f} value={f} className="bg-white text-[#111]">{f}</option>)}
+          </select>
+          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 mb-6">
+        <label className={labelClass}>Status</label>
+        <div className="relative">
+          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={selectClass}>
+            {statuses.map((s) => <option key={s} value={s} className="bg-white text-[#111]">{s}</option>)}
+          </select>
+          <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+        </div>
+      </div>
     </>
   );
 }
