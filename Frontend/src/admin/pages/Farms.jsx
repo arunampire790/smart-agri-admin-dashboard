@@ -1,34 +1,28 @@
 import { useState, useMemo } from 'react';
+import { useFarms } from '../../context/FarmContext';
 
-const initialFarms = [
-  { name: 'Green Valley Farm', owner: 'John Smith', crop: 'Wheat', soil: 'Clay', location: 'California, USA', robot: 'AgriBot-001', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '120 acres', cropTypes: 'Wheat, Barley', devices: '3' },
-  { name: 'Sunrise Orchards', owner: 'Sarah Johnson', crop: 'Apples', soil: 'Loam', location: 'Washington, USA', robot: 'AgriBot-002', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '85 acres', cropTypes: 'Apples, Pears', devices: '2' },
-  { name: 'Golden Harvest', owner: 'Michael Brown', crop: 'Corn', soil: 'Sandy', location: 'Iowa, USA', robot: 'AgriBot-003', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '200 acres', cropTypes: 'Corn, Soybeans', devices: '4' },
-  { name: 'Maple Ridge Farm', owner: 'John Smith', crop: 'Soybeans', soil: 'Loam', location: 'Illinois, USA', robot: 'AgriBot-004', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '150 acres', cropTypes: 'Soybeans, Wheat', devices: '2' },
-  { name: 'River Bend Agriculture', owner: 'Emily Davis', crop: 'Rice', soil: 'Clay', location: 'Arkansas, USA', robot: 'AgriBot-005', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '180 acres', cropTypes: 'Rice, Corn', devices: '3' },
-  { name: 'Highland Crops', owner: 'David Wilson', crop: 'Corn', soil: 'Loam', location: 'Nebraska, USA', robot: 'AgriBot-006', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '220 acres', cropTypes: 'Corn, Wheat', devices: '5' },
-  { name: 'Coastal Farms', owner: 'Sarah Johnson', crop: 'Strawberries', soil: 'Sandy', location: 'Florida, USA', robot: 'AgriBot-007', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '60 acres', cropTypes: 'Strawberries, Tomatoes', devices: '2' },
-  { name: 'Valley View Ranch', owner: 'Michael Brown', crop: 'Alfalfa', soil: 'Loam', location: 'Texas, USA', robot: 'AgriBot-008', status: 'Active', cls: 'bg-brand-light text-[#137333]', size: '300 acres', cropTypes: 'Alfalfa, Hay', devices: '4' },
-];
-
-const regions = [...new Set(initialFarms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))];
-const cropTypes = [...new Set(initialFarms.map((f) => f.crop))];
+const soils = ['Clay', 'Loam', 'Sandy', 'Silt'];
+const crops = ['Wheat', 'Corn', 'Soybeans', 'Rice', 'Apples', 'Strawberries', 'Alfalfa', 'Barley', 'Tomatoes', 'Hay', 'Pears'];
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
 const labelClass = "text-xs font-medium text-[#111]";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]";
 const submitBtnClass = "bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
 const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm";
-const modalBox = "bg-white rounded-xl p-6 w-[460px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]";
+const modalBox = "bg-white rounded-xl p-6 w-[460px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative";
 
 export default function Farms() {
-  const [farms, setFarms] = useState(initialFarms);
+  const { farms, addFarm, updateFarm, removeFarm } = useFarms();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
   const [viewFarm, setViewFarm] = useState(null);
   const [editFarm, setEditFarm] = useState(null);
   const [deleteFarm, setDeleteFarm] = useState(null);
-  const [form, setForm] = useState({ name: '', location: '', owner: '' });
+  const [form, setForm] = useState({ name: '', location: '', owner: '', crop: 'Wheat', soil: 'Loam' });
   const [errors, setErrors] = useState({});
+
+  const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
+  const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
 
   const filteredFarms = useMemo(() => {
     if (!searchTerm.trim()) return farms;
@@ -36,10 +30,16 @@ export default function Farms() {
     return farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q));
   }, [farms, searchTerm]);
 
+  const openAdd = () => {
+    setForm({ name: '', location: '', owner: '', crop: 'Wheat', soil: 'Loam' });
+    setErrors({});
+    setShowAddModal(true);
+  };
+
   const openView = (farm) => setViewFarm(farm);
 
   const openEdit = (farm) => {
-    setForm({ name: farm.name, location: farm.location, owner: farm.owner });
+    setForm({ name: farm.name, location: farm.location, owner: farm.owner, crop: farm.crop, soil: farm.soil });
     setErrors({});
     setEditFarm(farm);
   };
@@ -55,17 +55,34 @@ export default function Farms() {
     return Object.keys(errs).length === 0;
   };
 
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    addFarm({
+      name: form.name.trim(),
+      location: form.location.trim(),
+      owner: form.owner.trim(),
+      crop: form.crop,
+      soil: form.soil,
+      robot: '—',
+      status: 'Active',
+      cls: 'bg-brand-light text-[#137333]',
+      size: '—',
+      cropTypes: form.crop,
+      devices: '0',
+    });
+    setShowAddModal(false);
+  };
+
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setFarms((prev) =>
-      prev.map((f) => (f === editFarm ? { ...f, name: form.name.trim(), location: form.location.trim(), owner: form.owner.trim() } : f))
-    );
+    updateFarm(editFarm, { name: form.name.trim(), location: form.location.trim(), owner: form.owner.trim(), crop: form.crop, soil: form.soil });
     setEditFarm(null);
   };
 
   const handleDelete = () => {
-    setFarms((prev) => prev.filter((f) => f !== deleteFarm));
+    removeFarm(deleteFarm);
     setDeleteFarm(null);
   };
 
@@ -76,6 +93,9 @@ export default function Farms() {
           <div className="text-2xl font-semibold">Farm Management</div>
           <div className="text-sm text-text-secondary mt-1">View and manage agricultural properties</div>
         </div>
+        <button onClick={openAdd} className={submitBtnClass}>
+          <i className="ti ti-plus" /> Add Farm
+        </button>
       </div>
 
       <div className="flex gap-3 mb-4 flex-wrap">
@@ -134,6 +154,56 @@ export default function Farms() {
           </table>
         )}
       </div>
+
+      {/* Add Farm Modal */}
+      {showAddModal && (
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-x" /></button>
+            <div className="text-lg font-bold text-[#111] mb-1">Add New Farm</div>
+            <div className="text-xs text-text-secondary mb-5">Register a new agricultural property.</div>
+            <form onSubmit={handleAdd}>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Farm Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter farm name" className={inputClass} />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Location</label>
+                <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Enter location" className={inputClass} />
+                {errors.location && <span className="text-[10px] text-danger-text">{errors.location}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Owner</label>
+                <input value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} placeholder="Enter owner name" className={inputClass} />
+                {errors.owner && <span className="text-[10px] text-danger-text">{errors.owner}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Crop Type</label>
+                <div className="relative">
+                  <select value={form.crop} onChange={(e) => setForm({ ...form, crop: e.target.value })} className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer">
+                    {crops.map((c) => <option key={c} value={c} className="bg-white text-[#111]">{c}</option>)}
+                  </select>
+                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Soil Type</label>
+                <div className="relative">
+                  <select value={form.soil} onChange={(e) => setForm({ ...form, soil: e.target.value })} className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full appearance-none cursor-pointer">
+                    {soils.map((s) => <option key={s} value={s} className="bg-white text-[#111]">{s}</option>)}
+                  </select>
+                  <i className="ti ti-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder text-sm pointer-events-none" />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}>Add Farm</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* View Farm Modal */}
       {viewFarm && (
