@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 const initialUsers = [
   { name: 'John Smith', email: 'john.smith@example.com', phone: '+1-555-0101', farms: 3, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: '2025-12-15' },
@@ -10,17 +10,37 @@ const initialUsers = [
 
 export default function Users() {
   const [users, setUsers] = useState(initialUsers);
-  const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const [viewUser, setViewUser] = useState(null);
+  const [editUser, setEditUser] = useState(null);
+  const [deleteUser, setDeleteUser] = useState(null);
+
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
   const [errors, setErrors] = useState({});
 
-  const openModal = () => {
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) return users;
+    const q = searchTerm.toLowerCase();
+    return users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  }, [users, searchTerm]);
+
+  const openAdd = () => {
     setForm({ name: '', email: '', phone: '' });
     setErrors({});
-    setShowModal(true);
+    setShowAddModal(true);
   };
 
-  const closeModal = () => setShowModal(false);
+  const openView = (user) => setViewUser(user);
+
+  const openEdit = (user) => {
+    setForm({ name: user.name, email: user.email, phone: user.phone });
+    setErrors({});
+    setEditUser(user);
+  };
+
+  const openDelete = (user) => setDeleteUser(user);
 
   const validate = () => {
     const errs = {};
@@ -32,24 +52,39 @@ export default function Users() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     const today = new Date().toISOString().slice(0, 10);
-    const newUser = {
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      farms: 0,
-      status: 'Active',
-      cls: 'bg-brand-light text-[#137333]',
-      joined: today,
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-    closeModal();
+    setUsers((prev) => [
+      ...prev,
+      { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: today },
+    ]);
+    setShowAddModal(false);
   };
+
+  const handleEdit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setUsers((prev) =>
+      prev.map((u) =>
+        u === editUser ? { ...u, name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() } : u
+      )
+    );
+    setEditUser(null);
+  };
+
+  const handleDelete = () => {
+    setUsers((prev) => prev.filter((u) => u !== deleteUser));
+    setDeleteUser(null);
+  };
+
+  const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
+  const labelClass = "text-xs font-medium text-[#111]";
+  const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]";
+  const submitBtnClass = "bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+  const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm";
+  const modalBox = "bg-white rounded-xl p-6 w-[440px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]";
 
   return (
     <>
@@ -58,7 +93,7 @@ export default function Users() {
           <div className="text-2xl font-semibold">User Management</div>
           <div className="text-sm text-text-secondary mt-1">Manage system users and permissions</div>
         </div>
-        <button onClick={openModal} className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+        <button onClick={openAdd} className={submitBtnClass}>
           <i className="ti ti-plus" /> Add User
         </button>
       </div>
@@ -66,84 +101,165 @@ export default function Users() {
       <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold mb-3">All Users ({users.length})</div>
-          <input placeholder="Search users by name or email…" aria-label="Search users" className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full" />
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search users by name or email…"
+            aria-label="Search users"
+            className={inputClass}
+          />
         </div>
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Email</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Phone</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farms</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Joined</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th></tr>
-          </thead>
-          <tbody>
-            {users.map((u, i) => (
-              <tr key={i}>
-                <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{u.name}</strong></td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.email}</td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.phone}</td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.farms}</td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span></td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.joined}</td>
-                <td className="px-4 py-4 border-b border-[#F1F3F4]">
-                  <div className="flex gap-3 items-center">
-                    <button title="View" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-eye" /></button>
-                    <button title="Edit" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-edit" /></button>
-                    <button title="Delete" className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ti ti-trash" /></button>
-                  </div>
-                </td>
+
+        {filteredUsers.length === 0 ? (
+          <div className="py-12 text-center text-text-secondary text-sm">No users found matching your search.</div>
+        ) : (
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Email</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Phone</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farms</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Joined</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u, i) => (
+                <tr key={i}>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{u.name}</strong></td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.email}</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.phone}</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.farms}</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.joined}</td>
+                  <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                    <div className="flex gap-3 items-center">
+                      <button title="View" onClick={() => openView(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
+                        <i className="ti ti-eye" />
+                      </button>
+                      <button title="Edit" onClick={() => openEdit(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
+                        <i className="ti ti-edit" />
+                      </button>
+                      <button title="Delete" onClick={() => openDelete(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg">
+                        <i className="ti ti-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl p-6 w-[440px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className={modalOverlay}>
+          <div className={modalBox}>
             <div className="text-lg font-bold text-[#111] mb-1">Add New User</div>
             <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
-
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleAdd}>
               <div className="flex flex-col gap-1.5 mb-4">
-                <label className="text-xs font-medium text-[#111]">Full Name</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Enter full name"
-                  className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full"
-                />
+                <label className={labelClass}>Full Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
                 {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
               </div>
-
               <div className="flex flex-col gap-1.5 mb-4">
-                <label className="text-xs font-medium text-[#111]">Email Address</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="Enter email address"
-                  className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full"
-                />
+                <label className={labelClass}>Email Address</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
                 {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
               </div>
-
               <div className="flex flex-col gap-1.5 mb-6">
-                <label className="text-xs font-medium text-[#111]">Phone Number</label>
-                <input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+1-555-xxxx"
-                  className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full"
-                />
+                <label className={labelClass}>Phone Number</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
                 {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
               </div>
-
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={closeModal} className="text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]">
-                  Cancel
-                </button>
-                <button type="submit" className="bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
-                  Submit
-                </button>
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}>Submit</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View User Modal */}
+      {viewUser && (
+        <div className={modalOverlay} onClick={() => setViewUser(null)}>
+          <div className={modalBox} onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-[#111] mb-1">User Details</div>
+            <div className="text-xs text-text-secondary mb-5">Viewing information for {viewUser.name}.</div>
+            <div className="space-y-4">
+              {[
+                { label: 'Full Name', value: viewUser.name },
+                { label: 'Email Address', value: viewUser.email },
+                { label: 'Phone Number', value: viewUser.phone },
+                { label: 'Number of Farms', value: viewUser.farms },
+                { label: 'Status', value: viewUser.status },
+                { label: 'Date Created', value: viewUser.joined },
+              ].map((field) => (
+                <div key={field.label} className="flex flex-col gap-1">
+                  <span className={labelClass}>{field.label}</span>
+                  <div className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] text-[#111] w-full">{field.value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end mt-6">
+              <button onClick={() => setViewUser(null)} className={cancelBtnClass}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editUser && (
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <div className="text-lg font-bold text-[#111] mb-1">Edit User Details</div>
+            <div className="text-xs text-text-secondary mb-5">Update information for {editUser.name}.</div>
+            <form onSubmit={handleEdit}>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Full Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Email Address</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
+                {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Phone Number</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
+                {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setEditUser(null)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}>Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteUser && (
+        <div className={modalOverlay} onClick={() => setDeleteUser(null)}>
+          <div className="bg-white rounded-xl p-6 w-[380px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-[#111] mb-2">Delete User?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              Are you sure you want to delete <strong className="text-[#111] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteUser(null)} className={cancelBtnClass}>Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+                <i className="ti ti-trash" /> Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
