@@ -1,11 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-
-const initialRobots = [
-  { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
-  { name: 'AgriBot Beta', id: 'AgriBot-002', farm: 'Sunrise Orchards', model: 'AB-X1000', battery: 62, batCls: 'bg-[#137333]', status: 'Active', stCls: 'bg-brand-light text-[#137333]' },
-  { name: 'AgriBot Gamma', id: 'AgriBot-003', farm: 'Golden Harvest', model: 'AB-X2000', battery: 45, batCls: 'bg-warning-text', status: 'Idle', stCls: 'bg-warning-bg text-warning-text' },
-  { name: 'AgriBot Delta', id: 'AgriBot-004', farm: 'Maple Ridge Farm', model: 'AB-X1000', battery: 12, batCls: 'bg-danger-text', status: 'Offline', stCls: 'bg-danger-bg text-danger-text' },
-];
+import { useRobots } from '../../context/RobotContext';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farms = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -104,7 +98,7 @@ function FormFields({ form, setForm, errors }) {
 }
 
 export default function Robots() {
-  const [robots, setRobots] = useState(initialRobots);
+  const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
@@ -136,37 +130,35 @@ export default function Robots() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setRobots((prev) => [
-      ...prev,
-      {
-        name: form.name.trim(),
-        id: form.id.trim(),
-        farm: form.farm,
-        model: form.model,
-        battery: 100,
-        batCls: 'bg-[#137333]',
-        status: form.status,
-        stCls: statusOpts[form.status].stCls,
-      },
-    ]);
+    addRobot({
+      name: form.name.trim(),
+      id: form.id.trim(),
+      farm: form.farm,
+      model: form.model,
+      battery: 100,
+      batCls: 'bg-[#137333]',
+      status: form.status,
+      stCls: statusOpts[form.status].stCls,
+    });
     setShowAddModal(false);
   };
 
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setRobots((prev) =>
-      prev.map((r) =>
-        r === editRobot
-          ? { ...r, name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, status: form.status, stCls: statusOpts[form.status].stCls }
-          : r
-      )
-    );
+    updateRobot(editRobot, {
+      name: form.name.trim(),
+      id: form.id.trim(),
+      farm: form.farm,
+      model: form.model,
+      status: form.status,
+      stCls: statusOpts[form.status].stCls,
+    });
     setEditRobot(null);
   };
 
   const handleDelete = () => {
-    setRobots((prev) => prev.filter((r) => r !== deleteRobot));
+    removeRobot(deleteRobot);
     setDeleteRobot(null);
   };
 
