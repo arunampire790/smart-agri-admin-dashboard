@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import UserRoutes from "./routes/UserRoutes";
+import AdminLogin from "./admin/pages/AdminLogin";
 import AdminRoutes from "./routes/AdminRoutes";
+import UserRoutes from "./routes/UserRoutes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/*" element={<UserRoutes />} />
+        <Route path="/" element={<AdminLogin />} />
+        <Route path="/user/*" element={<UserRoutes />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Routes>
     </BrowserRouter>
