@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import Header from './Header';
+import GlobalHeader from './GlobalHeader';
 
 const navItems = [
   { to: '/admin/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
@@ -55,7 +55,7 @@ export default function AdminLayout() {
       </aside>
 
       <div className="flex-1 overflow-y-auto flex flex-col">
-        <Header />
+        <GlobalHeader />
 
         <main className="p-6 flex-1">
           <Outlet />
