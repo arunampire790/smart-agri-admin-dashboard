@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
+import { useUsers } from '../../context/UserContext';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farms = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -68,7 +69,7 @@ function Select({ options, value, onChange, placeholder }) {
   );
 }
 
-function FormFields({ form, setForm, errors }) {
+function FormFields({ form, setForm, errors, userNames }) {
   return (
     <>
       <div className="flex flex-col gap-1.5 mb-4">
@@ -86,6 +87,10 @@ function FormFields({ form, setForm, errors }) {
         <Select options={models} value={form.model} onChange={(v) => setForm({ ...form, model: v })} />
       </div>
       <div className="flex flex-col gap-1.5 mb-4">
+        <label className={labelClass}>Owner</label>
+        <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="No users available" />
+      </div>
+      <div className="flex flex-col gap-1.5 mb-4">
         <label className={labelClass}>Assigned Farm</label>
         <Select options={farms} value={form.farm} onChange={(v) => setForm({ ...form, farm: v })} />
       </div>
@@ -99,20 +104,23 @@ function FormFields({ form, setForm, errors }) {
 
 export default function Robots() {
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
+  const { users } = useUsers();
+  const userNames = users.length ? users.map((u) => u.name) : [];
+  const defaultOwner = userNames.length ? userNames[0] : '';
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
-  const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
+  const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
   const openAdd = () => {
-    setForm({ name: '', id: '', model: 'AB-X1000', farm: 'Green Valley Farm', status: 'Idle' });
+    setForm({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' });
     setErrors({});
     setShowAddModal(true);
   };
 
   const openEdit = (robot) => {
-    setForm({ name: robot.name, id: robot.id, model: robot.model, farm: robot.farm, status: robot.status });
+    setForm({ name: robot.name, id: robot.id, model: robot.model, owner: robot.owner || '', farm: robot.farm, status: robot.status });
     setErrors({});
     setEditRobot(robot);
   };
@@ -135,6 +143,7 @@ export default function Robots() {
       id: form.id.trim(),
       farm: form.farm,
       model: form.model,
+      owner: form.owner,
       battery: 100,
       batCls: 'bg-[#137333]',
       status: form.status,
@@ -151,6 +160,7 @@ export default function Robots() {
       id: form.id.trim(),
       farm: form.farm,
       model: form.model,
+      owner: form.owner,
       status: form.status,
       stCls: statusOpts[form.status].stCls,
     });
@@ -203,13 +213,14 @@ export default function Robots() {
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th></tr>
           </thead>
           <tbody>
             {robots.map((r, i) => (
               <tr key={i}>
                 <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{r.name}</strong></td>
                 <td className="px-4 py-4 border-b border-[#F1F3F4]"><code className="text-xs bg-[#F1F3F4] px-1.5 py-0.5 rounded">{r.id}</code></td>
+                <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{r.owner}</td>
                 <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{r.farm}</td>
                 <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{r.model}</td>
                 <td className="px-4 py-4 border-b border-[#F1F3F4]">
@@ -240,7 +251,7 @@ export default function Robots() {
             <div className="text-lg font-bold text-[#111] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
             <form onSubmit={handleAdd}>
-              <FormFields form={form} setForm={setForm} errors={errors} />
+              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
                 <button type="submit" className={submitBtnClass}>Add Robot</button>
@@ -257,7 +268,7 @@ export default function Robots() {
             <div className="text-lg font-bold text-[#111] mb-1">Edit Robot</div>
             <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
             <form onSubmit={handleEdit}>
-              <FormFields form={form} setForm={setForm} errors={errors} />
+              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setEditRobot(null)} className={cancelBtnClass}>Cancel</button>
                 <button type="submit" className={submitBtnClass}>Save Changes</button>
