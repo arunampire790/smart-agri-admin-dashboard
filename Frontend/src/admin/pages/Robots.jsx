@@ -106,7 +106,7 @@ function FormFields({ form, setForm, errors, userNames }) {
 export default function Robots() {
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
-  const { farms, updateFarm } = useFarms();
+  const { farms, addFarm, updateFarm } = useFarms();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [showAddModal, setShowAddModal] = useState(false);
@@ -152,7 +152,11 @@ export default function Robots() {
       stCls: statusOpts[form.status].stCls,
     });
     const targetFarm = farms.find((f) => f.name === form.farm);
-    if (targetFarm) updateFarm(targetFarm, { owner: form.owner });
+    if (targetFarm) {
+      updateFarm(targetFarm, { owner: form.owner });
+    } else {
+      addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#F1F3F4] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' });
+    }
     setShowAddModal(false);
   };
 
@@ -169,7 +173,11 @@ export default function Robots() {
       stCls: statusOpts[form.status].stCls,
     });
     const targetFarm = farms.find((f) => f.name === form.farm);
-    if (targetFarm) updateFarm(targetFarm, { owner: form.owner });
+    if (targetFarm) {
+      updateFarm(targetFarm, { owner: form.owner });
+    } else {
+      addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#F1F3F4] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' });
+    }
     setEditRobot(null);
   };
 
