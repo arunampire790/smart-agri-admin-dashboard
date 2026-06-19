@@ -67,9 +67,15 @@ export default function Farms() {
         {filteredFarms.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No farms found matching your criteria.</div>
         ) : (
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full border-collapse text-sm table-fixed">
             <thead>
-              <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farm name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Crop</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Soil</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Location</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Connected Devices</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th></tr>
+              <tr>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[25%]">Farm Name</th>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[25%]">Location</th>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[20%]">Owner</th>
+                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[15%]">Connected Devices</th>
+                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[15%]">Status</th>
+              </tr>
             </thead>
             <tbody>
               {filteredFarms.map((f, i) => {
@@ -77,13 +83,15 @@ export default function Farms() {
                 const status = getFarmStatus(farmRobots);
                 return (
                   <tr key={i}>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{f.name}</strong></td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{f.owner}</td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{f.crop}</td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{f.soil}</td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{f.location}</td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{farmRobots.length}</td>
-                    <td className="px-4 py-4 border-b border-[#F1F3F4]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span></td>
+                    <td className="px-5 py-4 border-b border-[#EAEAEA]"><strong className="text-[#111] font-medium">{f.name}</strong></td>
+                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{f.location}</td>
+                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{f.owner}</td>
+                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
+                      <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#F1F3F4] text-text-secondary text-xs font-semibold">{farmRobots.length}</span>
+                    </td>
+                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
+                    </td>
                   </tr>
                 );
               })}
