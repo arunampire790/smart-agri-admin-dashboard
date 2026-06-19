@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farms = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -105,6 +106,7 @@ function FormFields({ form, setForm, errors, userNames }) {
 export default function Robots() {
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
+  const { farms, updateFarm } = useFarms();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [showAddModal, setShowAddModal] = useState(false);
@@ -149,6 +151,8 @@ export default function Robots() {
       status: form.status,
       stCls: statusOpts[form.status].stCls,
     });
+    const targetFarm = farms.find((f) => f.name === form.farm);
+    if (targetFarm) updateFarm(targetFarm, { owner: form.owner });
     setShowAddModal(false);
   };
 
@@ -164,6 +168,8 @@ export default function Robots() {
       status: form.status,
       stCls: statusOpts[form.status].stCls,
     });
+    const targetFarm = farms.find((f) => f.name === form.farm);
+    if (targetFarm) updateFarm(targetFarm, { owner: form.owner });
     setEditRobot(null);
   };
 
