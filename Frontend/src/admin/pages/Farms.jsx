@@ -4,6 +4,12 @@ import { useRobots } from '../../context/RobotContext';
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
 
+function getStatusLabel(connectedRobots) {
+  if (connectedRobots.length === 0) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text' };
+  if (connectedRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-[#137333]' };
+  return { label: 'Idle', cls: 'bg-warning-bg text-warning-text' };
+}
+
 export default function Farms() {
   const { farms } = useFarms();
   const { robots } = useRobots();
@@ -12,22 +18,30 @@ export default function Farms() {
   const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
 
-  const getFarmDevices = (farmName) => robots.filter((r) => r.farm === farmName);
+  const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
 
-  const getFarmStatus = (farmRobots) => {
-    if (farmRobots.length === 0) return { label: 'Inactive', cls: 'bg-[#F1F3F4] text-text-placeholder' };
-    if (farmRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-[#137333]' };
-    if (farmRobots.every((r) => r.status === 'Offline')) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text' };
-    return { label: 'Idle', cls: 'bg-warning-bg text-warning-text' };
-  };
+  const farmRows = useMemo(() => {
+    const visible = !searchTerm.trim()
+      ? farms
+      : (() => {
+          const q = searchTerm.toLowerCase();
+          return farms.filter(
+            (f) =>
+              f.name.toLowerCase().includes(q) ||
+              f.location.toLowerCase().includes(q) ||
+              f.owner.toLowerCase().includes(q)
+          );
+        })();
 
-  const activeRobots = robots.filter((r) => r.status === 'Active').length;
-
-  const filteredFarms = useMemo(() => {
-    if (!searchTerm.trim()) return farms;
-    const q = searchTerm.toLowerCase();
-    return farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q));
-  }, [farms, searchTerm]);
+    return visible.map((farm) => {
+      const connectedRobots = robots.filter((r) => r.farm === farm.name);
+      return {
+        farm,
+        connectedCount: connectedRobots.length,
+        status: getStatusLabel(connectedRobots),
+      };
+    });
+  }, [farms, robots, searchTerm]);
 
   return (
     <>
@@ -43,7 +57,7 @@ export default function Farms() {
           { icon: 'ti-building-cottage', val: String(farms.length), label: 'Total Farms' },
           { icon: 'ti-map-pin', val: String(regions.length), label: 'Regions' },
           { icon: 'ti-seedling', val: String(cropTypes.length), label: 'Crop Types' },
-          { icon: 'ti-robot', val: String(activeRobots), label: 'Active Robots' },
+          { icon: 'ti-robot', val: String(activeRobotCount), label: 'Active Robots' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 bg-white border border-[#EAEAEA] rounded-lg px-4 py-2.5 text-xs text-text-secondary">
             <i className={`ti ${item.icon} text-lg`} style={{ color: '#2B7A3E' }} />
@@ -64,7 +78,7 @@ export default function Farms() {
           />
         </div>
 
-        {filteredFarms.length === 0 ? (
+        {farmRows.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No farms found matching your criteria.</div>
         ) : (
           <table className="w-full border-collapse text-sm table-fixed">
@@ -78,23 +92,19 @@ export default function Farms() {
               </tr>
             </thead>
             <tbody>
-              {filteredFarms.map((f, i) => {
-                const farmRobots = getFarmDevices(f.name);
-                const status = getFarmStatus(farmRobots);
-                return (
-                  <tr key={i}>
-                    <td className="px-5 py-4 border-b border-[#EAEAEA]"><strong className="text-[#111] font-medium">{f.name}</strong></td>
-                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{f.location}</td>
-                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{f.owner}</td>
-                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
-                      <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#F1F3F4] text-text-secondary text-xs font-semibold">{farmRobots.length}</span>
-                    </td>
-                    <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
-                    </td>
-                  </tr>
-                );
-              })}
+              {farmRows.map(({ farm, connectedCount, status }, i) => (
+                <tr key={i}>
+                  <td className="px-5 py-4 border-b border-[#EAEAEA]"><strong className="text-[#111] font-medium">{farm.name}</strong></td>
+                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{farm.location}</td>
+                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{farm.owner}</td>
+                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
+                    <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#F1F3F4] text-text-secondary text-xs font-semibold">{connectedCount}</span>
+                  </td>
+                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
