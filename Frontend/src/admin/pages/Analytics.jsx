@@ -8,14 +8,14 @@ export default function Analytics() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ti-chart-arrows-vertical', bg: '#E8F8E8', color: '#34C759', val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', up: true },
-          { icon: 'ti-checklist', bg: '#E8F8E8', color: '#34C759', val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', up: true },
-          { icon: 'ti-activity', bg: '#FFE8E8', color: '#FF3B30', val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', up: false },
-          { icon: 'ti-plant-2', bg: '#E8F8E8', color: '#34C759', val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', up: true },
+          { icon: 'ph-chart-line-up', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', up: true },
+          { icon: 'ph-clipboard-text', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', up: true },
+          { icon: 'ph-activity', bg: 'rgba(255,59,48,0.12)', color: '#FF3B30', val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', up: false },
+          { icon: 'ph-plant', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', up: true },
         ].map((item, i) => (
           <div key={i} className="flex-1 min-w-[180px] flex items-center gap-3 bg-white border border-[rgba(0,0,0,0.05)] rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ background: item.bg, color: item.color }}>
-              <i className={`ti ${item.icon}`} />
+              <i className={item.icon} />
             </div>
             <div>
               <div className="text-lg font-bold text-[#000000] leading-tight">{item.val}</div>
@@ -30,7 +30,7 @@ export default function Analytics() {
         <div className="flex-1 min-w-[240px] bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
           {[
-            { label: 'Wheat', pct: 25, color: '#34C759' },
+            { label: 'Wheat', pct: 25, color: '#059669' },
             { label: 'Others', pct: 22, color: '#66bb6a' },
             { label: 'Corn', pct: 20, color: '#81c784' },
             { label: 'Soybeans', pct: 18, color: '#a5d6a7' },

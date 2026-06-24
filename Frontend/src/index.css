@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #34C759;
-  --color-brand-dark: #2DB84E;
-  --color-brand-light: #E8F8E8;
-  --color-warning-bg: #FFF4E0;
+  --color-brand: #059669;
+  --color-brand-dark: #059669;
+  --color-brand-light: rgba(5, 150, 105, 0.12);
+  --color-brand-deep: #047857;
+  --color-warning-bg: rgba(255, 149, 0, 0.12);
   --color-warning-text: #FF9500;
-  --color-danger-bg: #FFE8E8;
+  --color-danger-bg: rgba(255, 59, 48, 0.12);
   --color-danger-text: #FF3B30;
   --color-surface: #F2F2F7;
   --color-card: #FFFFFF;
@@ -17,4 +18,8 @@
 
 * {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+}
+
+.pill {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }

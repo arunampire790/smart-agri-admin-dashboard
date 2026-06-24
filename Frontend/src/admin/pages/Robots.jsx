@@ -8,9 +8,9 @@ const farms = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple
 const statuses = ['Active', 'Idle', 'Offline'];
 
 const statusOpts = {
-  Active: { stCls: 'bg-brand-light text-brand-dark' },
-  Idle: { stCls: 'bg-warning-bg text-warning-text' },
-  Offline: { stCls: 'bg-danger-bg text-danger-text' },
+  Active: { stCls: 'bg-brand-light text-brand-dark pill' },
+  Idle: { stCls: 'bg-warning-bg text-warning-text pill' },
+  Offline: { stCls: 'bg-danger-bg text-danger-text pill' },
 };
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder";
@@ -44,7 +44,7 @@ function Select({ options, value, onChange, placeholder }) {
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>
           {value || placeholder}
         </span>
-        <i className={`ti ti-chevron-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -60,7 +60,7 @@ function Select({ options, value, onChange, placeholder }) {
                 }`}
               >
                 <span>{opt}</span>
-                {selected && <i className="ti ti-check text-sm text-brand-dark" />}
+                {selected && <i className="ph ph-check text-sm text-brand-dark" />}
               </div>
             );
           })}
@@ -194,21 +194,21 @@ export default function Robots() {
           <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
         <button onClick={openAdd} className={submitBtnClass}>
-          <i className="ti ti-plus" /> Add Robot
+          <i className="ph ph-plus" /> Add Robot
         </button>
       </div>
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ti-robot', cls: 'bg-brand-light text-brand-dark', val: '4', label: 'Online', foot: '85–100% battery' },
-          { icon: 'ti-player-pause', cls: 'bg-warning-bg text-warning-text', val: '3', label: 'Idle', foot: '45–62% battery' },
-          { icon: 'ti-tool', cls: 'bg-[#E8EAF6] text-[#1A73E8]', val: '0', label: 'Maintenance', foot: 'N/A' },
-          { icon: 'ti-plug-off', cls: 'bg-danger-bg text-danger-text', val: '1', label: 'Offline', foot: '12% battery last seen' },
+          { icon: 'ph-robot', cls: 'bg-brand-light text-brand-dark', val: '4', label: 'Online', foot: '85–100% battery' },
+          { icon: 'ph-pause', cls: 'bg-warning-bg text-warning-text', val: '3', label: 'Idle', foot: '45–62% battery' },
+          { icon: 'ph-wrench', cls: 'bg-[#1A73E8]/10 text-[#1A73E8]', val: '0', label: 'Maintenance', foot: 'N/A' },
+          { icon: 'ph-plug', cls: 'bg-danger-bg text-danger-text', val: '1', label: 'Offline', foot: '12% battery last seen' },
         ].map((item, i) => (
           <div key={i} className="flex-1 min-w-[160px] bg-white border border-[rgba(0,0,0,0.05)] rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-3 mb-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${item.cls}`}>
-                <i className={`ti ${item.icon}`} />
+                <i className={item.icon} />
               </div>
               <div>
                 <div className="text-2xl font-bold text-[#000000] leading-tight">{item.val}</div>
@@ -248,8 +248,8 @@ export default function Robots() {
                 <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${r.stCls}`}>{r.status}</span></td>
                 <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
                   <div className="flex gap-3 items-center">
-                    <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-edit" /></button>
-                    <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ti ti-trash" /></button>
+                    <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-pencil" /></button>
+                    <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ph ph-trash" /></button>
                   </div>
                 </td>
               </tr>
@@ -261,7 +261,7 @@ export default function Robots() {
       {showAddModal && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-x" /></button>
+              <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
             <form onSubmit={handleAdd}>
@@ -278,7 +278,7 @@ export default function Robots() {
       {editRobot && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ti ti-x" /></button>
+            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit Robot</div>
             <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
             <form onSubmit={handleEdit}>
@@ -302,7 +302,7 @@ export default function Robots() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteRobot(null)} className={cancelBtnClass}>Cancel</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
-                <i className="ti ti-trash" /> Delete
+                <i className="ph ph-trash" /> Delete
               </button>
             </div>
           </div>

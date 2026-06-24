@@ -2,13 +2,13 @@ import { NavLink, Outlet } from 'react-router-dom';
 import GlobalHeader from './GlobalHeader';
 
 const navItems = [
-  { to: '/admin/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
-  { to: '/admin/users', icon: 'ti-users', label: 'Users' },
-  { to: '/admin/farms', icon: 'ti-building-cottage', label: 'Farms' },
-  { to: '/admin/robots', icon: 'ti-robot', label: 'Robots' },
-  { to: '/admin/tasks', icon: 'ti-checklist', label: 'Tasks' },
-  { to: '/admin/analytics', icon: 'ti-chart-bar', label: 'Analytics' },
-  { to: '/admin/settings', icon: 'ti-settings', label: 'Settings' },
+  { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
+  { to: '/admin/users', icon: 'ph-users', label: 'Users' },
+  { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
+  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
+  { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
+  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
 
 export default function AdminLayout() {
@@ -18,7 +18,7 @@ export default function AdminLayout() {
       <aside className="w-60 min-w-[240px] bg-white/70 backdrop-blur-xl border-r border-[rgba(0,0,0,0.05)] flex flex-col py-4">
         <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[rgba(0,0,0,0.05)] mb-4">
           <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
-            <i className="ti ti-plant-2" />
+            <i className="ph ph-plant" />
           </div>
           <div>
             <div className="text-base font-bold text-[#1C1C1E]">Smart Agriculture</div>
@@ -37,7 +37,7 @@ export default function AdminLayout() {
                 }`
               }
             >
-              <i className={`ti ${icon} text-lg`} />
+              <i className={`${icon} text-lg`} />
               {label}
             </NavLink>
           ))}

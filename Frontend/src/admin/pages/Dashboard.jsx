@@ -28,12 +28,12 @@ export default function Dashboard() {
   const { robots } = useRobots();
 
   const statCards = [
-    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ti-users', bg: '#E8F8E8', color: '#34C759', route: '/admin/users' },
-    { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', icon: 'ti-building-cottage', bg: '#E8F8E8', color: '#34C759', route: '/admin/farms' },
-    { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, icon: 'ti-robot', bg: '#FFE8E8', color: '#FF3B30', route: '/admin/robots' },
-    { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', icon: 'ti-activity', bg: '#E8F8E8', color: '#34C759', route: '/admin/robots' },
-    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ti-clock', bg: '#FFF4E0', color: '#FF9500', route: '/admin/tasks' },
-    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ti-circle-check', bg: '#E8F8E8', color: '#34C759', route: '/admin/tasks' },
+    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ph-users', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/users' },
+    { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', icon: 'ph-warehouse', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/farms' },
+    { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, icon: 'ph-robot', bg: 'rgba(255,59,48,0.12)', color: '#FF3B30', route: '/admin/robots' },
+    { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', icon: 'ph-activity', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/robots' },
+    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ph-clock', bg: 'rgba(255,149,0,0.12)', color: '#FF9500', route: '/admin/tasks' },
+    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ph-check-circle', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/tasks' },
   ];
 
   return (
@@ -56,7 +56,7 @@ export default function Dashboard() {
               <div className="text-xs mt-2 text-text-secondary" style={{ color: card.color }}>{card.note}</div>
             </div>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: card.bg, color: card.color }}>
-              <i className={`ti ${card.icon}`} />
+              <i className={card.icon} />
             </div>
           </div>
         ))}
@@ -82,8 +82,8 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl p-5 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E]">Recent Tasks</div>
-          <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">
-            <i className="ti ti-arrow-right" /> View all
+           <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">
+            <i className="ph ph-arrow-right" /> View all
           </button>
         </div>
         <table className="w-full border-collapse text-sm">
@@ -106,8 +106,8 @@ export default function Dashboard() {
                 <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{row.task}</strong></td>
                 <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{row.user}</td>
                 <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{row.farm}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
+                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
+                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
               </tr>
             ))}
           </tbody>

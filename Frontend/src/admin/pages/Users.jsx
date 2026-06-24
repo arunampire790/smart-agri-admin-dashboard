@@ -80,7 +80,7 @@ export default function Users() {
           <div className="text-sm text-text-secondary mt-1">Manage system users and permissions</div>
         </div>
         <button onClick={openAdd} className={submitBtnClass}>
-          <i className="ti ti-plus" /> Add User
+          <i className="ph ph-plus" /> Add User
         </button>
       </div>
 
@@ -119,19 +119,19 @@ export default function Users() {
                   <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.phone}</td>
                   <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.farms}</td>
                   <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span>
+                    <span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span>
                   </td>
                   <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.joined}</td>
                   <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
                     <div className="flex gap-3 items-center">
                       <button title="View" onClick={() => openView(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
-                        <i className="ti ti-eye" />
+                        <i className="ph ph-eye" />
                       </button>
                       <button title="Edit" onClick={() => openEdit(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
-                        <i className="ti ti-edit" />
+                        <i className="ph ph-pencil" />
                       </button>
                       <button title="Delete" onClick={() => openDelete(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg">
-                        <i className="ti ti-trash" />
+                        <i className="ph ph-trash" />
                       </button>
                     </div>
                   </td>
@@ -243,7 +243,7 @@ export default function Users() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)} className={cancelBtnClass}>Cancel</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
-                <i className="ti ti-trash" /> Delete
+                <i className="ph ph-trash" /> Delete
               </button>
             </div>
           </div>

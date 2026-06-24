@@ -5,9 +5,9 @@ import { useRobots } from '../../context/RobotContext';
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder";
 
 function getStatusLabel(connectedRobots) {
-  if (connectedRobots.length === 0) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text' };
-  if (connectedRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-brand-dark' };
-  return { label: 'Idle', cls: 'bg-warning-bg text-warning-text' };
+  if (connectedRobots.length === 0) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text pill' };
+  if (connectedRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-brand-dark pill' };
+  return { label: 'Idle', cls: 'bg-warning-bg text-warning-text pill' };
 }
 
 export default function Farms() {
@@ -54,13 +54,13 @@ export default function Farms() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ti-building-cottage', val: String(farms.length), label: 'Total Farms' },
-          { icon: 'ti-map-pin', val: String(regions.length), label: 'Regions' },
-          { icon: 'ti-seedling', val: String(cropTypes.length), label: 'Crop Types' },
-          { icon: 'ti-robot', val: String(activeRobotCount), label: 'Active Robots' },
+          { icon: 'ph-warehouse', val: String(farms.length), label: 'Total Farms' },
+          { icon: 'ph-map-pin', val: String(regions.length), label: 'Regions' },
+          { icon: 'ph-seedling', val: String(cropTypes.length), label: 'Crop Types' },
+          { icon: 'ph-robot', val: String(activeRobotCount), label: 'Active Robots' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.05)] rounded-xl px-4 py-2.5 text-xs text-text-secondary shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <i className={`ti ${item.icon} text-lg`} style={{ color: '#34C759' }} />
+            <i className={`${item.icon} text-lg`} style={{ color: '#059669' }} />
             <strong className="text-[#1C1C1E] text-sm mr-0.5">{item.val}</strong> {item.label}
           </div>
         ))}
@@ -98,7 +98,7 @@ export default function Farms() {
                   <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{farm.location}</td>
                   <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{farm.owner}</td>
                   <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-center">
-                    <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#7676801F] text-text-secondary text-xs font-semibold">{connectedCount}</span>
+                    <span className="pill inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#7676801F] text-text-secondary text-xs font-semibold">{connectedCount}</span>
                   </td>
                   <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-center">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
