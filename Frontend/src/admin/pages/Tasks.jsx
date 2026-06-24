@@ -24,18 +24,13 @@ export default function Tasks() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ph-list-checks', val: '10', label: 'Total Tasks', gradient: 'from-[#34C759] to-[#059669]' },
-          { icon: 'ph-clock', val: '5', label: 'Pending', gradient: 'from-[#FF9500] to-[#b45309]' },
-          { icon: 'ph-check-circle', val: '3', label: 'Completed', gradient: 'from-[#34C759] to-[#059669]' },
+          { val: '10', label: 'Total Tasks', labelCls: 'text-[#4B5563]' },
+          { val: '5', label: 'Pending', labelCls: 'text-[#EA580C]' },
+          { val: '3', label: 'Completed', labelCls: 'text-[#16A34A]' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[140px] flex items-center gap-3 bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-lg bg-gradient-to-br ${item.gradient}`}>
-              <i className={item.icon} />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-[#000000] leading-tight">{item.val}</div>
-              <div className="text-xs text-text-secondary">{item.label}</div>
-            </div>
+          <div key={i} className="flex-1 min-w-[140px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
+            <div className={`font-semibold text-sm ${item.labelCls}`}>{item.label}</div>
           </div>
         ))}
       </div>
