@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder";
 
 function getStatusLabel(connectedRobots) {
   if (connectedRobots.length === 0) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text' };
-  if (connectedRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-[#137333]' };
+  if (connectedRobots.some((r) => r.status === 'Active')) return { label: 'Active', cls: 'bg-brand-light text-brand-dark' };
   return { label: 'Idle', cls: 'bg-warning-bg text-warning-text' };
 }
 
@@ -47,7 +47,7 @@ export default function Farms() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-semibold">Farm Management</div>
+          <div className="text-2xl font-bold text-[#000000]">Farm Management</div>
           <div className="text-sm text-text-secondary mt-1">View and manage agricultural properties</div>
         </div>
       </div>
@@ -59,16 +59,16 @@ export default function Farms() {
           { icon: 'ti-seedling', val: String(cropTypes.length), label: 'Crop Types' },
           { icon: 'ti-robot', val: String(activeRobotCount), label: 'Active Robots' },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-2 bg-white border border-[#EAEAEA] rounded-lg px-4 py-2.5 text-xs text-text-secondary">
-            <i className={`ti ${item.icon} text-lg`} style={{ color: '#2B7A3E' }} />
-            <strong className="text-[#111] text-sm mr-0.5">{item.val}</strong> {item.label}
+          <div key={i} className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.05)] rounded-xl px-4 py-2.5 text-xs text-text-secondary shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <i className={`ti ${item.icon} text-lg`} style={{ color: '#34C759' }} />
+            <strong className="text-[#1C1C1E] text-sm mr-0.5">{item.val}</strong> {item.label}
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold mb-3">All Farms ({farms.length})</div>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Farms ({farms.length})</div>
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -81,26 +81,26 @@ export default function Farms() {
         {farmRows.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No farms found matching your criteria.</div>
         ) : (
-          <table className="w-full border-collapse text-sm table-fixed">
+          <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[25%]">Farm Name</th>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[25%]">Location</th>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[20%]">Owner</th>
-                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[15%]">Connected Devices</th>
-                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold border-b border-[#EAEAEA] w-[15%]">Status</th>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)] w-[25%]">Farm Name</th>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)] w-[25%]">Location</th>
+                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)] w-[20%]">Owner</th>
+                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)] w-[15%]">Connected Devices</th>
+                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)] w-[15%]">Status</th>
               </tr>
             </thead>
             <tbody>
               {farmRows.map(({ farm, connectedCount, status }, i) => (
                 <tr key={i}>
-                  <td className="px-5 py-4 border-b border-[#EAEAEA]"><strong className="text-[#111] font-medium">{farm.name}</strong></td>
-                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{farm.location}</td>
-                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-text-secondary">{farm.owner}</td>
-                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
-                    <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#F1F3F4] text-text-secondary text-xs font-semibold">{connectedCount}</span>
+                  <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{farm.name}</strong></td>
+                  <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{farm.location}</td>
+                  <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{farm.owner}</td>
+                  <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-center">
+                    <span className="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-[#7676801F] text-text-secondary text-xs font-semibold">{connectedCount}</span>
                   </td>
-                  <td className="px-5 py-4 border-b border-[#EAEAEA] text-center">
+                  <td className="px-5 py-4 border-b border-[rgba(0,0,0,0.05)] text-center">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
                   </td>
                 </tr>

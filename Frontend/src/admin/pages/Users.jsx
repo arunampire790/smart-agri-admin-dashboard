@@ -49,7 +49,7 @@ export default function Users() {
     e.preventDefault();
     if (!validate()) return;
     const today = new Date().toISOString().slice(0, 10);
-    addUser({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status: 'Active', cls: 'bg-brand-light text-[#137333]', joined: today });
+    addUser({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status: 'Active', cls: 'bg-brand-light text-brand-dark', joined: today });
     setShowAddModal(false);
   };
 
@@ -65,18 +65,18 @@ export default function Users() {
     setDeleteUser(null);
   };
 
-  const inputClass = "text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] outline-none focus:shadow-[0_0_0_2px_rgba(43,122,62,0.2)] w-full";
-  const labelClass = "text-xs font-medium text-[#111]";
-  const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[#EAEAEA] rounded-lg cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#F1F3F4]";
-  const submitBtnClass = "bg-brand text-white border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
-  const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm";
-  const modalBox = "bg-white rounded-xl p-6 w-[440px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]";
+  const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder";
+  const labelClass = "text-xs font-medium text-[#1C1C1E]";
+  const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
+  const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+  const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
+  const modalBox = "bg-white rounded-2xl p-6 w-[440px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]";
 
   return (
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-semibold">User Management</div>
+          <div className="text-2xl font-bold text-[#000000]">User Management</div>
           <div className="text-sm text-text-secondary mt-1">Manage system users and permissions</div>
         </div>
         <button onClick={openAdd} className={submitBtnClass}>
@@ -84,9 +84,9 @@ export default function Users() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold mb-3">All Users ({users.length})</div>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Users ({users.length})</div>
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -102,27 +102,27 @@ export default function Users() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Name</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Email</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Phone</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Farms</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Status</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Joined</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold border-b border-[#EAEAEA]">Actions</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Name</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Email</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Phone</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Farms</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Status</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Joined</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((u, i) => (
                 <tr key={i}>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4]"><strong className="text-[#111] font-medium">{u.name}</strong></td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.email}</td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.phone}</td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.farms}</td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{u.name}</strong></td>
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.email}</td>
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.phone}</td>
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.farms}</td>
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span>
                   </td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4] text-text-secondary">{u.joined}</td>
-                  <td className="px-4 py-4 border-b border-[#F1F3F4]">
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.joined}</td>
+                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
                     <div className="flex gap-3 items-center">
                       <button title="View" onClick={() => openView(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
                         <i className="ti ti-eye" />
@@ -146,7 +146,7 @@ export default function Users() {
       {showAddModal && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <div className="text-lg font-bold text-[#111] mb-1">Add New User</div>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New User</div>
             <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
             <form onSubmit={handleAdd}>
               <div className="flex flex-col gap-1.5 mb-4">
@@ -177,7 +177,7 @@ export default function Users() {
       {viewUser && (
         <div className={modalOverlay} onClick={() => setViewUser(null)}>
           <div className={modalBox} onClick={(e) => e.stopPropagation()}>
-            <div className="text-lg font-bold text-[#111] mb-1">User Details</div>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">User Details</div>
             <div className="text-xs text-text-secondary mb-5">Viewing information for {viewUser.name}.</div>
             <div className="space-y-4">
               {[
@@ -190,7 +190,7 @@ export default function Users() {
               ].map((field) => (
                 <div key={field.label} className="flex flex-col gap-1">
                   <span className={labelClass}>{field.label}</span>
-                  <div className="text-sm px-3.5 py-2.5 rounded-lg bg-[#F1F3F4] text-[#111] w-full">{field.value}</div>
+                  <div className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] text-[#1C1C1E] w-full">{field.value}</div>
                 </div>
               ))}
             </div>
@@ -205,7 +205,7 @@ export default function Users() {
       {editUser && (
         <div className={modalOverlay}>
           <div className={modalBox}>
-            <div className="text-lg font-bold text-[#111] mb-1">Edit User Details</div>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit User Details</div>
             <div className="text-xs text-text-secondary mb-5">Update information for {editUser.name}.</div>
             <form onSubmit={handleEdit}>
               <div className="flex flex-col gap-1.5 mb-4">
@@ -235,14 +235,14 @@ export default function Users() {
       {/* Delete Confirmation Modal */}
       {deleteUser && (
         <div className={modalOverlay} onClick={() => setDeleteUser(null)}>
-          <div className="bg-white rounded-xl p-6 w-[380px] shadow-[0_4px_20px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
-            <div className="text-lg font-bold text-[#111] mb-2">Delete User?</div>
+          <div className="bg-white rounded-2xl p-6 w-[380px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
-              Are you sure you want to delete <strong className="text-[#111] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)} className={cancelBtnClass}>Cancel</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-lg px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
                 <i className="ti ti-trash" /> Delete
               </button>
             </div>

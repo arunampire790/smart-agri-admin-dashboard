@@ -14,14 +14,14 @@ const navItems = [
 export default function AdminLayout() {
 
   return (
-    <div className="font-sans bg-[#F8F9FA] text-[#111] h-screen overflow-hidden flex">
-      <aside className="w-60 min-w-[240px] bg-white border-r border-[#EAEAEA] flex flex-col py-4">
-        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[#EAEAEA] mb-4">
-          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center text-white text-base">
+    <div className="bg-surface text-[#1C1C1E] h-screen overflow-hidden flex">
+      <aside className="w-60 min-w-[240px] bg-white/70 backdrop-blur-xl border-r border-[rgba(0,0,0,0.05)] flex flex-col py-4">
+        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[rgba(0,0,0,0.05)] mb-4">
+          <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
             <i className="ti ti-plant-2" />
           </div>
           <div>
-            <div className="text-base font-bold">Smart Agriculture</div>
+            <div className="text-base font-bold text-[#1C1C1E]">Smart Agriculture</div>
             <div className="text-xs text-text-secondary">Admin Panel</div>
           </div>
         </div>
@@ -32,8 +32,8 @@ export default function AdminLayout() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-lg text-sm text-text-secondary no-underline transition-all duration-150 ${
-                  isActive ? 'bg-brand text-white' : 'hover:bg-[#F1F3F4] hover:text-[#111]'
+                `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline transition-all duration-150 ${
+                  isActive ? 'bg-brand text-white' : 'hover:bg-[#E5E5EA] hover:text-[#1C1C1E]'
                 }`
               }
             >
@@ -43,12 +43,12 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="mt-auto px-4 py-4 border-t border-[#EAEAEA]">
+        <div className="mt-auto px-4 py-4 border-t border-[rgba(0,0,0,0.05)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#137333] text-white flex items-center justify-center text-xs font-semibold">AD</div>
+            <div className="w-8 h-8 rounded-xl bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">AD</div>
             <div>
-              <div className="text-sm font-medium">Admin User</div>
-              <div className="text-xs text-text-secondary">admin@smartagri.com</div>
+              <div className="text-sm font-medium text-[#1C1C1E]">Admin User</div>
+              <div className="text-xs text-text-placeholder">admin@smartagri.com</div>
             </div>
           </div>
         </div>
