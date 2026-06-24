@@ -54,16 +54,14 @@ export default function Farms() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ph-warehouse', val: String(farms.length), label: 'Total Farms', gradient: 'from-[#34C759] to-[#059669]' },
-          { icon: 'ph-map-pin', val: String(regions.length), label: 'Regions', gradient: 'from-[#34C759] to-[#059669]' },
-          { icon: 'ph-seedling', val: String(cropTypes.length), label: 'Crop Types', gradient: 'from-[#34C759] to-[#059669]' },
-          { icon: 'ph-robot', val: String(activeRobotCount), label: 'Active Robots', gradient: 'from-[#34C759] to-[#059669]' },
+          { val: String(farms.length), label: 'Total Farms' },
+          { val: String(regions.length), label: 'Regions' },
+          { val: String(cropTypes.length), label: 'Crop Types' },
+          { val: String(activeRobotCount), label: 'Active Robots' },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] px-4 py-2.5 text-xs text-text-secondary shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm text-white bg-gradient-to-br ${item.gradient}`}>
-              <i className={item.icon} />
-            </div>
-            <strong className="text-[#1C1C1E] text-sm mr-0.5">{item.val}</strong> {item.label}
+          <div key={i} className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] px-4 py-2.5 text-xs shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+            <strong className="text-[#1C1C1E] text-sm font-bold">{item.val}</strong>
+            <span className="text-[#6B7280] text-xs font-medium">{item.label}</span>
           </div>
         ))}
       </div>
