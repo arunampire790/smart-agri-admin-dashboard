@@ -33,7 +33,7 @@ export default function AdminLayout() {
               to={to}
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline transition-all duration-150 ${
-                  isActive ? 'bg-[rgba(52,199,89,0.1)] text-[#34C759]' : 'hover:bg-[#E5E5EA] hover:text-[#1C1C1E]'
+                  isActive ? 'bg-[rgba(52,199,89,0.1)] text-[#34C759] nav-active-indicator' : 'hover:bg-[#E5E5EA] hover:text-[#1C1C1E]'
                 }`
               }
             >

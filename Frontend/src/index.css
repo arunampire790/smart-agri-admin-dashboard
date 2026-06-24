@@ -30,3 +30,18 @@
 .pill {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
+
+.nav-active-indicator {
+  position: relative;
+}
+.nav-active-indicator::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: #34C759;
+}
