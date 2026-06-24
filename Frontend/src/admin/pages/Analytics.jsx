@@ -44,9 +44,9 @@ export default function Analytics() {
         <div className="flex-1 min-w-[240px] bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
           {[
-            { label: 'Active', val: '4', dot: 'bg-brand' },
-            { label: 'Idle', val: '3', dot: 'bg-warning-text' },
-            { label: 'Offline', val: '1', dot: 'bg-danger-text' },
+            { label: 'Active', val: '4', dot: 'bg-[#10B981]' },
+            { label: 'Idle', val: '3', dot: 'bg-[#F59E0B]' },
+            { label: 'Offline', val: '1', dot: 'bg-[#F43F5E]' },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2 text-xs text-text-secondary mb-2">
               <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} />
@@ -55,12 +55,12 @@ export default function Analytics() {
             </div>
           ))}
           <div className="mt-4">
-            <div className="h-2 rounded-full overflow-hidden flex">
-              <div className="h-full bg-brand" style={{ width: '50%' }} />
-              <div className="h-full bg-warning-text" style={{ width: '37.5%' }} />
-              <div className="h-full bg-danger-text" style={{ width: '12.5%' }} />
+            <div className="h-1.5 bg-[#F3F4F6] rounded-[6px] overflow-hidden flex">
+              <div className="h-full bg-[#10B981]" style={{ width: '50%' }} />
+              <div className="h-full bg-[#F59E0B]" style={{ width: '37.5%' }} />
+              <div className="h-full bg-[#F43F5E]" style={{ width: '12.5%' }} />
             </div>
-            <div className="flex justify-between text-[10px] text-text-secondary mt-1.5">
+            <div className="flex justify-between text-[10px] text-[#6B7280] mt-1.5">
               <span>Active 50%</span>
               <span>Idle 37.5%</span>
               <span>Offline 12.5%</span>
