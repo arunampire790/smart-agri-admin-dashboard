@@ -15,7 +15,7 @@ export default function AdminLayout() {
 
   return (
     <div className="bg-surface text-[#1C1C1E] h-screen overflow-hidden flex">
-      <aside className="w-60 min-w-[240px] bg-white/70 backdrop-blur-xl border-r border-[rgba(0,0,0,0.05)] flex flex-col py-4">
+      <aside className="w-60 min-w-[240px] glass border-r border-[rgba(0,0,0,0.05)] flex flex-col py-4">
         <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[rgba(0,0,0,0.05)] mb-4">
           <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
             <i className="ph ph-plant" />
@@ -33,7 +33,7 @@ export default function AdminLayout() {
               to={to}
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline transition-all duration-150 ${
-                  isActive ? 'bg-brand text-white' : 'hover:bg-[#E5E5EA] hover:text-[#1C1C1E]'
+                  isActive ? 'bg-[rgba(52,199,89,0.1)] text-[#34C759]' : 'hover:bg-[#E5E5EA] hover:text-[#1C1C1E]'
                 }`
               }
             >

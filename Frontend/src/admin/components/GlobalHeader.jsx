@@ -4,7 +4,7 @@ export default function GlobalHeader() {
   const navigate = useNavigate();
 
   return (
-    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-[rgba(0,0,0,0.05)] bg-white/70 backdrop-blur-xl shrink-0">
+    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-[rgba(0,0,0,0.05)] glass shrink-0">
       <div className="flex items-center">
         <div className="flex items-center gap-2.5 bg-[#7676801F] rounded-xl px-3 py-2.5 w-[320px]">
           <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />

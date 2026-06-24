@@ -70,7 +70,7 @@ export default function Users() {
   const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
   const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
   const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
-  const modalBox = "bg-white rounded-2xl p-6 w-[440px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]";
+  const modalBox = "bg-white rounded-[20px] p-6 w-[440px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]";
 
   return (
     <>
@@ -84,7 +84,7 @@ export default function Users() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Users ({users.length})</div>
           <input
@@ -102,27 +102,27 @@ export default function Users() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Name</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Email</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Phone</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Farms</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Status</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Joined</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Actions</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Name</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Email</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Phone</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farms</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Status</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Joined</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((u, i) => (
                 <tr key={i}>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{u.name}</strong></td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.email}</td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.phone}</td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.farms}</td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
+                  <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{u.name}</strong></td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{u.email}</td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{u.phone}</td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{u.farms}</td>
+                  <td className="px-4 py-4 border-b border-table-sep">
                     <span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${u.cls}`}>{u.status}</span>
                   </td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{u.joined}</td>
-                  <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{u.joined}</td>
+                  <td className="px-4 py-4 border-b border-table-sep">
                     <div className="flex gap-3 items-center">
                       <button title="View" onClick={() => openView(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg">
                         <i className="ph ph-eye" />
@@ -235,7 +235,7 @@ export default function Users() {
       {/* Delete Confirmation Modal */}
       {deleteUser && (
         <div className={modalOverlay} onClick={() => setDeleteUser(null)}>
-          <div className="bg-white rounded-2xl p-6 w-[380px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-[20px] p-6 w-[380px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.

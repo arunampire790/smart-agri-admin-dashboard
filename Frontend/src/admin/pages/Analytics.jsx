@@ -8,13 +8,13 @@ export default function Analytics() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ph-chart-line-up', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', up: true },
-          { icon: 'ph-clipboard-text', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', up: true },
-          { icon: 'ph-activity', bg: 'rgba(255,59,48,0.12)', color: '#FF3B30', val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', up: false },
-          { icon: 'ph-plant', bg: 'rgba(5,150,105,0.12)', color: '#059669', val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', up: true },
+          { icon: 'ph-chart-line-up', val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', up: true, gradient: 'from-[#34C759] to-[#059669]' },
+          { icon: 'ph-clipboard-text', val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', up: true, gradient: 'from-[#34C759] to-[#059669]' },
+          { icon: 'ph-activity', val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', up: false, gradient: 'from-[#FF3B30] to-[#b91c1c]' },
+          { icon: 'ph-plant', val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', up: true, gradient: 'from-[#34C759] to-[#059669]' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[180px] flex items-center gap-3 bg-white border border-[rgba(0,0,0,0.05)] rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ background: item.bg, color: item.color }}>
+          <div key={i} className="flex-1 min-w-[180px] flex items-center gap-3 bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 text-white bg-gradient-to-br ${item.gradient}`}>
               <i className={item.icon} />
             </div>
             <div>
@@ -27,7 +27,7 @@ export default function Analytics() {
       </div>
 
       <div className="flex gap-3 mb-4 flex-wrap">
-        <div className="flex-1 min-w-[240px] bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="flex-1 min-w-[240px] bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
           {[
             { label: 'Wheat', pct: 25, color: '#059669' },
@@ -46,7 +46,7 @@ export default function Analytics() {
           ))}
         </div>
 
-        <div className="flex-1 min-w-[240px] bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="flex-1 min-w-[240px] bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
           {[
             { label: 'Active', val: '4', dot: 'bg-brand' },

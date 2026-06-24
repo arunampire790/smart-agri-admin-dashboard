@@ -18,7 +18,7 @@ const labelClass = "text-xs font-medium text-[#1C1C1E]";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
 const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
 const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
-const modalBox = "bg-white rounded-2xl p-6 w-[450px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] relative";
+const modalBox = "bg-white rounded-[20px] p-6 w-[450px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)] relative";
 
 function Select({ options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -200,14 +200,14 @@ export default function Robots() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ph-robot', cls: 'bg-brand-light text-brand-dark', val: '4', label: 'Online', foot: '85–100% battery' },
-          { icon: 'ph-pause', cls: 'bg-warning-bg text-warning-text', val: '3', label: 'Idle', foot: '45–62% battery' },
-          { icon: 'ph-wrench', cls: 'bg-[#1A73E8]/10 text-[#1A73E8]', val: '0', label: 'Maintenance', foot: 'N/A' },
-          { icon: 'ph-plug', cls: 'bg-danger-bg text-danger-text', val: '1', label: 'Offline', foot: '12% battery last seen' },
+          { icon: 'ph-robot', val: '4', label: 'Online', foot: '85–100% battery', gradient: 'from-[#34C759] to-[#059669]' },
+          { icon: 'ph-pause', val: '3', label: 'Idle', foot: '45–62% battery', gradient: 'from-[#FF9500] to-[#b45309]' },
+          { icon: 'ph-wrench', val: '0', label: 'Maintenance', foot: 'N/A', gradient: 'from-[#1A73E8] to-[#1557B0]' },
+          { icon: 'ph-plug', val: '1', label: 'Offline', foot: '12% battery last seen', gradient: 'from-[#FF3B30] to-[#b91c1c]' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[160px] bg-white border border-[rgba(0,0,0,0.05)] rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div key={i} className="flex-1 min-w-[160px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-3 mb-2">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${item.cls}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg text-white bg-gradient-to-br ${item.gradient}`}>
                 <i className={item.icon} />
               </div>
               <div>
@@ -220,24 +220,24 @@ export default function Robots() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Robots ({robots.length})</div>
           <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Actions</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Actions</th></tr>
           </thead>
           <tbody>
             {robots.map((r, i) => (
               <tr key={i}>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{r.name}</strong></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><code className="text-xs bg-[#7676801F] px-1.5 py-0.5 rounded-xl text-[#1C1C1E]">{r.id}</code></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{r.owner}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{r.farm}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{r.model}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
+                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{r.name}</strong></td>
+                <td className="px-4 py-4 border-b border-table-sep"><code className="text-xs bg-[#7676801F] px-1.5 py-0.5 rounded-xl text-[#1C1C1E]">{r.id}</code></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.owner}</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.farm}</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.model}</td>
+                <td className="px-4 py-4 border-b border-table-sep">
                   <div className="flex items-center gap-2">
                     <div className="w-12 h-1.5 bg-[#7676801F] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${r.batCls}`} style={{ width: `${r.battery}%` }} />
@@ -245,8 +245,8 @@ export default function Robots() {
                     <span className="text-xs font-medium text-[#1C1C1E]">{r.battery}%</span>
                   </div>
                 </td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${r.stCls}`}>{r.status}</span></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]">
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${r.stCls}`}>{r.status}</span></td>
+                <td className="px-4 py-4 border-b border-table-sep">
                   <div className="flex gap-3 items-center">
                     <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-pencil" /></button>
                     <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ph ph-trash" /></button>
@@ -294,7 +294,7 @@ export default function Robots() {
 
       {deleteRobot && (
         <div className={modalOverlay} onClick={() => setDeleteRobot(null)}>
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-[20px] p-6 w-[400px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete Robot?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to remove <strong className="text-[#1C1C1E] font-medium">{deleteRobot.name}</strong> ({deleteRobot.id}) from the fleet registry? This action cannot be reverted.

@@ -28,12 +28,12 @@ export default function Dashboard() {
   const { robots } = useRobots();
 
   const statCards = [
-    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ph-users', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/users' },
-    { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', icon: 'ph-warehouse', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/farms' },
-    { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, icon: 'ph-robot', bg: 'rgba(255,59,48,0.12)', color: '#FF3B30', route: '/admin/robots' },
-    { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', icon: 'ph-activity', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/robots' },
-    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ph-clock', bg: 'rgba(255,149,0,0.12)', color: '#FF9500', route: '/admin/tasks' },
-    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ph-check-circle', bg: 'rgba(5,150,105,0.12)', color: '#059669', route: '/admin/tasks' },
+    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', icon: 'ph-users', gradient: 'from-[#34C759] to-[#059669]', noteCls: 'text-brand-dark', route: '/admin/users' },
+    { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', icon: 'ph-warehouse', gradient: 'from-[#34C759] to-[#059669]', noteCls: 'text-brand-dark', route: '/admin/farms' },
+    { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, icon: 'ph-robot', gradient: 'from-[#FF3B30] to-[#b91c1c]', noteCls: 'text-danger-text', route: '/admin/robots' },
+    { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', icon: 'ph-activity', gradient: 'from-[#34C759] to-[#059669]', noteCls: 'text-brand-dark', route: '/admin/robots' },
+    { label: 'Active Tasks', value: '7', note: '5 high priority', icon: 'ph-clock', gradient: 'from-[#FF9500] to-[#b45309]', noteCls: 'text-warning-text', route: '/admin/tasks' },
+    { label: 'Completed Tasks', value: '3', note: 'This week', icon: 'ph-check-circle', gradient: 'from-[#34C759] to-[#059669]', noteCls: 'text-brand-dark', route: '/admin/tasks' },
   ];
 
   return (
@@ -48,14 +48,14 @@ export default function Dashboard() {
           <div
             key={card.label}
             onClick={() => navigate(card.route)}
-            className="bg-white rounded-2xl p-5 flex items-start justify-between shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+            className="bg-white rounded-[20px] p-5 flex items-start justify-between shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)] cursor-pointer transition-all duration-200 hover:scale-[1.01]"
           >
             <div className="flex-1">
               <div className="text-xs font-medium text-text-secondary mb-2">{card.label}</div>
               <div className="text-3xl font-bold text-[#000000]">{card.value}</div>
-              <div className="text-xs mt-2 text-text-secondary" style={{ color: card.color }}>{card.note}</div>
+              <div className={`text-xs mt-2 ${card.noteCls}`}>{card.note}</div>
             </div>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: card.bg, color: card.color }}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg text-white bg-gradient-to-br ${card.gradient}`}>
               <i className={card.icon} />
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         {[{ title: 'User Growth Over Time', data: userGrowth }, { title: 'Farm Registrations', data: farmRegs }].map((chart) => (
-          <div key={chart.title} className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+          <div key={chart.title} className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
             <div className="text-sm font-semibold text-[#1C1C1E] mb-4">{chart.title}</div>
             {chart.data.map((row) => (
               <div key={row.label} className="flex items-center gap-3 mb-3">
@@ -79,7 +79,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl p-5 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-[20px] p-5 mb-6 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E]">Recent Tasks</div>
            <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">
@@ -89,11 +89,11 @@ export default function Dashboard() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Task</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">User</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Farm</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Priority</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-[rgba(0,0,0,0.05)]">Status</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Task</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">User</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farm</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Priority</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -103,11 +103,11 @@ export default function Dashboard() {
               { task: 'Inspect apple trees', user: 'Sarah Johnson', farm: 'Sunrise Orchards', priority: 'Low', priClass: 'bg-brand-light text-brand-dark', status: 'In progress', stClass: 'bg-warning-bg text-warning-text' },
             ].map((row, i) => (
               <tr key={i}>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><strong className="text-[#1C1C1E] font-medium">{row.task}</strong></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{row.user}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)] text-text-secondary">{row.farm}</td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
-                <td className="px-4 py-4 border-b border-[rgba(0,0,0,0.05)]"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
+                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{row.task}</strong></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.user}</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.farm}</td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
               </tr>
             ))}
           </tbody>
