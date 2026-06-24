@@ -200,22 +200,15 @@ export default function Robots() {
 
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { icon: 'ph-robot', val: '4', label: 'Online', foot: '85–100% battery', gradient: 'from-[#34C759] to-[#059669]' },
-          { icon: 'ph-pause', val: '3', label: 'Idle', foot: '45–62% battery', gradient: 'from-[#FF9500] to-[#b45309]' },
-          { icon: 'ph-wrench', val: '0', label: 'Maintenance', foot: 'N/A', gradient: 'from-[#1A73E8] to-[#1557B0]' },
-          { icon: 'ph-plug', val: '1', label: 'Offline', foot: '12% battery last seen', gradient: 'from-[#FF3B30] to-[#b91c1c]' },
+          { val: '4', label: 'Online', labelCls: 'text-[#16A34A]', foot: '85–100% battery' },
+          { val: '3', label: 'Idle', labelCls: 'text-[#EA580C]', foot: '45–62% battery' },
+          { val: '0', label: 'Maintenance', labelCls: 'text-[#2563EB]', foot: 'N/A' },
+          { val: '1', label: 'Offline', labelCls: 'text-[#DC2626]', foot: '12% battery last seen' },
         ].map((item, i) => (
           <div key={i} className="flex-1 min-w-[160px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg text-white bg-gradient-to-br ${item.gradient}`}>
-                <i className={item.icon} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#000000] leading-tight">{item.val}</div>
-                <div className="text-xs text-text-secondary">{item.label}</div>
-              </div>
-            </div>
-            <div className="text-[10px] text-text-secondary border-t border-[rgba(0,0,0,0.05)] pt-2">{item.foot}</div>
+            <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
+            <div className={`text-sm font-semibold ${item.labelCls}`}>{item.label}</div>
+            <div className="text-[10px] text-[#9CA3AF] mt-2">{item.foot}</div>
           </div>
         ))}
       </div>
