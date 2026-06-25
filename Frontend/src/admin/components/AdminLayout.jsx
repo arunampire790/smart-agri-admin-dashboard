@@ -57,7 +57,7 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         <GlobalHeader />
 
-        <main className="p-6 flex-1 overflow-y-auto">
+        <main className="p-6 flex-1 overflow-y-auto" style={{ contentVisibility: 'auto' }}>
           <Outlet />
         </main>
       </div>

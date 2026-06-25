@@ -104,6 +104,7 @@ export default function Dashboard() {
             key={card.label}
             onClick={() => navigate(card.route)}
             className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
+            style={{ contentVisibility: 'auto' }}
           >
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10">
