@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const userGrowth = [
   { label: 'Jan', pct: 50, val: 40 },
@@ -76,28 +76,63 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="glass-card rounded-2xl p-5 mb-6">
-        <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Task Lifecycle Overview</div>
-        <div className="flex h-3 rounded-full overflow-hidden mb-4">
-          <div className="h-full" style={{ width: `${(activeCount / totalTasks) * 100}%`, background: '#10B981' }} />
-          <div className="h-full" style={{ width: `${(pendingCount / totalTasks) * 100}%`, background: '#D97706' }} />
-          <div className="h-full" style={{ width: `${(completedCount / totalTasks) * 100}%`, background: '#0D9488' }} />
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="glass-card rounded-2xl p-5">
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Task Lifecycle</div>
+          <div className="relative flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={[{ name: 'Active', value: activeCount }, { name: 'Pending', value: pendingCount }, { name: 'Completed', value: completedCount }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
+                  {[{ name: 'Active', color: '#10B981' }, { name: 'Pending', color: '#D97706' }, { name: 'Completed', color: '#0D9488' }].map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalTasks}</div>
+                <div className="text-[10px] text-text-secondary">Total</div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center gap-5 text-xs mt-1">
+            {[{ name: 'Active', value: activeCount, color: '#10B981' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
+              <div key={item.name} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.color }} />
+                <span className="text-text-secondary">{item.name}</span>
+                <span className="font-semibold text-[#1C1C1E]">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-6 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#10B981' }} />
-            <span className="text-text-secondary">Active</span>
-            <span className="font-semibold text-[#1C1C1E]">{activeCount}</span>
+        <div className="glass-card rounded-2xl p-5">
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Robot Status</div>
+          <div className="relative flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={[{ name: 'Online', value: robots.filter((r) => r.status === 'Active').length }, { name: 'Idle', value: robots.filter((r) => r.status === 'Idle').length }, { name: 'Maintenance', value: 0 }, { name: 'Offline', value: robots.filter((r) => r.status === 'Offline').length }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
+                  {[{ name: 'Online', color: '#22C55E' }, { name: 'Idle', color: '#F59E0B' }, { name: 'Maintenance', color: '#3B82F6' }, { name: 'Offline', color: '#EF4444' }].map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{robots.length}</div>
+                <div className="text-[10px] text-text-secondary">Total</div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#D97706' }} />
-            <span className="text-text-secondary">Pending</span>
-            <span className="font-semibold text-[#1C1C1E]">{pendingCount}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#0D9488' }} />
-            <span className="text-text-secondary">Completed</span>
-            <span className="font-semibold text-[#1C1C1E]">{completedCount}</span>
+          <div className="flex justify-center gap-4 text-xs mt-1">
+            {[{ name: 'Online', value: robots.filter((r) => r.status === 'Active').length, color: '#22C55E' }, { name: 'Idle', value: robots.filter((r) => r.status === 'Idle').length, color: '#F59E0B' }, { name: 'Maint.', value: 0, color: '#3B82F6' }, { name: 'Offline', value: robots.filter((r) => r.status === 'Offline').length, color: '#EF4444' }].map((item) => (
+              <div key={item.name} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.color }} />
+                <span className="text-text-secondary">{item.name}</span>
+                <span className="font-semibold text-[#1C1C1E]">{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
