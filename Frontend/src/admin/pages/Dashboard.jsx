@@ -48,8 +48,6 @@ export default function Dashboard() {
   const statCards = [
     { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', noteCls: 'text-[#22C55E]', route: '/admin/users' },
     { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', noteCls: 'text-[#22C55E]', route: '/admin/farms' },
-    { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, noteCls: 'text-[#EF4444]', route: '/admin/robots' },
-    { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', noteCls: 'text-[#22C55E]', route: '/admin/robots' },
   ];
 
   return (
@@ -59,7 +57,7 @@ export default function Dashboard() {
         <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         {statCards.map((card) => (
           <div
             key={card.label}
