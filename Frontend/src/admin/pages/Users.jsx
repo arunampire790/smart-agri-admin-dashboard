@@ -1,8 +1,78 @@
-﻿import { useState, useMemo } from 'react';
+﻿import { useState, useMemo, useRef, useEffect } from 'react';
 import { useUsers } from '../../context/UserContext';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
+
+const StatusDropdown = ({ value, onChange, options }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <div
+        onClick={() => setOpen(!open)}
+        style={{ outline: 'none !important', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
+        className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 w-full text-[#1C1C1E] cursor-pointer select-none outline-none"
+      >
+        {value}
+      </div>
+      {open && (
+        <div
+          className="absolute z-50 w-full mt-1 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            outline: 'none !important',
+          }}
+        >
+          {options.map((opt) => (
+            <div
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false); }}
+              style={{
+                padding: '10px 14px',
+                fontSize: '14px',
+                color: opt === value ? '#10B981' : '#1C1C1E',
+                fontWeight: opt === value ? 600 : 400,
+                background: opt === value ? 'rgba(16,185,129,0.25)' : 'transparent',
+                borderRadius: '8px',
+                margin: '2px 4px',
+                outline: 'none !important',
+                cursor: 'pointer',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                if (opt !== value) {
+                  e.currentTarget.style.background = 'rgba(16,185,129,0.15)';
+                  e.currentTarget.style.color = '#10B981';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (opt !== value) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#1C1C1E';
+                }
+              }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
@@ -161,16 +231,7 @@ export default function Users() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass}>Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full text-[#1C1C1E] appearance-none cursor-pointer select-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-                  >
-                    {statusOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                  <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
                 </div>
               </div>
 
@@ -254,16 +315,7 @@ export default function Users() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass}>Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full text-[#1C1C1E] appearance-none cursor-pointer select-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-                  >
-                    {statusOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                  <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
                 </div>
               </div>
               <div className="flex gap-3">
