@@ -1,11 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useUsers } from '../../context/UserContext';
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-[20px] bg-white/50 border border-[rgba(209,213,219,0.5)] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
-const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(209,213,219,0.5)] rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] hover:bg-white/80";
-const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
-const modalBox = "rounded-[20px] p-6 w-[440px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
+const submitBtnClass = "w-full bg-brand text-white border-none rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+const closeBtnClass = "bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98]";
 
 export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
@@ -115,29 +113,48 @@ export default function Users() {
       </div>
 
       {showAddModal && (
-        <div className={modalOverlay}>
-          <div className={modalBox} style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
-            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New User</div>
-            <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
-            <form onSubmit={handleAdd}>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Full Name</label>
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
-                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+        <div className="fixed inset-0 z-50 bg-black/5" style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }} onClick={() => setShowAddModal(false)}>
+          <div
+            className="fixed top-0 right-0 h-full w-[400px] flex flex-col border-l border-white/40 shadow-[-8px_0_40px_rgba(0,0,0,0.12)]"
+            style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', transform: showAddModal ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/30">
+              <div>
+                <div className="text-lg font-bold text-[#1C1C1E]">Add New User</div>
+                <div className="text-xs text-text-secondary mt-0.5">Enter details to register a new user.</div>
               </div>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Email Address</label>
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
-                {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
+              <button type="button" onClick={() => setShowAddModal(false)} className={closeBtnClass}>
+                <i className="ph ph-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdd} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Full Name</label>
+                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
+                  {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Email Address</label>
+                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
+                  {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Phone Number</label>
+                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
+                  {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
+                </div>
               </div>
-              <div className="flex flex-col gap-1.5 mb-6">
-                <label className={labelClass}>Phone Number</label>
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
-                {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
-              </div>
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
-                <button type="submit" className={submitBtnClass}>Submit</button>
+
+              <div className="px-6 py-4 border-t border-white/30 flex gap-3">
+                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 text-sm px-4 py-2.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80">
+                  Cancel
+                </button>
+                <button type="submit" className={submitBtnClass}>
+                  <i className="ph ph-check" /> Add User
+                </button>
               </div>
             </form>
           </div>
