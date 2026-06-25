@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useUsers } from '../../context/UserContext';
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-[20px] bg-white/50 border border-[rgba(209,213,219,0.5)] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(209,213,219,0.5)] rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] hover:bg-white/80";
+const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
+const modalBox = "rounded-[20px] p-6 w-[440px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50";
 
 export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
@@ -113,7 +116,7 @@ export default function Users() {
 
       {showAddModal && (
         <div className={modalOverlay}>
-          <div className={modalBox}>
+          <div className={modalBox} style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New User</div>
             <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
             <form onSubmit={handleAdd}>
@@ -143,7 +146,7 @@ export default function Users() {
 
       {viewUser && (
         <div className={modalOverlay} onClick={() => setViewUser(null)}>
-          <div className={modalBox} onClick={(e) => e.stopPropagation()}>
+          <div className={modalBox} onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">User Details</div>
             <div className="text-xs text-text-secondary mb-5">Viewing information for {viewUser.name}.</div>
             <div className="space-y-4">
@@ -157,7 +160,7 @@ export default function Users() {
               ].map((field) => (
                 <div key={field.label} className="flex flex-col gap-1">
                   <span className={labelClass}>{field.label}</span>
-                  <div className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] text-[#1C1C1E] w-full">{field.value}</div>
+                  <div className="text-sm px-3.5 py-2.5 rounded-[20px] bg-white/50 border border-[rgba(209,213,219,0.5)] text-[#1C1C1E] w-full">{field.value}</div>
                 </div>
               ))}
             </div>
@@ -170,7 +173,7 @@ export default function Users() {
 
       {editUser && (
         <div className={modalOverlay}>
-          <div className={modalBox}>
+          <div className={modalBox} style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit User Details</div>
             <div className="text-xs text-text-secondary mb-5">Update information for {editUser.name}.</div>
             <form onSubmit={handleEdit}>
@@ -200,14 +203,14 @@ export default function Users() {
 
       {deleteUser && (
         <div className={modalOverlay} onClick={() => setDeleteUser(null)}>
-          <div className="glass-card rounded-[20px] p-6 w-[380px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-[20px] p-6 w-[380px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)} className={cancelBtnClass}>Cancel</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90"><i className="ph ph-trash" /> Delete</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] hover:shadow-[0_8px_25px_rgba(220,38,38,0.3)]"><i className="ph ph-trash" /> Delete</button>
             </div>
           </div>
         </div>
