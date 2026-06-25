@@ -133,6 +133,7 @@ export default function Users() {
 
   return (
     <>
+      <style>{`@keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }`}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-2xl font-bold text-[#000000]">User Management</div>
@@ -171,7 +172,10 @@ export default function Users() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.phone}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.farms}</td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className="inline-block transition-all duration-200 group-hover:opacity-90" style={{ padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', background: u.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: u.status === 'Active' ? '#10B981' : '#EF4444', border: u.status === 'Active' ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)' }}>{u.status}</span>
+                    <span className="inline-flex items-center gap-1.5 transition-all duration-200 group-hover:opacity-90" style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, letterSpacing: '-0.01em', background: u.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: u.status === 'Active' ? '#10B981' : '#EF4444', border: u.status === 'Active' ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(239,68,68,0.35)', boxShadow: u.status === 'Active' ? 'inset 0 1px 4px rgba(16,185,129,0.1)' : 'inset 0 1px 4px rgba(239,68,68,0.1)' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: u.status === 'Active' ? '#10B981' : '#EF4444', animation: u.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                      {u.status}
+                    </span>
                   </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.joined}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
