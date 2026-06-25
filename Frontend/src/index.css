@@ -58,9 +58,14 @@ input, textarea, [contenteditable] {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none !important;
   box-shadow: none !important;
+}
+.dashboard-card-link:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  z-index: 10;
 }
 .dashboard-card-link:focus,
 .dashboard-card-link:active,
