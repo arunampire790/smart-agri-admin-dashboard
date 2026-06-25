@@ -87,8 +87,8 @@ export default function Farms() {
                 <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
                 <div className="text-3xl font-extrabold text-[#000000]">{card.val}</div>
               </div>
-              <div className="absolute flex items-center justify-center" style={{ width: '36px', height: '36px', borderRadius: '10px', top: '16px', right: '16px', background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)' }}>
-                <i className={`${card.label === 'Total Farms' ? 'ph-warehouse' : card.label === 'Regions' ? 'ph-map-pin' : card.label === 'Crop Types' ? 'ph-flower' : 'ph-robot'}`} style={{ fontSize: '18px', color: '#4B5563' }} />
+              <div className="absolute flex items-center justify-center" style={{ width: '36px', height: '36px', borderRadius: '10px', top: '16px', right: '16px', background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)', zIndex: 20 }}>
+                <i className={`${card.label === 'Total Farms' ? 'ph ph-warehouse' : card.label === 'Regions' ? 'ph ph-map-pin' : card.label === 'Crop Types' ? 'ph ph-flower' : 'ph ph-robot'}`} style={{ fontSize: '18px', color: '#4B5563', lineHeight: 1 }} />
               </div>
             </div>
           );
