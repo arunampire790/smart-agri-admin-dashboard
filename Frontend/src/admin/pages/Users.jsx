@@ -126,12 +126,8 @@ export default function Users() {
 
       {/* Add New User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)}>
-          <div
-            className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }} onClick={() => setShowAddModal(false)}>
+          <div className="w-[440px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="text-lg font-bold text-[#1C1C1E]">Add New User</div>
