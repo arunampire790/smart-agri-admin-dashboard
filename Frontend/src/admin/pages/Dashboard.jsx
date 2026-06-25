@@ -40,13 +40,16 @@ export default function Dashboard() {
   const { farms } = useFarms();
   const { robots } = useRobots();
 
+  const activeCount = 7;
+  const pendingCount = 5;
+  const completedCount = 3;
+  const totalTasks = activeCount + pendingCount + completedCount;
+
   const statCards = [
     { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', noteCls: 'text-[#22C55E]', route: '/admin/users' },
     { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', noteCls: 'text-[#22C55E]', route: '/admin/farms' },
     { label: 'Total Robots', value: String(robots.length), note: `${robots.filter((r) => r.status === 'Offline').length} offline`, noteCls: 'text-[#EF4444]', route: '/admin/robots' },
     { label: 'Active Robots', value: String(robots.filter((r) => r.status === 'Active').length), note: 'Currently operating', noteCls: 'text-[#22C55E]', route: '/admin/robots' },
-    { label: 'Active Tasks', value: '7', note: '5 high priority', noteCls: 'text-[#F97316]', route: '/admin/tasks' },
-    { label: 'Completed Tasks', value: '3', note: 'This week', noteCls: 'text-[#22C55E]', route: '/admin/tasks' },
   ];
 
   return (
@@ -56,13 +59,12 @@ export default function Dashboard() {
         <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-4">
         {statCards.map((card) => (
           <div
             key={card.label}
             onClick={() => navigate(card.route)}
-            className="relative glass-card rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] border border-[rgba(255,255,255,0.6)] overflow-hidden"
-            style={{ boxShadow: '0px 8px 32px rgba(0,0,0,0.08)' }}
+            className="relative glass-card rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] overflow-hidden"
           >
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10">
@@ -72,6 +74,32 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="glass-card rounded-2xl p-5 mb-6">
+        <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Task Lifecycle Overview</div>
+        <div className="flex h-3 rounded-full overflow-hidden mb-4">
+          <div className="h-full" style={{ width: `${(activeCount / totalTasks) * 100}%`, background: '#10B981' }} />
+          <div className="h-full" style={{ width: `${(pendingCount / totalTasks) * 100}%`, background: '#D97706' }} />
+          <div className="h-full" style={{ width: `${(completedCount / totalTasks) * 100}%`, background: '#0D9488' }} />
+        </div>
+        <div className="flex gap-6 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#10B981' }} />
+            <span className="text-text-secondary">Active</span>
+            <span className="font-semibold text-[#1C1C1E]">{activeCount}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#D97706' }} />
+            <span className="text-text-secondary">Pending</span>
+            <span className="font-semibold text-[#1C1C1E]">{pendingCount}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#0D9488' }} />
+            <span className="text-text-secondary">Completed</span>
+            <span className="font-semibold text-[#1C1C1E]">{completedCount}</span>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
