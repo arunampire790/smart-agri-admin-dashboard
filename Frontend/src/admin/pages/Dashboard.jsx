@@ -62,7 +62,7 @@ export default function Dashboard() {
           <div
             key={card.label}
             onClick={() => navigate(card.route)}
-            className="relative glass-card rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] overflow-hidden"
+            className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
           >
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10">
@@ -75,7 +75,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="glass-card rounded-2xl p-5">
+        <div onClick={() => navigate('/admin/tasks')} className="dashboard-card-link glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Task Lifecycle</div>
           <div className="relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height={180}>
@@ -104,7 +104,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-        <div className="glass-card rounded-2xl p-5">
+        <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Robot Status</div>
           <div className="relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height={180}>
