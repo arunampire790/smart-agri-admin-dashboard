@@ -3,71 +3,45 @@ import { useState } from 'react';
 const tabs = [
   { key: 'all', label: 'All (10)' },
   { key: 'pending', label: 'Pending (5)' },
-  { key: 'inprog', label: 'In progress (2)' },
+  { key: 'inprog', label: 'In Progress (2)' },
   { key: 'done', label: 'Completed (3)' },
-];
-
-const tasks = [
-  { task: 'Water wheat fields', user: 'John Smith', farm: 'Green Valley Farm', type: 'Irrigation', typeCls: 'irr', priority: 'High', priCls: 'high', due: '2026-04-09', status: 'pending' },
-  { task: 'Apply nitrogen fertilizer', user: 'Michael Brown', farm: 'Golden Harvest', type: 'Fertilizer', typeCls: 'fert', priority: 'Medium', priCls: 'medium', due: '2026-04-10', status: 'pending' },
-  { task: 'Inspect apple trees', user: 'Sarah Johnson', farm: 'Sunrise Orchards', type: 'Inspection', typeCls: 'insp', priority: 'Low', priCls: 'low', due: '2026-04-07', status: 'inprog' },
 ];
 
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('all');
 
-  const filtered = activeTab === 'all' ? tasks : tasks.filter((t) => t.status === activeTab);
-
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-xl font-medium text-[#1C1C1E]">Task management</div>
-          <div className="text-sm text-[#757575] mt-0.5">Assign and track agricultural tasks</div>
+          <div className="text-2xl font-bold text-[#000000]">Task Management</div>
+          <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button className="bg-[#2e7d32] text-white border-none rounded-md px-3.5 py-1.5 text-sm cursor-pointer flex items-center gap-1.5 hover:bg-[#1b5e20]">
-          <i className="ph ph-plus" /> Assign task
+        <button className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+          <i className="ph ph-plus" /> Assign Task
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-2.5 mb-3.5">
-        <div className="bg-white border border-[#e0e0e0] rounded-xl p-2.5 flex items-center gap-2.5">
-          <div className="text-lg" style={{ color: '#1565c0' }}><i className="ph ph-list" /></div>
-          <div>
-            <div className="text-lg font-medium">10</div>
-            <div className="text-xs text-[#757575]">Total</div>
+      <div className="flex gap-3 mb-4 flex-wrap">
+        {[
+          { val: '10', label: 'Total Tasks', labelCls: 'text-[#4B5563]' },
+          { val: '5', label: 'Pending', labelCls: 'text-[#EA580C]' },
+          { val: '3', label: 'Completed', labelCls: 'text-[#16A34A]' },
+        ].map((item, i) => (
+          <div key={i} className="flex-1 min-w-[140px] glass-card rounded-[20px] p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
+            <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
+            <div className={`font-semibold text-sm ${item.labelCls}`}>{item.label}</div>
           </div>
-        </div>
-        <div className="bg-white border border-[#e0e0e0] rounded-xl p-2.5 flex items-center gap-2.5">
-          <div className="text-lg" style={{ color: '#f57f17' }}><i className="ph ph-clock" /></div>
-          <div>
-            <div className="text-lg font-medium">5</div>
-            <div className="text-xs text-[#757575]">Pending</div>
-          </div>
-        </div>
-        <div className="bg-white border border-[#e0e0e0] rounded-xl p-2.5 flex items-center gap-2.5">
-          <div className="text-lg" style={{ color: '#e65100' }}><i className="ph ph-play" /></div>
-          <div>
-            <div className="text-lg font-medium">2</div>
-            <div className="text-xs text-[#757575]">In progress</div>
-          </div>
-        </div>
-        <div className="bg-white border border-[#e0e0e0] rounded-xl p-2.5 flex items-center gap-2.5">
-          <div className="text-lg" style={{ color: '#2e7d32' }}><i className="ph ph-check-circle" /></div>
-          <div>
-            <div className="text-lg font-medium">3</div>
-            <div className="text-xs text-[#757575]">Completed</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="bg-white border border-[#e0e0e0] rounded-xl p-3.5">
-        <div className="flex gap-0 border-b border-[#e0e0e0] mb-3">
+      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
+        <div className="flex gap-6 mb-5 border-b border-[rgba(0,0,0,0.05)]">
           {tabs.map((tab) => (
             <div
               key={tab.key}
-              className={`px-3 py-1.5 text-xs cursor-pointer border-b-2 -mb-px ${
-                activeTab === tab.key ? 'text-[#2e7d32] border-[#2e7d32] font-medium' : 'text-[#757575] border-transparent'
+              className={`pb-2 text-sm cursor-pointer border-b-2 -mb-px transition-colors ${
+                activeTab === tab.key ? 'text-brand border-brand font-medium' : 'text-text-secondary border-transparent'
               }`}
               onClick={() => setActiveTab(tab.key)}
             >
@@ -76,36 +50,51 @@ export default function Tasks() {
           ))}
         </div>
 
+        <div className="mb-4">
+          <input placeholder="Search tasks by title or assignee..." aria-label="Search tasks" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
+        </div>
+
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Task</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Assigned to</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Farm</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Type</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Priority</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Due date</th>
-              <th className="text-left px-2 py-1.5 text-[10px] font-medium text-[#757575] border-b border-[#e0e0e0]">Action</th>
-            </tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Task</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Assigned to</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Type</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Priority</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Due date</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Action</th></tr>
           </thead>
           <tbody>
-            {filtered.map((t, i) => (
-              <tr key={i}>
-                <td className="px-2 py-2 border-b border-[#e0e0e0]"><strong className="font-medium">{t.task}</strong></td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0] text-[#757575]">{t.user}</td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0] text-[#757575]">{t.farm}</td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0]"><span className={`pill ${t.typeCls}`}>{t.type}</span></td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0]"><span className={`pill ${t.priCls}`}>{t.priority}</span></td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0] text-[#757575]">{t.due}</td>
-                <td className="px-2 py-2 border-b border-[#e0e0e0]">
-                  <button className={`text-xs px-2.5 py-1 border border-[#e0e0e0] rounded-md cursor-pointer bg-transparent ${
-                    t.status === 'pending' ? 'text-[#2e7d32] border-[#a5d6a7] bg-[#e8f5e9]' : 'text-[#1C1C1E] hover:bg-[#f5f5f5]'
-                  }`}>
-                    {t.status === 'pending' ? 'Complete' : 'Start'}
-                  </button>
-                </td>
+            {(activeTab === 'all' || activeTab === 'pending') && (
+              <>
+                <tr>
+                  <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">Water wheat fields</strong></td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">John Smith</td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">Green Valley Farm</td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#7676801F] text-text-secondary">Irrigation</span></td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-danger-bg text-danger-text">High</span></td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">2026-04-09</td>
+                  <td className="px-4 py-4 border-b border-table-sep"><button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]">Complete</button></td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">Apply nitrogen fertilizer</strong></td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">Michael Brown</td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">Golden Harvest</td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#7676801F] text-text-secondary">Fertilizer</span></td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text">Medium</span></td>
+                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">2026-04-10</td>
+                  <td className="px-4 py-4 border-b border-table-sep"><button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]">Start</button></td>
+                </tr>
+              </>
+            )}
+            {(activeTab === 'all' || activeTab === 'inprog') && (
+              <tr>
+                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">Inspect apple trees</strong></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">Sarah Johnson</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">Sunrise Orchards</td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#7676801F] text-text-secondary">Inspection</span></td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-brand-light text-brand-dark">Low</span></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">2026-04-07</td>
+                <td className="px-4 py-4 border-b border-table-sep"><button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]">Start</button></td>
               </tr>
-            ))}
+            )}
+            {activeTab === 'done' && (
+              <tr><td colSpan="7" className="text-center py-6 text-text-secondary">No newly completed tasks to show.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

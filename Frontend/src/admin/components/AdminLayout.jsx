@@ -16,15 +16,20 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex h-screen min-h-[600px] overflow-hidden bg-[#f5f5f5]">
-      <aside className="w-[200px] min-w-[200px] bg-white border-r border-[#e0e0e0] flex flex-col py-4">
-        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-[#e0e0e0] mb-2">
-          <div className="w-8 h-8 bg-[#2e7d32] rounded-lg flex items-center justify-center text-white text-base">
+    <div className="relative bg-surface text-[#1C1C1E] h-screen overflow-hidden flex">
+      {/* Glass orbs */}
+      <div className="fixed pointer-events-none z-0" style={{ width: 400, height: 400, background: '#10B981', filter: 'blur(120px)', opacity: 0.35, top: '-10%', left: '-10%' }} />
+      <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
+      <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
+
+      <aside className="relative z-10 w-60 min-w-[240px] glass border-r border-white/40 flex flex-col py-4">
+        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-white/30 mb-4">
+          <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
             <i className="ph ph-plant" />
           </div>
           <div>
-            <div className="text-sm font-medium text-[#1C1C1E]">Smart Agriculture</div>
-            <div className="text-xs text-[#757575]">Admin Panel</div>
+            <div className="text-base font-bold text-[#1C1C1E]">Smart Agriculture</div>
+            <div className="text-xs text-text-secondary">Admin Panel</div>
           </div>
         </div>
 
@@ -35,34 +40,36 @@ export default function AdminLayout() {
               <div
                 key={to}
                 onClick={() => navigate(to)}
-                className={`flex items-center gap-2.5 px-4 py-2 mx-2 rounded-md text-sm cursor-pointer transition-colors ${
-                  isActive ? 'nav-active-indicator' : 'text-[#757575] hover:bg-[#f5f5f5] hover:text-[#1C1C1E]'
+                className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                  isActive
+                    ? 'glass-active text-[#1C1C1E] nav-active-indicator'
+                    : 'hover:bg-white/30 hover:text-[#1C1C1E]'
                 }`}
               >
-                <i className={`${icon} text-base`} />
+                <i className={`${icon} text-lg`} />
                 {label}
               </div>
             );
           })}
         </nav>
 
-        <div className="mt-auto px-4 py-3 border-t border-[#e0e0e0]">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white flex items-center justify-center text-xs font-medium">AD</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-[#1C1C1E]">Admin User</div>
-              <div className="text-[10px] text-[#757575] truncate">admin@smartagri.com</div>
+        <div className="mt-auto px-4 py-4 border-t border-white/30">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">AD</div>
+            <div>
+              <div className="text-sm font-medium text-[#1C1C1E]">Admin User</div>
+              <div className="text-xs text-text-placeholder">admin@smartagri.com</div>
             </div>
-            <button onClick={() => { localStorage.clear(); navigate('/login'); }} title="Sign out" className="bg-none border-none cursor-pointer text-[#757575] hover:text-[#1C1C1E] text-base p-0">
+            <button onClick={() => { localStorage.clear(); navigate('/login'); }} title="Sign out" className="ml-auto bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg p-0">
               <i className="ph ph-sign-out" />
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0">
         <GlobalHeader />
-        <main className="flex-1 overflow-y-auto p-5">
+        <main className="p-6 flex-1 overflow-y-auto content-visibility-auto">
           <Outlet />
         </main>
       </div>
