@@ -64,19 +64,24 @@ input, textarea, [contenteditable] {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
   outline: none !important;
   box-shadow: none !important;
+  will-change: transform;
 }
 
 .dashboard-card-link:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-  z-index: 10;
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
 }
 
-.dashboard-card-link:focus,
 .dashboard-card-link:active {
+  transform: translateY(-1px) scale(0.99);
+  transition: transform 0.05s ease;
+  box-shadow: none !important;
+}
+
+.dashboard-card-link:focus {
   outline: none !important;
   box-shadow: none !important;
 }

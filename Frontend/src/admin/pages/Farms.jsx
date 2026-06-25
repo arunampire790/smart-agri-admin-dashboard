@@ -78,7 +78,7 @@ export default function Farms() {
             <div
               key={card.label}
               onClick={card.route ? () => navigate(card.route) : undefined}
-              className={card.route ? "dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" : "glass-card rounded-2xl p-5 overflow-hidden"}
+              className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
               style={{ contentVisibility: 'auto' }}
             >
               <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
