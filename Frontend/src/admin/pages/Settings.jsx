@@ -40,20 +40,20 @@ export default function Settings() {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-[#1C1C1E]">First Name</label>
-            <input defaultValue="Admin" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] placeholder:text-text-placeholder" />
+            <input defaultValue="Admin" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 placeholder:text-text-placeholder" />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-[#1C1C1E]">Last Name</label>
-            <input defaultValue="User" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] placeholder:text-text-placeholder" />
+            <input defaultValue="User" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 placeholder:text-text-placeholder" />
           </div>
         </div>
         <div className="flex flex-col gap-1.5 mb-4">
           <label className="text-xs font-medium text-[#1C1C1E]">Email Address</label>
-          <input defaultValue="admin@smartagri.com" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder" />
+          <input defaultValue="admin@smartagri.com" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-[#1C1C1E]">Phone Number</label>
-          <input defaultValue="+1-555-0199" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder" />
+          <input defaultValue="+1-555-0199" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
         </div>
       </SettingsSection>
 
@@ -67,15 +67,15 @@ export default function Settings() {
       <SettingsSection title="Security Settings" subtitle="Manage your security architecture">
         <div className="flex flex-col gap-1.5 mb-4">
           <label className="text-xs font-medium text-[#1C1C1E]">Current Password</label>
-          <input type="password" placeholder="Enter current password" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder" />
+          <input type="password" placeholder="Enter current password" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
         </div>
         <div className="flex flex-col gap-1.5 mb-4">
           <label className="text-xs font-medium text-[#1C1C1E]">New Password</label>
-          <input type="password" placeholder="Enter new password" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder" />
+          <input type="password" placeholder="Enter new password" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-[#1C1C1E]">Confirm New Password</label>
-          <input type="password" placeholder="Confirm new password" className="text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder" />
+          <input type="password" placeholder="Confirm new password" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder" />
         </div>
         <SettingsRow label="Two-Factor Authentication" sublabel="Require an extra step at login"><Toggle /></SettingsRow>
       </SettingsSection>
