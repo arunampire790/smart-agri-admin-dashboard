@@ -23,18 +23,6 @@ const farmRegs = [
   { label: 'Jun', pct: 100, val: 36 },
 ];
 
-const getGlowColor = (label) => {
-  switch (label) {
-    case 'Total Users': return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
-    case 'Total Farms':
-    case 'Active Robots':
-    case 'Completed Tasks': return 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)';
-    case 'Total Robots': return 'radial-gradient(circle, rgba(147,51,234,0.7) 0%, transparent 70%)';
-    case 'Active Tasks': return 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)';
-    default: return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
-  }
-};
-
 const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks }) => (
   <div className="relative flex items-center justify-center">
     <ResponsiveContainer width="100%" height={180}>
@@ -89,13 +77,6 @@ export default function Dashboard() {
   const completedCount = 3;
   const totalTasks = activeCount + pendingCount + completedCount;
 
-  const statCards = [
-    { label: 'Total Users', value: String(users.length), note: '↑ +12% from last month', noteCls: 'text-[#22C55E]', route: '/admin/users' },
-    { label: 'Total Farms', value: String(farms.length), note: '↑ +8% from last month', noteCls: 'text-[#22C55E]', route: '/admin/farms' },
-    { label: 'Total Robots', value: String(robots.length), note: `${offlineRobots} currently offline`, noteCls: 'text-[#EF4444]', route: '/admin/robots' },
-    { label: 'Active Tasks', value: String(activeCount), note: '5 high priority', noteCls: 'text-[#D97706]', route: '/admin/tasks' },
-  ];
-
   return (
     <>
       <div className="mb-6">
@@ -103,22 +84,31 @@ export default function Dashboard() {
         <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-4">
-        {statCards.slice(0, 4).map((card) => (
-          <div
-            key={card.label}
-            onClick={() => navigate(card.route)}
-            className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
-            style={{ contentVisibility: 'auto' }}
-          >
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
-            <div className="relative z-10">
-              <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
-              <div className="text-3xl font-extrabold text-[#000000] mb-1">{card.value}</div>
-              <div className={`text-xs leading-relaxed ${card.noteCls}`}>{card.note}</div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-4">
+        <div
+          onClick={() => navigate('/admin/users')}
+          className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
+          style={{ contentVisibility: 'auto' }}
+        >
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10">
+            <div className="text-xs font-semibold text-[#6B7280] mb-2">Total Users</div>
+            <div className="text-3xl font-extrabold text-[#000000] mb-1">{users.length}</div>
+            <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
           </div>
-        ))}
+        </div>
+        <div
+          onClick={() => navigate('/admin/farms')}
+          className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
+          style={{ contentVisibility: 'auto' }}
+        >
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10">
+            <div className="text-xs font-semibold text-[#6B7280] mb-2">Total Farms</div>
+            <div className="text-3xl font-extrabold text-[#000000] mb-1">{farms.length}</div>
+            <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
