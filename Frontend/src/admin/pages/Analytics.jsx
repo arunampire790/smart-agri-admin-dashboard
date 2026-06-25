@@ -13,7 +13,7 @@ export default function Analytics() {
           { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]' },
           { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[180px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+          <div key={i} className="flex-1 min-w-[180px] glass-card rounded-[20px] p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
             <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
             <div className="text-xs font-semibold text-[#4B5563] mb-1">{item.label}</div>
             <div className={`text-[10px] leading-relaxed ${item.changeCls}`}>{item.change}</div>
@@ -22,7 +22,7 @@ export default function Analytics() {
       </div>
 
       <div className="flex gap-3 mb-4 flex-wrap">
-        <div className="flex-1 min-w-[240px] bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="flex-1 min-w-[240px] glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
           {[
             { label: 'Wheat', pct: 25, color: '#059669' },
@@ -41,7 +41,7 @@ export default function Analytics() {
           ))}
         </div>
 
-        <div className="flex-1 min-w-[240px] bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="flex-1 min-w-[240px] glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
           {[
             { label: 'Active', val: '4', dot: 'bg-[#10B981]' },

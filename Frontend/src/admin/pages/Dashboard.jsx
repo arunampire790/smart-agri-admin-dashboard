@@ -75,7 +75,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-2xl p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">User Growth Over Time</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={userGrowth} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -93,7 +93,7 @@ export default function Dashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Farm Registrations</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={farmRegs} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -113,7 +113,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-5 mb-6 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="glass-card rounded-2xl p-5 mb-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E]">Recent Tasks</div>
            <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">

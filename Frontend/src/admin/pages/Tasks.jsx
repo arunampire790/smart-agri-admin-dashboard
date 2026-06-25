@@ -28,14 +28,14 @@ export default function Tasks() {
           { val: '5', label: 'Pending', labelCls: 'text-[#EA580C]' },
           { val: '3', label: 'Completed', labelCls: 'text-[#16A34A]' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[140px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+          <div key={i} className="flex-1 min-w-[140px] glass-card rounded-[20px] p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
             <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
             <div className={`font-semibold text-sm ${item.labelCls}`}>{item.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex gap-6 mb-5 border-b border-[rgba(0,0,0,0.05)]">
           {tabs.map((tab) => (
             <div

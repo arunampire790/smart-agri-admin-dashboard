@@ -18,7 +18,7 @@ const labelClass = "text-xs font-medium text-[#1C1C1E]";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
 const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
 const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
-const modalBox = "bg-white rounded-[20px] p-6 w-[450px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)] relative";
+const modalBox = "glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative";
 
 function Select({ options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -48,7 +48,7 @@ function Select({ options, value, onChange, placeholder }) {
       </button>
 
       {open && (
-        <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[rgba(0,0,0,0.05)] shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 glass-card rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
           {options.map((opt) => {
             const selected = opt === value;
             return (
@@ -205,7 +205,7 @@ export default function Robots() {
           { val: '0', label: 'Maintenance', labelCls: 'text-[#2563EB]', foot: 'N/A' },
           { val: '1', label: 'Offline', labelCls: 'text-[#DC2626]', foot: '12% battery last seen' },
         ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[160px] bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] p-4 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+          <div key={i} className="flex-1 min-w-[160px] glass-card rounded-[20px] p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
             <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
             <div className={`text-sm font-semibold ${item.labelCls}`}>{item.label}</div>
             <div className="text-[10px] text-[#9CA3AF] mt-2">{item.foot}</div>
@@ -213,7 +213,7 @@ export default function Robots() {
         ))}
       </div>
 
-      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Robots ({robots.length})</div>
           <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
@@ -287,7 +287,7 @@ export default function Robots() {
 
       {deleteRobot && (
         <div className={modalOverlay} onClick={() => setDeleteRobot(null)}>
-          <div className="bg-white rounded-[20px] p-6 w-[400px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-card rounded-[20px] p-6 w-[400px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]" onClick={(e) => e.stopPropagation()}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete Robot?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to remove <strong className="text-[#1C1C1E] font-medium">{deleteRobot.name}</strong> ({deleteRobot.id}) from the fleet registry? This action cannot be reverted.

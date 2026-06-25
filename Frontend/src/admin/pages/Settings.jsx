@@ -8,7 +8,7 @@ const Toggle = ({ defaultChecked }) => (
 
 function SettingsSection({ title, subtitle, children }) {
   return (
-    <div className="bg-white rounded-2xl p-6 mb-4 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]">
+    <div className="glass-card rounded-2xl p-6 mb-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
       <div className="text-base font-semibold text-[#1C1C1E] mb-1">{title}</div>
       <div className="text-xs text-text-secondary mb-5">{subtitle}</div>
       {children}

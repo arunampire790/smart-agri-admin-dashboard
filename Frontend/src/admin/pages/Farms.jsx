@@ -59,14 +59,14 @@ export default function Farms() {
           { val: String(cropTypes.length), label: 'Crop Types' },
           { val: String(activeRobotCount), label: 'Active Robots' },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.05)] rounded-[20px] px-4 py-2.5 text-xs shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+          <div key={i} className="flex items-center gap-2 glass-card rounded-[20px] px-4 py-2.5 text-xs shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
             <strong className="text-[#1C1C1E] text-sm font-bold">{item.val}</strong>
             <span className="text-[#6B7280] text-xs font-medium">{item.label}</span>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Farms ({farms.length})</div>
           <input

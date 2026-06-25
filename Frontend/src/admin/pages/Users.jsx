@@ -70,7 +70,7 @@ export default function Users() {
   const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
   const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
   const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm";
-  const modalBox = "bg-white rounded-[20px] p-6 w-[440px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]";
+  const modalBox = "glass-card rounded-[20px] p-6 w-[440px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]";
 
   return (
     <>
@@ -84,7 +84,7 @@ export default function Users() {
         </button>
       </div>
 
-      <div className="bg-white rounded-[20px] p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Users ({users.length})</div>
           <input
@@ -235,7 +235,7 @@ export default function Users() {
       {/* Delete Confirmation Modal */}
       {deleteUser && (
         <div className={modalOverlay} onClick={() => setDeleteUser(null)}>
-          <div className="bg-white rounded-[20px] p-6 w-[380px] shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)]" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-card rounded-[20px] p-6 w-[380px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]" onClick={(e) => e.stopPropagation()}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
