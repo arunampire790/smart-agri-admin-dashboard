@@ -32,6 +32,9 @@ input, textarea, [contenteditable] {
   background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .glass-card {
@@ -40,6 +43,10 @@ input, textarea, [contenteditable] {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+  content-visibility: auto;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .glass-active {
@@ -52,13 +59,14 @@ input, textarea, [contenteditable] {
   box-shadow: none !important;
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
+  pointer-events: none;
 }
 
 .dashboard-card-link {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease-in-out;
   outline: none !important;
   box-shadow: none !important;
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
@@ -33,6 +34,46 @@ const getGlowColor = (label) => {
     default: return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
   }
 };
+
+const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks }) => (
+  <div className="relative flex items-center justify-center">
+    <ResponsiveContainer width="100%" height={180}>
+      <PieChart>
+        <Pie data={[{ name: 'Active', value: activeCount }, { name: 'Pending', value: pendingCount }, { name: 'Completed', value: completedCount }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
+          {[{ name: 'Active', color: '#10B981' }, { name: 'Pending', color: '#D97706' }, { name: 'Completed', color: '#0D9488' }].map((entry, i) => (
+            <Cell key={i} fill={entry.color} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="text-center">
+        <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalTasks}</div>
+        <div className="text-[10px] text-text-secondary">Total</div>
+      </div>
+    </div>
+  </div>
+));
+
+const RobotDonut = memo(({ onlineCount, idleCount, offlineCount, totalRobots }) => (
+  <div className="relative flex items-center justify-center">
+    <ResponsiveContainer width="100%" height={180}>
+      <PieChart>
+        <Pie data={[{ name: 'Online', value: onlineCount }, { name: 'Idle', value: idleCount }, { name: 'Maintenance', value: 0 }, { name: 'Offline', value: offlineCount }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
+          {[{ name: 'Online', color: '#22C55E' }, { name: 'Idle', color: '#F59E0B' }, { name: 'Maintenance', color: '#3B82F6' }, { name: 'Offline', color: '#EF4444' }].map((entry, i) => (
+            <Cell key={i} fill={entry.color} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="text-center">
+        <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalRobots}</div>
+        <div className="text-[10px] text-text-secondary">Total</div>
+      </div>
+    </div>
+  </div>
+));
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -77,23 +118,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div onClick={() => navigate('/admin/tasks')} className="dashboard-card-link glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Task Lifecycle</div>
-          <div className="relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={[{ name: 'Active', value: activeCount }, { name: 'Pending', value: pendingCount }, { name: 'Completed', value: completedCount }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
-                  {[{ name: 'Active', color: '#10B981' }, { name: 'Pending', color: '#D97706' }, { name: 'Completed', color: '#0D9488' }].map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center">
-                <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalTasks}</div>
-                <div className="text-[10px] text-text-secondary">Total</div>
-              </div>
-            </div>
-          </div>
+          <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
           <div className="flex justify-center gap-5 text-xs mt-1">
             {[{ name: 'Active', value: activeCount, color: '#10B981' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
@@ -106,23 +131,7 @@ export default function Dashboard() {
         </div>
         <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Robot Status</div>
-          <div className="relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={[{ name: 'Online', value: robots.filter((r) => r.status === 'Active').length }, { name: 'Idle', value: robots.filter((r) => r.status === 'Idle').length }, { name: 'Maintenance', value: 0 }, { name: 'Offline', value: robots.filter((r) => r.status === 'Offline').length }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
-                  {[{ name: 'Online', color: '#22C55E' }, { name: 'Idle', color: '#F59E0B' }, { name: 'Maintenance', color: '#3B82F6' }, { name: 'Offline', color: '#EF4444' }].map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center">
-                <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{robots.length}</div>
-                <div className="text-[10px] text-text-secondary">Total</div>
-              </div>
-            </div>
-          </div>
+          <RobotDonut onlineCount={robots.filter((r) => r.status === 'Active').length} idleCount={robots.filter((r) => r.status === 'Idle').length} offlineCount={robots.filter((r) => r.status === 'Offline').length} totalRobots={robots.length} />
           <div className="flex justify-center gap-4 text-xs mt-1">
             {[{ name: 'Online', value: robots.filter((r) => r.status === 'Active').length, color: '#22C55E' }, { name: 'Idle', value: robots.filter((r) => r.status === 'Idle').length, color: '#F59E0B' }, { name: 'Maint.', value: 0, color: '#3B82F6' }, { name: 'Offline', value: robots.filter((r) => r.status === 'Offline').length, color: '#EF4444' }].map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
