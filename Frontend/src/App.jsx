@@ -14,6 +14,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AdminLogin />} />
+            <Route path="/login" element={<AdminLogin />} />
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />
           </Routes>
