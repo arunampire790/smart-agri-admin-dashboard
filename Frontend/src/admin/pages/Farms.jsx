@@ -74,7 +74,6 @@ export default function Farms() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         {statCards.map((card) => {
-          const iconCfg = getIconConfig(card.label);
           return (
             <div
               key={card.label}
@@ -83,14 +82,9 @@ export default function Farms() {
               style={{ contentVisibility: 'auto' }}
             >
               <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
-                  <div className="text-3xl font-extrabold text-[#000000]">{card.val}</div>
-                </div>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: iconCfg.bg }}>
-                  <i className={`${iconCfg.icon}`} style={{ color: iconCfg.color }} />
-                </div>
+              <div className="relative z-10">
+                <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
+                <div className="text-3xl font-extrabold text-[#000000]">{card.val}</div>
               </div>
             </div>
           );
