@@ -21,6 +21,18 @@ const farmRegs = [
   { label: 'Jun', pct: 100, val: 36 },
 ];
 
+const getGlowColor = (label) => {
+  switch (label) {
+    case 'Total Users': return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
+    case 'Total Farms':
+    case 'Active Robots':
+    case 'Completed Tasks': return 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)';
+    case 'Total Robots': return 'radial-gradient(circle, rgba(147,51,234,0.7) 0%, transparent 70%)';
+    case 'Active Tasks': return 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)';
+    default: return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
+  }
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { users } = useUsers();
@@ -48,11 +60,15 @@ export default function Dashboard() {
           <div
             key={card.label}
             onClick={() => navigate(card.route)}
-            className="bg-white rounded-2xl p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04),0px_1px_2px_rgba(0,0,0,0.02)] cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+            className="relative glass-card rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] border border-[rgba(255,255,255,0.6)] overflow-hidden"
+            style={{ boxShadow: '0px 8px 32px rgba(0,0,0,0.08)' }}
           >
-            <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
-            <div className="text-3xl font-extrabold text-[#000000] mb-1">{card.value}</div>
-            <div className={`text-xs leading-relaxed ${card.noteCls}`}>{card.note}</div>
+            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
+            <div className="relative z-10">
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
+              <div className="text-3xl font-extrabold text-[#000000] mb-1">{card.value}</div>
+              <div className={`text-xs leading-relaxed ${card.noteCls}`}>{card.note}</div>
+            </div>
           </div>
         ))}
       </div>
