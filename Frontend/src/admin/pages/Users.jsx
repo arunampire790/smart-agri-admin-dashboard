@@ -146,7 +146,7 @@ export default function Users() {
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Users ({users.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or emailΓÇª" aria-label="Search users" className={glassInput} />
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email..." aria-label="Search users" className={glassInput} />
         </div>
         {filteredUsers.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No users found matching your search.</div>
