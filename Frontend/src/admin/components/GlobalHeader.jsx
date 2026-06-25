@@ -25,7 +25,7 @@ export default function GlobalHeader() {
         <button aria-label="Profile" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
           <i className="ph ph-user" />
         </button>
-        <button onClick={() => navigate('/admin/login')} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
+        <button onClick={() => { localStorage.clear(); navigate('/'); }} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
           <i className="ph ph-sign-out" />
         </button>
       </div>
