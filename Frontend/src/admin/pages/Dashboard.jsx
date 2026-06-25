@@ -148,7 +148,7 @@ export default function Dashboard() {
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">User Growth Over Time</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={userGrowth} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <AreaChart data={userGrowth} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="userGrowthFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="rgba(16,185,129,0.2)" />
@@ -157,7 +157,7 @@ export default function Dashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#1C1C1E' }} />
               <Area type="monotone" dataKey="val" stroke="#10B981" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
@@ -166,7 +166,7 @@ export default function Dashboard() {
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Farm Registrations</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={farmRegs} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <AreaChart data={farmRegs} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="farmRegsFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="rgba(4,120,87,0.2)" />
@@ -175,7 +175,7 @@ export default function Dashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#1C1C1E' }} />
               <Area type="monotone" dataKey="val" stroke="#047857" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#047857', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
