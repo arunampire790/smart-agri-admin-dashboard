@@ -19,7 +19,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
       <div
         onClick={() => setOpen(!open)}
         style={{ outline: 'none !important', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-        className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 w-full text-[#1C1C1E] cursor-pointer select-none outline-none"
+        className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 w-full text-[#1C1C1E] cursor-pointer select-none"
+        style={{ outline: 'none !important' }}
       >
         {value}
       </div>
@@ -27,12 +28,12 @@ const StatusDropdown = ({ value, onChange, options }) => {
         <div
           className="absolute z-50 w-full mt-1 overflow-hidden"
           style={{
-            background: 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.5)',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            background: 'rgba(245,245,247,0.75)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             outline: 'none !important',
           }}
         >
@@ -41,31 +42,32 @@ const StatusDropdown = ({ value, onChange, options }) => {
               key={opt}
               onClick={() => { onChange(opt); setOpen(false); }}
               style={{
-                padding: '10px 14px',
+                padding: '12px 16px',
                 fontSize: '14px',
-                color: opt === value ? '#10B981' : '#1C1C1E',
-                fontWeight: opt === value ? 600 : 400,
-                background: opt === value ? 'rgba(16,185,129,0.25)' : 'transparent',
-                borderRadius: '8px',
-                margin: '2px 4px',
+                color: opt === value ? '#10B981' : '#1d1d1f',
+                background: opt === value ? 'rgba(16,185,129,0.12)' : 'transparent',
                 outline: 'none !important',
                 cursor: 'pointer',
                 transition: 'background 0.15s, color 0.15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
               onMouseEnter={(e) => {
                 if (opt !== value) {
-                  e.currentTarget.style.background = 'rgba(16,185,129,0.15)';
+                  e.currentTarget.style.background = 'rgba(16,185,129,0.12)';
                   e.currentTarget.style.color = '#10B981';
                 }
               }}
               onMouseLeave={(e) => {
                 if (opt !== value) {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#1C1C1E';
+                  e.currentTarget.style.color = '#1d1d1f';
                 }
               }}
             >
-              {opt}
+              <span>{opt}</span>
+              {opt === value && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
             </div>
           ))}
         </div>
