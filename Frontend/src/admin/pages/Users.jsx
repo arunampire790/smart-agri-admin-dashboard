@@ -172,9 +172,9 @@ export default function Users() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.phone}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.farms}</td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className="inline-flex items-center justify-center" style={{ gap: '8px' }}>
+                    <span className="inline-flex items-center justify-center" style={{ gap: '6px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: u.status === 'Active' ? '#10B981' : '#EF4444', animation: u.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
-                      <span style={{ color: u.status === 'Active' ? '#10B981' : '#EF4444', fontWeight: u.status === 'Active' ? 600 : 500, fontSize: '14px' }}>{u.status}</span>
+                      <span style={{ color: u.status === 'Active' ? '#10B981' : '#EF4444', fontWeight: 500, fontSize: '12px', letterSpacing: '0.01em' }}>{u.status}</span>
                     </span>
                   </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.joined}</td>
