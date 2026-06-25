@@ -1,11 +1,11 @@
 import { createContext, useContext, useState } from 'react';
 
 const initialUsers = [
-  { name: 'John Smith', email: 'john.smith@example.com', phone: '+1-555-0101', farms: 3, status: 'Active', cls: 'bg-brand-light text-brand-dark', joined: '2025-12-15' },
-  { name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1-555-0102', farms: 2, status: 'Active', cls: 'bg-brand-light text-brand-dark', joined: '2026-01-10' },
-  { name: 'Michael Brown', email: 'michael.b@example.com', phone: '+1-555-0103', farms: 5, status: 'Active', cls: 'bg-brand-light text-brand-dark', joined: '2025-11-20' },
-  { name: 'Emily Davis', email: 'emily.davis@example.com', phone: '+1-555-0104', farms: 1, status: 'Inactive', cls: 'bg-danger-bg text-danger-text', joined: '2026-02-05' },
-  { name: 'David Wilson', email: 'david.w@example.com', phone: '+1-555-0105', farms: 4, status: 'Active', cls: 'bg-brand-light text-brand-dark', joined: '2025-10-12' },
+  { name: 'John Smith', email: 'john.smith@example.com', phone: '+1-555-0101', farms: 3, status: 'Active', cls: 'active', joined: '2025-12-15' },
+  { name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1-555-0102', farms: 2, status: 'Active', cls: 'active', joined: '2026-01-10' },
+  { name: 'Michael Brown', email: 'michael.b@example.com', phone: '+1-555-0103', farms: 5, status: 'Active', cls: 'active', joined: '2025-11-20' },
+  { name: 'Emily Davis', email: 'emily.davis@example.com', phone: '+1-555-0104', farms: 1, status: 'Inactive', cls: 'inactive', joined: '2026-02-05' },
+  { name: 'David Wilson', email: 'david.w@example.com', phone: '+1-555-0105', farms: 4, status: 'Active', cls: 'active', joined: '2025-10-12' },
 ];
 
 const UserContext = createContext(null);

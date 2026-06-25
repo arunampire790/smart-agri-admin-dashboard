@@ -1,10 +1,10 @@
 import { createContext, useContext, useState } from 'react';
 
 const initialRobots = [
-  { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, batCls: 'bg-brand-dark', status: 'Active', stCls: 'bg-brand-light text-brand-dark', owner: 'John Smith' },
-  { name: 'AgriBot Beta', id: 'AgriBot-002', farm: 'Sunrise Orchards', model: 'AB-X1000', battery: 62, batCls: 'bg-brand-dark', status: 'Active', stCls: 'bg-brand-light text-brand-dark', owner: 'Sarah Johnson' },
-  { name: 'AgriBot Gamma', id: 'AgriBot-003', farm: 'Golden Harvest', model: 'AB-X2000', battery: 45, batCls: 'bg-warning-text', status: 'Idle', stCls: 'bg-warning-bg text-warning-text', owner: 'Michael Brown' },
-  { name: 'AgriBot Delta', id: 'AgriBot-004', farm: 'Maple Ridge Farm', model: 'AB-X1000', battery: 12, batCls: 'bg-danger-text', status: 'Offline', stCls: 'bg-danger-bg text-danger-text', owner: 'David Wilson' },
+  { name: 'AgriBot Alpha', id: 'AgriBot-001', farm: 'Green Valley Farm', model: 'AB-X1000', battery: 85, status: 'Active' },
+  { name: 'AgriBot Beta', id: 'AgriBot-002', farm: 'Sunrise Orchards', model: 'AB-X1000', battery: 62, status: 'Active' },
+  { name: 'AgriBot Gamma', id: 'AgriBot-003', farm: 'Golden Harvest', model: 'AB-X2000', battery: 45, status: 'Idle' },
+  { name: 'AgriBot Delta', id: 'AgriBot-004', farm: 'Maple Ridge Farm', model: 'AB-X1000', battery: 92, status: 'Active' },
 ];
 
 const RobotContext = createContext(null);
