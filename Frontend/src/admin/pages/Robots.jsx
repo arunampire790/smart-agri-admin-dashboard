@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import { useNavigate } from 'react-router-dom';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farmNames = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -13,7 +14,7 @@ const statusOpts = {
   Offline: { stCls: 'bg-danger-bg text-danger-text pill' },
 };
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] focus:bg-white/50 w-full placeholder:text-text-placeholder";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
 const labelClass = "text-xs font-medium text-[#1C1C1E]";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
 const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
@@ -32,12 +33,12 @@ function Select({ options, value, onChange, placeholder }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value || placeholder}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-[100] top-full left-0 right-0 mt-1 glass-card rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           {options.map((opt) => {
             const selected = opt === value;
             return (
@@ -87,6 +88,7 @@ function FormFields({ form, setForm, errors, userNames }) {
 }
 
 export default function Robots() {
+  const navigate = useNavigate();
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
   const { farms, addFarm, updateFarm } = useFarms();
@@ -146,51 +148,91 @@ export default function Robots() {
         <button onClick={openAdd} className={submitBtnClass}><i className="ph ph-plus" /> Add Robot</button>
       </div>
 
-      <div className="flex gap-3 mb-4 flex-wrap">
-        {[
-          { val: String(active), label: 'Online', labelCls: 'text-[#16A34A]', foot: '85–100% battery' },
-          { val: String(idle), label: 'Idle', labelCls: 'text-[#EA580C]', foot: '45–62% battery' },
-          { val: '0', label: 'Maintenance', labelCls: 'text-[#2563EB]', foot: 'N/A' },
-          { val: String(offline), label: 'Offline', labelCls: 'text-[#DC2626]', foot: '12% battery last seen' },
-        ].map((item, i) => (
-          <div key={i} className="flex-1 min-w-[160px] glass-card rounded-[20px] p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
-            <div className="text-2xl font-extrabold text-[#000000] leading-tight mb-1">{item.val}</div>
-            <div className={`text-sm font-semibold ${item.labelCls}`}>{item.label}</div>
-            <div className="text-[10px] text-[#9CA3AF] mt-2">{item.foot}</div>
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Online</div>
+              <div className="text-3xl font-extrabold text-[#000000]">{active}</div>
+              <div className="text-[10px] text-[#22C55E] mt-1">85–100% battery</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e8f5e9' }}>
+              <i className="ph ph-activity" style={{ color: '#059669' }} />
+            </div>
           </div>
-        ))}
+        </div>
+        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Idle</div>
+              <div className="text-3xl font-extrabold text-[#000000]">{idle}</div>
+              <div className="text-[10px] text-[#D97706] mt-1">45–62% battery</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#fff3e0' }}>
+              <i className="ph ph-clock" style={{ color: '#d97706' }} />
+            </div>
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Maintenance</div>
+              <div className="text-3xl font-extrabold text-[#000000]">0</div>
+              <div className="text-[10px] text-text-secondary mt-1">N/A</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e0f2fe' }}>
+              <i className="ph ph-toolbox" style={{ color: '#0284c7' }} />
+            </div>
+          </div>
+        </div>
+        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Offline</div>
+              <div className="text-3xl font-extrabold text-[#000000]">{offline}</div>
+              <div className="text-[10px] text-[#EF4444] mt-1">12% battery last seen</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#ffebee' }}>
+              <i className="ph ph-wifi-slash" style={{ color: '#dc2626' }} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="glass-card rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
+      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Robots ({robots.length})</div>
           <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
         </div>
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
           <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Actions</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Actions</th></tr>
           </thead>
           <tbody>
             {robots.map((r, i) => (
               <tr key={i}>
-                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{r.name}</strong></td>
-                <td className="px-4 py-4 border-b border-table-sep"><code className="text-xs bg-[#7676801F] px-1.5 py-0.5 rounded-xl">{r.id}</code></td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.owner}</td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.farm}</td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{r.model}</td>
-                <td className="px-4 py-4 border-b border-table-sep">
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-[#1C1C1E] font-medium">{r.name}</strong></td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-[#1C1C1E]">{r.id}</code></td>
+                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.owner}</td>
+                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.farm}</td>
+                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-[#7676801F] rounded-full overflow-hidden">
+                    <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.3)' }}>
                       <div className="h-full rounded-full" style={{ width: `${r.battery}%`, background: r.battery >= 60 ? '#22C55E' : r.battery >= 30 ? '#F59E0B' : '#EF4444' }} />
                     </div>
                     <span className="text-xs font-medium text-[#1C1C1E]">{r.battery}%</span>
                   </div>
                 </td>
-                <td className="px-4 py-4 border-b border-table-sep"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${statusOpts[r.status]?.stCls || 'bg-[#7676801F] text-text-secondary'}`}>{r.status}</span></td>
-                <td className="px-4 py-4 border-b border-table-sep">
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${statusOpts[r.status]?.stCls || 'bg-white/30 text-text-secondary'}`}>{r.status}</span></td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex gap-3 items-center">
-                    <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-pencil" /></button>
-                    <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg"><i className="ph ph-trash" /></button>
+                    <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-pencil" /></button>
+                    <button title="Delete" onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-trash" /></button>
                   </div>
                 </td>
               </tr>
@@ -201,7 +243,7 @@ export default function Robots() {
 
       {showAddModal && (
         <div className={modalOverlay}>
-          <div className={modalBox}>
+          <div className={modalBox} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
@@ -218,7 +260,7 @@ export default function Robots() {
 
       {editRobot && (
         <div className={modalOverlay}>
-          <div className={modalBox}>
+          <div className={modalBox} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit Robot</div>
             <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
@@ -235,7 +277,7 @@ export default function Robots() {
 
       {deleteRobot && (
         <div className={modalOverlay} onClick={() => setDeleteRobot(null)}>
-          <div className="glass-card rounded-[20px] p-6 w-[400px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete Robot?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to remove <strong className="text-[#1C1C1E] font-medium">{deleteRobot.name}</strong> ({deleteRobot.id}) from the fleet registry? This action cannot be reverted.
