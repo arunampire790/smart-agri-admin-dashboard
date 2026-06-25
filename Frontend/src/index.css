@@ -43,7 +43,8 @@ input, textarea, [contenteditable] {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
-  content-visibility: auto;
+  outline: none !important;
+  min-height: 0;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -52,10 +53,6 @@ input, textarea, [contenteditable] {
 .glass-active {
   background: rgba(255, 255, 255, 0.5);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.glass-card {
-  outline: none !important;
 }
 .glass-card *, .recharts-surface, .recharts-wrapper, .recharts-wrapper svg, .recharts-wrapper path {
   outline: none !important;
