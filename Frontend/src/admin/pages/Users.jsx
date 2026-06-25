@@ -172,9 +172,9 @@ export default function Users() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.phone}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.farms}</td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className="inline-flex items-center gap-1.5 transition-all duration-200 group-hover:opacity-90" style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, letterSpacing: '-0.01em', background: u.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: u.status === 'Active' ? '#10B981' : '#EF4444', border: u.status === 'Active' ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(239,68,68,0.35)', boxShadow: u.status === 'Active' ? 'inset 0 1px 4px rgba(16,185,129,0.1)' : 'inset 0 1px 4px rgba(239,68,68,0.1)' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: u.status === 'Active' ? '#10B981' : '#EF4444', animation: u.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
-                      {u.status}
+                    <span className="inline-flex items-center justify-center" style={{ gap: '8px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: u.status === 'Active' ? '#10B981' : '#EF4444', animation: u.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                      <span style={{ color: u.status === 'Active' ? '#10B981' : '#EF4444', fontWeight: u.status === 'Active' ? 600 : 500, fontSize: '14px' }}>{u.status}</span>
                     </span>
                   </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.joined}</td>
