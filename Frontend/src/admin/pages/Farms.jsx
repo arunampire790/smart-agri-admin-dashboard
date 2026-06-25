@@ -65,6 +65,7 @@ export default function Farms() {
 
   return (
     <>
+      <style>{`@keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }`}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-2xl font-bold text-[#000000]">Farm Management</div>
@@ -119,7 +120,10 @@ export default function Farms() {
                     <span className="pill inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-white/40 text-text-secondary text-xs font-semibold">{connectedCount}</span>
                   </td>
                   <td className="px-5 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
+                    <span className="inline-flex items-center justify-center" style={{ gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#D97706' : '#EF4444', animation: status.label === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                      <span style={{ color: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#D97706' : '#EF4444', fontSize: '12px', fontWeight: 500, letterSpacing: '0.01em' }}>{status.label}</span>
+                    </span>
                   </td>
                 </tr>
               ))}
