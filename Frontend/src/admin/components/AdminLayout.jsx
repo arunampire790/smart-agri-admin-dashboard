@@ -67,9 +67,9 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      <div className="relative z-10 flex-1 flex flex-col min-w-0">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 overflow-y-auto">
         <GlobalHeader />
-        <main className="p-6 flex-1 overflow-y-auto content-visibility-auto">
+        <main className="p-6 flex-1">
           <Outlet />
         </main>
       </div>

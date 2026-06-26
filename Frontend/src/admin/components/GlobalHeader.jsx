@@ -4,7 +4,7 @@ export default function GlobalHeader() {
   const navigate = useNavigate();
 
   return (
-    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0">
+    <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
       <div className="flex items-center">
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
           <i className="ph ph-magnifying-glass text-[#6B7280] text-sm" />
