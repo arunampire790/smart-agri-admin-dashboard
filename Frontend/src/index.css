@@ -110,6 +110,16 @@ input, textarea, [contenteditable] {
   content-visibility: auto;
 }
 
+@keyframes strokeDrawIn {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+.analytics-ring {
+  animation: strokeDrawIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: center;
+}
+
 .login-signin-btn {
   cursor: pointer !important;
   user-select: none !important;

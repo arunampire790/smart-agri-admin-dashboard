@@ -39,8 +39,6 @@ export default function Analytics() {
     { label: 'Offline', pct: offlinePct, color: '#EF4444', radius: 40 },
   ];
   const ringStroke = 16;
-  const ringCx = 130;
-  const ringCy = 130;
   const ringSvgs = ringConfigs.map((r) => ({ ...r, circ: 2 * Math.PI * r.radius }));
 
   return (
@@ -119,17 +117,13 @@ export default function Analytics() {
                 <text x={donutCx} y={donutCy + 16} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">100%</text>
               </svg>
             </div>
-            <div className="w-1/2 flex flex-col space-y-4">
+            <div style={{ display: 'grid', gridTemplateColumns: '16px 1fr 40px 48px', alignItems: 'center', gap: '12px' }}>
               {cropSegments.map((crop) => (
-                <div key={crop.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: crop.color }} />
-                    <span style={{ fontSize: '13px', color: '#374151' }}>{crop.label}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280' }}>{crop.value}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', minWidth: '32px', textAlign: 'right' }}>{crop.pct}%</span>
-                  </div>
+                <div key={crop.label} className="contents">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: crop.color }} />
+                  <span style={{ fontSize: '13px', color: '#374151' }}>{crop.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280', textAlign: 'right' }}>{crop.value}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', textAlign: 'right' }}>{crop.pct}%</span>
                 </div>
               ))}
             </div>
@@ -151,17 +145,21 @@ export default function Analytics() {
               </div>
             ))}
           </div>
-          <div className="flex justify-center" style={{ minHeight: 'calc(100% - 80px)' }}>
+          <div className="relative flex justify-center" style={{ minHeight: 'calc(100% - 80px)' }}>
             <svg width="260" height="260" viewBox="0 0 260 260" className="self-center">
-              {ringSvgs.map((ring) => (
-                <g key={ring.label}>
-                  <circle cx={ringCx} cy={ringCy} r={ring.radius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={ringStroke} />
-                  <circle cx={ringCx} cy={ringCy} r={ring.radius} fill="none" stroke={ring.color} strokeWidth={ringStroke} strokeDasharray={`${(ring.pct / 100) * ring.circ} ${ring.circ}`} strokeLinecap="round" transform={`rotate(-90, ${ringCx}, ${ringCy})`} style={{ transition: 'stroke-dasharray 1s ease-in-out' }} />
-                </g>
-              ))}
-              <text x={ringCx} y={ringCy - 8} textAnchor="middle" fill="#6B7280" fontSize="11" fontWeight="500">Total Robots</text>
-              <text x={ringCx} y={ringCy + 14} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">{total}</text>
+              <g transform="rotate(-90, 130, 130)">
+                {ringSvgs.map((ring) => (
+                  <g key={ring.label}>
+                    <circle cx="50%" cy="50%" r={ring.radius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={ringStroke} />
+                    <circle cx="50%" cy="50%" r={ring.radius} fill="none" stroke={ring.color} strokeWidth={ringStroke} strokeDasharray={`${(ring.pct / 100) * ring.circ} ${ring.circ}`} strokeLinecap="round" className="analytics-ring" />
+                  </g>
+                ))}
+              </g>
             </svg>
+            <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 500, color: '#6B7280' }}>Total Robots</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827' }}>{total}</div>
+            </div>
           </div>
         </div>
       </div>
