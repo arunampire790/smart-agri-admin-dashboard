@@ -22,7 +22,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
         onClick={() => setOpen(!open)}
         style={{ outline: 'none !important', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
           className="add-modal-input"
-        style={{ cursor: 'pointer', paddingRight: '2.5rem', display: 'flex', alignItems: 'center' }}
+        style={{ cursor: 'pointer', paddingRight: '2.5rem', display: 'flex', alignItems: 'center', caretColor: 'transparent' }}
       >
         {value}
       </div>
@@ -142,10 +142,10 @@ export default function Users() {
 .modal-input-field { background: #F3F4F6; border: 1px solid transparent; transition: all 0.2s ease; cursor: text; text-sm px-3.5 py-2.5 rounded-[12px] w-full placeholder:text-text-placeholder text-[#1C1C1E]; }
 .modal-input-field:hover { background: #E5E7EB; border-color: #D1D5DB; }
 .modal-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
-.add-modal-input { width: 100%; height: 42px; border-radius: 10px; padding: 0 14px; font-size: 14px; background: #F3F4F6; color: #111827; border: 1px solid transparent; transition: all 0.2s ease; box-sizing: border-box; }
-.add-modal-input:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
-.add-modal-input::placeholder { color: #9CA3AF; }
-.add-modal-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
+.add-modal-input { width: 100%; height: 42px; border-radius: 10px; padding: 0 14px; font-size: 14px; background: #FFFFFF; color: #111827; border: 1px solid #E5E7EB; transition: all 0.2s ease; box-sizing: border-box; cursor: text; }
+.add-modal-input:focus { border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
+.add-modal-input::placeholder { color: #4B5563; }
+.add-modal-label { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 6px; display: block; }
 .modal-close-btn { cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; background: none; border: none; text-text-placeholder; font-size: 1.25rem; }
 .modal-close-btn:hover { transform: scale(1.1); color: #EF4444; }
 .modal-btn-cancel { cursor: pointer; transition: all 0.2s ease; flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem; border: 1px solid rgba(255,255,255,0.6); border-radius: 0.75rem; background: rgba(255,255,255,0.5); color: #6B7280; font-weight: 500; }
