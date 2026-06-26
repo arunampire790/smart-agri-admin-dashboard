@@ -124,12 +124,12 @@ export default function Analytics() {
                 <text x={donutCx} y={donutCy + 16} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">100%</text>
               </svg>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '16px 1fr 40px 48px', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '16px 1fr auto auto', alignItems: 'center', gap: '16px' }}>
               {cropSegments.map((crop) => (
                 <div key={crop.label} className="contents">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: crop.color }} />
-                  <span style={{ fontSize: '13px', color: '#374151' }}>{crop.label}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280', textAlign: 'right' }}>{crop.value}</span>
+                  <span style={{ fontSize: '13px', color: '#374151', textAlign: 'left' }}>{crop.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280', textAlign: 'right', whiteSpace: 'nowrap' }}>{crop.value} tons</span>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', textAlign: 'right' }}>{crop.pct}%</span>
                 </div>
               ))}
