@@ -2,7 +2,7 @@
 import { useUsers } from '../../context/UserContext';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
-const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
+const modalInput = "modal-input-field";
 
 const StatusDropdown = ({ value, onChange, options }) => {
   const [open, setOpen] = useState(false);
@@ -19,8 +19,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
       <div
         onClick={() => setOpen(!open)}
         style={{ outline: 'none !important', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-        className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 w-full text-[#1C1C1E] cursor-pointer select-none"
-        style={{ outline: 'none !important' }}
+          className="modal-input-field"
+        style={{ outline: 'none !important', cursor: 'pointer', paddingRight: '2.5rem' }}
       >
         {value}
       </div>
@@ -135,7 +135,20 @@ export default function Users() {
 
   return (
     <>
-      <style>{`@keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }`}</style>
+      <style>{`
+@keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
+.modal-input-field { background: #F3F4F6; border: 1px solid transparent; transition: all 0.2s ease; cursor: text; text-sm px-3.5 py-2.5 rounded-[12px] w-full placeholder:text-text-placeholder text-[#1C1C1E]; }
+.modal-input-field:hover { background: #E5E7EB; border-color: #D1D5DB; }
+.modal-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
+.modal-close-btn { cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; background: none; border: none; text-text-placeholder; font-size: 1.25rem; }
+.modal-close-btn:hover { transform: scale(1.1); color: #EF4444; }
+.modal-btn-cancel { cursor: pointer; transition: all 0.2s ease; flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem; border: 1px solid rgba(255,255,255,0.6); border-radius: 0.75rem; background: rgba(255,255,255,0.5); color: #6B7280; font-weight: 500; }
+.modal-btn-cancel:hover { background: #E5E7EB; color: #1F2937; }
+.modal-btn-cancel:active { transform: scale(0.98); }
+.modal-btn-primary { cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); flex: 1; background: #059669; color: white; border: none; border-radius: 0.75rem; padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.modal-btn-primary:hover { background: #059669; box-shadow: 0 4px 12px rgba(16,185,129,0.2); transform: translateY(-1px); }
+.modal-btn-primary:active { transform: translateY(0px) scale(0.97); opacity: 0.95; }
+`}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-2xl font-bold text-[#000000]">User Management</div>
@@ -202,7 +215,7 @@ export default function Users() {
 
       {/* Add New User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setShowAddModal(false)}>
           <div
             className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
@@ -213,7 +226,7 @@ export default function Users() {
                 <div className="text-lg font-bold text-[#1C1C1E]">Add New User</div>
                 <div className="text-xs text-text-secondary mt-0.5">Enter details to register a new user.</div>
               </div>
-              <button type="button" onClick={() => setShowAddModal(false)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <button type="button" onClick={() => setShowAddModal(false)} className="modal-close-btn">
                 <i className="ph ph-x" />
               </button>
             </div>
@@ -242,12 +255,8 @@ export default function Users() {
               </div>
 
               <div className="flex gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 text-sm px-4 py-2.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80">
-                  Cancel
-                </button>
-                <button type="submit" className="flex-1 bg-brand text-white border-none rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]">
-                  <i className="ph ph-check" /> Save User
-                </button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="modal-btn-cancel">Cancel</button>
+                <button type="submit" className="modal-btn-primary"><i className="ph ph-check" /> Save User</button>
               </div>
             </form>
           </div>
@@ -256,14 +265,14 @@ export default function Users() {
 
       {/* View User Modal */}
       {viewUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setViewUser(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setViewUser(null)}>
           <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="text-lg font-bold text-[#1C1C1E]">User Details</div>
                 <div className="text-xs text-text-secondary mt-0.5">Viewing information for {viewUser.name}.</div>
               </div>
-              <button type="button" onClick={() => setViewUser(null)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <button type="button" onClick={() => setViewUser(null)} className="modal-close-btn">
                 <i className="ph ph-x" />
               </button>
             </div>
@@ -291,14 +300,14 @@ export default function Users() {
 
       {/* Edit User Modal */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }}>
           <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="text-lg font-bold text-[#1C1C1E]">Edit User Details</div>
                 <div className="text-xs text-text-secondary mt-0.5">Update information for {editUser.name}.</div>
               </div>
-              <button type="button" onClick={() => setEditUser(null)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <button type="button" onClick={() => setEditUser(null)} className="modal-close-btn">
                 <i className="ph ph-x" />
               </button>
             </div>
@@ -325,12 +334,8 @@ export default function Users() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setEditUser(null)} className="flex-1 text-sm px-4 py-2.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80">
-                  Cancel
-                </button>
-                <button type="submit" className="flex-1 bg-brand text-white border-none rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]">
-                  <i className="ph ph-check" /> Save Changes
-                </button>
+                <button type="button" onClick={() => setEditUser(null)} className="modal-btn-cancel">Cancel</button>
+                <button type="submit" className="modal-btn-primary"><i className="ph ph-check" /> Save Changes</button>
               </div>
             </form>
           </div>
@@ -339,11 +344,11 @@ export default function Users() {
 
       {/* Delete User Modal */}
       {deleteUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setDeleteUser(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setDeleteUser(null)}>
           <div className="w-[400px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="flex items-center justify-between mb-4">
               <div className="text-lg font-bold text-[#1C1C1E]">Delete User?</div>
-              <button type="button" onClick={() => setDeleteUser(null)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <button type="button" onClick={() => setDeleteUser(null)} className="modal-close-btn">
                 <i className="ph ph-x" />
               </button>
             </div>
@@ -351,10 +356,13 @@ export default function Users() {
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteUser(null)} className="flex-1 text-sm px-4 py-2.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80">
-                Cancel
-              </button>
-              <button onClick={handleDelete} className="flex-1 bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(220,38,38,0.3)]">
+              <button onClick={() => setDeleteUser(null)} className="modal-btn-cancel">Cancel</button>
+              <button onClick={handleDelete} className="modal-btn-primary" style={{ background: '#FEE2E2', color: '#DC2626' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FECACA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,38,38,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(0px) scale(0.97)'; e.currentTarget.style.opacity = '0.95'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+              >
                 <i className="ph ph-trash" /> Delete
               </button>
             </div>
