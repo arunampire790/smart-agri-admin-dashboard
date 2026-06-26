@@ -38,7 +38,7 @@ export default function AdminLogin() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder"
+              className="text-sm px-3.5 py-2.5 rounded-xl bg-white/70 border border-white/80 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-[#9CA3AF]"
             />
           </div>
           <div className="flex flex-col gap-1.5 mb-4">
@@ -47,13 +47,13 @@ export default function AdminLogin() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder"
+              className="text-sm px-3.5 py-2.5 rounded-xl bg-white/70 border border-white/80 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-[#9CA3AF]"
             />
           </div>
           <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90">
             Sign in
           </button>
-          <div className="mt-3 p-3 rounded-xl bg-white/50 text-xs text-text-secondary">
+          <div className="mt-3 p-3 rounded-xl bg-white/70 text-xs text-[#4B5563]">
             <strong>Demo:</strong> admin@smartagri.com / admin123
           </div>
         </form>
