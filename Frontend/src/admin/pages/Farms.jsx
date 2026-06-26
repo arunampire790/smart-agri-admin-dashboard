@@ -1,3 +1,4 @@
+import { Sprout, Compass, Layers, Bot } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
@@ -87,8 +88,11 @@ export default function Farms() {
                 <div className="text-xs font-semibold text-[#6B7280] mb-2">{card.label}</div>
                 <div className="text-3xl font-extrabold text-[#000000]">{card.val}</div>
               </div>
-              <div className="absolute flex items-center justify-center" style={{ width: '36px', height: '36px', borderRadius: '10px', top: '16px', right: '16px', background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)', zIndex: 20 }}>
-                <i className={`${card.label === 'Total Farms' ? 'ph ph-warehouse' : card.label === 'Regions' ? 'ph ph-map-pin' : card.label === 'Crop Types' ? 'ph ph-flower' : 'ph ph-robot'}`} style={{ fontSize: '18px', color: '#4B5563', lineHeight: 1 }} />
+              <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: card.label === 'Total Farms' ? 'rgba(16,185,129,0.12)' : card.label === 'Regions' ? 'rgba(99,102,241,0.12)' : card.label === 'Crop Types' ? 'rgba(236,72,153,0.12)' : 'rgba(245,158,11,0.12)', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+                {card.label === 'Total Farms' && <Sprout size={18} color="#10B981" />}
+                {card.label === 'Regions' && <Compass size={18} color="#6366F1" />}
+                {card.label === 'Crop Types' && <Layers size={18} color="#EC4899" />}
+                {card.label === 'Active Robots' && <Bot size={18} color="#F59E0B" />}
               </div>
             </div>
           );
