@@ -109,3 +109,28 @@ input, textarea, [contenteditable] {
 .content-visibility-auto {
   content-visibility: auto;
 }
+
+.login-signin-btn {
+  cursor: pointer !important;
+  user-select: none !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: translateZ(0);
+}
+
+.login-signin-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.login-signin-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: none;
+}
+
+.login-signin-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

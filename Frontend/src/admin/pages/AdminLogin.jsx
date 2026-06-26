@@ -52,7 +52,7 @@ export default function AdminLogin() {
               style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', fontWeight: 400 }}
             />
           </div>
-          <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2" style={{ cursor: 'pointer' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.95'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+          <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">
             Sign in
           </button>
           <div className="mt-3 p-3 rounded-xl text-xs" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
