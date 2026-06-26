@@ -27,7 +27,7 @@ export default function Analytics() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         {metrics.map((item, i) => (
-          <div key={i} className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div key={i} className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: `radial-gradient(circle, ${item.glow} 0%, transparent 70%)`, filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10 flex items-center justify-between">
               <div>
