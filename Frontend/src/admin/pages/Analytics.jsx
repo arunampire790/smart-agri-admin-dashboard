@@ -12,6 +12,37 @@ export default function Analytics() {
   const idlePct = total > 0 ? Math.round((idle / total) * 100) : 0;
   const offlinePct = total > 0 ? Math.round((offline / total) * 100) : 0;
 
+  const cropSegments = [
+    { label: 'Wheat', pct: 25, color: '#10B981', value: 25 },
+    { label: 'Others', pct: 22, color: '#34D399', value: 22 },
+    { label: 'Corn', pct: 20, color: '#F59E0B', value: 20 },
+    { label: 'Soybeans', pct: 18, color: '#6366F1', value: 18 },
+    { label: 'Rice', pct: 15, color: '#EC4899', value: 15 },
+  ];
+
+  const donutRadius = 80;
+  const donutStroke = 28;
+  const donutCx = 120;
+  const donutCy = 120;
+  const donutCirc = 2 * Math.PI * donutRadius;
+
+  let donutCumPct = 0;
+  const donutArcs = cropSegments.map((s) => {
+    const offset = donutCumPct;
+    donutCumPct += s.pct;
+    return { ...s, dashArray: `${(s.pct / 100) * donutCirc} ${donutCirc}`, dashOffset: -(offset / 100) * donutCirc };
+  });
+
+  const ringConfigs = [
+    { label: 'Active', pct: activePct, color: '#10B981', radius: 90 },
+    { label: 'Idle', pct: idlePct, color: '#F59E0B', radius: 65 },
+    { label: 'Offline', pct: offlinePct, color: '#EF4444', radius: 40 },
+  ];
+  const ringStroke = 16;
+  const ringCx = 130;
+  const ringCy = 130;
+  const ringSvgs = ringConfigs.map((r) => ({ ...r, circ: 2 * Math.PI * r.radius }));
+
   return (
     <>
       <div className="mb-6">
@@ -75,50 +106,62 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-5">Crop distribution</div>
-          <div className="flex flex-col space-y-5">
-            {[
-              { label: 'Wheat', pct: 25, gradient: 'linear-gradient(90deg, #10B981, #059669)' },
-              { label: 'Others', pct: 22, gradient: 'linear-gradient(90deg, #34D399, #10B981)' },
-              { label: 'Corn', pct: 20, gradient: 'linear-gradient(90deg, #6EE7B7, #34D399)' },
-              { label: 'Soybeans', pct: 18, gradient: 'linear-gradient(90deg, #A7F3D0, #6EE7B7)' },
-              { label: 'Rice', pct: 15, gradient: 'linear-gradient(90deg, #D1FAE5, #A7F3D0)' },
-            ].map((crop) => (
-              <div key={crop.label}>
-                <div className="flex items-center justify-between mb-2">
-                  <div style={{ fontWeight: 500, color: '#374151', fontSize: '13px' }}>{crop.label}</div>
-                  <div style={{ fontWeight: 600, color: '#111827', fontSize: '13px' }}>{crop.pct}%</div>
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
+          <div className="flex items-center gap-4" style={{ minHeight: 'calc(100% - 40px)' }}>
+            <div className="w-1/2 flex justify-center">
+              <svg width="240" height="240" viewBox="0 0 240 240">
+                <circle cx={donutCx} cy={donutCy} r={donutRadius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={donutStroke} />
+                {donutArcs.map((seg) => (
+                  <circle key={seg.label} cx={donutCx} cy={donutCy} r={donutRadius} fill="none" stroke={seg.color} strokeWidth={donutStroke} strokeDasharray={seg.dashArray} strokeDashoffset={seg.dashOffset} transform={`rotate(-90, ${donutCx}, ${donutCy})`} style={{ transition: 'stroke-dasharray 1s ease-in-out' }} />
+                ))}
+                <text x={donutCx} y={donutCy - 12} textAnchor="middle" fill="#6B7280" fontSize="12" fontWeight="500" textTransform="uppercase">Total Crops</text>
+                <text x={donutCx} y={donutCy + 16} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">100%</text>
+              </svg>
+            </div>
+            <div className="w-1/2 flex flex-col space-y-4">
+              {cropSegments.map((crop) => (
+                <div key={crop.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: crop.color }} />
+                    <span style={{ fontSize: '13px', color: '#374151' }}>{crop.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280' }}>{crop.value}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', minWidth: '32px', textAlign: 'right' }}>{crop.pct}%</span>
+                  </div>
                 </div>
-                <div className="w-full overflow-hidden" style={{ height: '8px', borderRadius: '9999px', background: 'rgba(0,0,0,0.05)' }}>
-                  <div className="h-full" style={{ width: `${crop.pct}%`, height: '8px', borderRadius: '9999px', background: crop.gradient, transition: 'width 1s ease-in-out' }} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-5">Robot status</div>
-          <div className="flex flex-col space-y-5">
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
+          <div className="flex gap-4 mb-4">
             {[
-              { label: 'Active', val: String(active), pct: activePct, dot: '#10B981' },
-              { label: 'Idle', val: String(idle), pct: idlePct, dot: '#F59E0B' },
-              { label: 'Offline', val: String(offline), pct: offlinePct, dot: '#F43F5E' },
+              { label: 'Active', val: active, color: '#10B981' },
+              { label: 'Idle', val: idle, color: '#F59E0B' },
+              { label: 'Offline', val: offline, color: '#EF4444' },
             ].map((item) => (
-              <div key={item.label}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.dot, filter: 'drop-shadow(0 0 4px ' + item.dot + '80)' }} />
-                    <span style={{ fontWeight: 500, color: '#374151', fontSize: '13px' }}>{item.label}</span>
-                  </div>
-                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>{item.val}</span>
-                </div>
-                <div className="w-full overflow-hidden" style={{ height: '6px', borderRadius: '9999px', background: 'rgba(0,0,0,0.05)' }}>
-                  <div className="h-full" style={{ width: `${item.pct}%`, height: '6px', borderRadius: '9999px', background: item.dot, transition: 'width 1s ease-in-out' }} />
-                </div>
+              <div key={item.label} className="flex items-center gap-1.5 text-xs">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
+                <span style={{ color: '#6B7280' }}>{item.label}:</span>
+                <span style={{ color: '#111827', fontWeight: 600 }}>{item.val}</span>
               </div>
             ))}
+          </div>
+          <div className="flex justify-center" style={{ minHeight: 'calc(100% - 80px)' }}>
+            <svg width="260" height="260" viewBox="0 0 260 260" className="self-center">
+              {ringSvgs.map((ring) => (
+                <g key={ring.label}>
+                  <circle cx={ringCx} cy={ringCy} r={ring.radius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={ringStroke} />
+                  <circle cx={ringCx} cy={ringCy} r={ring.radius} fill="none" stroke={ring.color} strokeWidth={ringStroke} strokeDasharray={`${(ring.pct / 100) * ring.circ} ${ring.circ}`} strokeLinecap="round" transform={`rotate(-90, ${ringCx}, ${ringCy})`} style={{ transition: 'stroke-dasharray 1s ease-in-out' }} />
+                </g>
+              ))}
+              <text x={ringCx} y={ringCy - 8} textAnchor="middle" fill="#6B7280" fontSize="11" fontWeight="500">Total Robots</text>
+              <text x={ringCx} y={ringCy + 14} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">{total}</text>
+            </svg>
           </div>
         </div>
       </div>
