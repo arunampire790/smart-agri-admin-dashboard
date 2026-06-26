@@ -1,3 +1,4 @@
+import { Sprout, CheckCircle2, Bot, Wheat } from 'lucide-react';
 import { useRobots } from '../../context/RobotContext';
 
 export default function Analytics() {
@@ -11,13 +12,6 @@ export default function Analytics() {
   const idlePct = total > 0 ? Math.round((idle / total) * 100) : 0;
   const offlinePct = total > 0 ? Math.round((offline / total) * 100) : 0;
 
-  const metrics = [
-    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', icon: 'ph-trend-up', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
-    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', icon: 'ph-check-circle', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
-    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', icon: 'ph-robot', iconBg: '#ffebee', iconCls: '#dc2626', glow: 'rgba(239,68,68,0.7)' },
-    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', icon: 'ph-flower', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
-  ];
-
   return (
     <>
       <div className="mb-6">
@@ -26,21 +20,58 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {metrics.map((item, i) => (
-          <div key={i} className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: `radial-gradient(circle, ${item.glow} 0%, transparent 70%)`, filter: 'blur(30px)', opacity: 0.35 }} />
-            <div className="relative z-10 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-semibold text-[#6B7280] mb-2">{item.label}</div>
-                <div className="text-3xl font-extrabold text-[#000000] mb-1">{item.val}</div>
-                <div className={`text-[10px] leading-relaxed ${item.changeCls}`}>{item.change}</div>
-              </div>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: item.iconBg }}>
-                <i className={item.icon} style={{ color: item.iconCls }} />
-              </div>
+        <div className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Avg Farm Productivity</div>
+              <div className="text-3xl font-extrabold text-[#000000] mb-1">86.5%</div>
+              <div className="text-[10px] leading-relaxed text-[#16A34A]">↑ +5.2%</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#e8f5e9' }}>
+              <Sprout size={18} color="#059669" />
             </div>
           </div>
-        ))}
+        </div>
+        <div className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Task Completion Rate</div>
+              <div className="text-3xl font-extrabold text-[#000000] mb-1">92.3%</div>
+              <div className="text-[10px] leading-relaxed text-[#16A34A]">↑ +3.1%</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#e8f5e9' }}>
+              <CheckCircle2 size={18} color="#059669" />
+            </div>
+          </div>
+        </div>
+        <div className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Robot Efficiency</div>
+              <div className="text-3xl font-extrabold text-[#000000] mb-1">78.4%</div>
+              <div className="text-[10px] leading-relaxed text-[#DC2626]">↓ -1.8%</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#ffebee' }}>
+              <Bot size={18} color="#dc2626" />
+            </div>
+          </div>
+        </div>
+        <div className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-[#6B7280] mb-2">Crop Yield (t/ha)</div>
+              <div className="text-3xl font-extrabold text-[#000000] mb-1">24</div>
+              <div className="text-[10px] leading-relaxed text-[#16A34A]">↑ +2.1%</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#e8f5e9' }}>
+              <Wheat size={18} color="#059669" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
