@@ -12,13 +12,19 @@ export default function Analytics() {
   const idlePct = total > 0 ? Math.round((idle / total) * 100) : 0;
   const offlinePct = total > 0 ? Math.round((offline / total) * 100) : 0;
 
-  const cropSegments = [
-    { label: 'Wheat', pct: 25, color: '#10B981', value: 25 },
-    { label: 'Others', pct: 22, color: '#34D399', value: 22 },
-    { label: 'Corn', pct: 20, color: '#F59E0B', value: 20 },
-    { label: 'Soybeans', pct: 18, color: '#6366F1', value: 18 },
-    { label: 'Rice', pct: 15, color: '#EC4899', value: 15 },
+  const cropData = [
+    { label: 'Wheat', value: 25, color: '#10B981' },
+    { label: 'Others', value: 22, color: '#34D399' },
+    { label: 'Corn', value: 20, color: '#F59E0B' },
+    { label: 'Soybeans', value: 18, color: '#6366F1' },
+    { label: 'Rice', value: 15, color: '#EC4899' },
   ];
+
+  const totalVolume = cropData.reduce((sum, item) => sum + item.value, 0);
+  const cropSegments = cropData.map((item) => ({
+    ...item,
+    pct: parseFloat(((item.value / totalVolume) * 100).toFixed(1)),
+  }));
 
   const donutRadius = 80;
   const donutStroke = 28;
@@ -26,11 +32,12 @@ export default function Analytics() {
   const donutCy = 120;
   const donutCirc = 2 * Math.PI * donutRadius;
 
-  let donutCumPct = 0;
+  let cumPct = 0;
   const donutArcs = cropSegments.map((s) => {
-    const offset = donutCumPct;
-    donutCumPct += s.pct;
-    return { ...s, dashArray: `${(s.pct / 100) * donutCirc} ${donutCirc}`, dashOffset: -(offset / 100) * donutCirc };
+    const offset = cumPct;
+    cumPct += s.pct;
+    const segmentLen = (s.pct / 100) * donutCirc;
+    return { ...s, dashArray: `${segmentLen.toFixed(2)} ${donutCirc.toFixed(2)}`, dashOffset: -((offset / 100) * donutCirc) };
   });
 
   const ringConfigs = [
