@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Sprout, CheckCircle2, Bot, Wheat } from 'lucide-react';
 import { useRobots } from '../../context/RobotContext';
 
 export default function Analytics() {
   const { robots } = useRobots();
+  const [hoveredDonut, setHoveredDonut] = useState(null);
+  const [hoveredRing, setHoveredRing] = useState(null);
 
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;
@@ -47,6 +50,11 @@ export default function Analytics() {
   ];
   const ringStroke = 16;
   const ringSvgs = ringConfigs.map((r) => ({ ...r, circ: 2 * Math.PI * r.radius }));
+
+  const donutHoverIn = (label) => setHoveredDonut(label);
+  const donutHoverOut = () => setHoveredDonut(null);
+  const ringHoverIn = (label) => setHoveredRing(label);
+  const ringHoverOut = () => setHoveredRing(null);
 
   return (
     <>
@@ -111,14 +119,24 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(31,38,135,0.06)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+        >
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
           <div className="flex items-center gap-4" style={{ minHeight: 'calc(100% - 40px)' }}>
             <div className="w-1/2 flex justify-center">
               <svg width="240" height="240" viewBox="0 0 240 240">
                 <circle cx={donutCx} cy={donutCy} r={donutRadius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={donutStroke} />
                 {donutArcs.map((seg) => (
-                  <circle key={seg.label} cx={donutCx} cy={donutCy} r={donutRadius} fill="none" stroke={seg.color} strokeWidth={donutStroke} strokeDasharray={seg.dashArray} strokeDashoffset={seg.dashOffset} transform={`rotate(-90, ${donutCx}, ${donutCy})`} style={{ transition: 'stroke-dasharray 1s ease-in-out' }} />
+                  <circle key={seg.label} cx={donutCx} cy={donutCy} r={donutRadius} fill="none" stroke={seg.color}
+                    strokeWidth={hoveredDonut === seg.label ? donutStroke + 3 : donutStroke}
+                    strokeDasharray={seg.dashArray} strokeDashoffset={seg.dashOffset}
+                    transform={`rotate(-90, ${donutCx}, ${donutCy})`}
+                    style={{ transition: 'opacity 0.2s ease, stroke-width 0.2s ease', cursor: 'pointer', opacity: hoveredDonut && hoveredDonut !== seg.label ? 0.4 : 1 }}
+                    onMouseEnter={() => donutHoverIn(seg.label)}
+                    onMouseLeave={donutHoverOut}
+                  />
                 ))}
                 <text x={donutCx} y={donutCy - 12} textAnchor="middle" fill="#6B7280" fontSize="12" fontWeight="500" textTransform="uppercase">Total Crops</text>
                 <text x={donutCx} y={donutCy + 16} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">100%</text>
@@ -126,8 +144,12 @@ export default function Analytics() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {cropSegments.map((crop) => (
-                <div key={crop.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', width: 'fit-content' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: crop.color, flexShrink: 0 }} />
+                <div key={crop.label}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', width: 'fit-content', cursor: 'pointer', userSelect: 'none', borderRadius: '8px', padding: '2px 6px', margin: '-2px -6px', background: hoveredDonut === crop.label ? 'rgba(255,255,255,0.3)' : 'transparent', transition: 'background 0.2s ease' }}
+                  onMouseEnter={() => donutHoverIn(crop.label)}
+                  onMouseLeave={donutHoverOut}
+                >
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: crop.color, flexShrink: 0, transition: 'transform 0.2s ease', transform: hoveredDonut === crop.label ? 'scale(1.3)' : 'scale(1)' }} />
                   <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563', minWidth: '80px' }}>{crop.label}</span>
                   <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginLeft: '4px' }}>{crop.pct}%</span>
                 </div>
@@ -136,7 +158,10 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(31,38,135,0.06)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+        >
           <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
           <div className="flex gap-4 mb-4">
             {[
@@ -144,7 +169,11 @@ export default function Analytics() {
               { label: 'Idle', val: idle, color: '#F59E0B' },
               { label: 'Offline', val: offline, color: '#EF4444' },
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-1.5 text-xs">
+              <div key={item.label} className="flex items-center gap-1.5 text-xs"
+                style={{ cursor: 'pointer', userSelect: 'none', padding: '2px 6px', borderRadius: '6px', background: hoveredRing === item.label ? 'rgba(255,255,255,0.3)' : 'transparent', transition: 'background 0.2s ease' }}
+                onMouseEnter={() => ringHoverIn(item.label)}
+                onMouseLeave={ringHoverOut}
+              >
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
                 <span style={{ color: '#6B7280' }}>{item.label}:</span>
                 <span style={{ color: '#111827', fontWeight: 600 }}>{item.val}</span>
@@ -157,7 +186,14 @@ export default function Analytics() {
                 {ringSvgs.map((ring) => (
                   <g key={ring.label}>
                     <circle cx="50%" cy="50%" r={ring.radius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={ringStroke} />
-                    <circle cx="50%" cy="50%" r={ring.radius} fill="none" stroke={ring.color} strokeWidth={ringStroke} strokeDasharray={`${(ring.pct / 100) * ring.circ} ${ring.circ}`} strokeLinecap="round" className="analytics-ring" />
+                    <circle cx="50%" cy="50%" r={ring.radius} fill="none" stroke={ring.color}
+                      strokeWidth={hoveredRing === ring.label ? ringStroke + 3 : ringStroke}
+                      strokeDasharray={`${(ring.pct / 100) * ring.circ} ${ring.circ}`} strokeLinecap="round"
+                      className="analytics-ring"
+                      style={{ cursor: 'pointer', opacity: hoveredRing && hoveredRing !== ring.label ? 0.4 : 1, transition: 'opacity 0.2s ease, stroke-width 0.2s ease' }}
+                      onMouseEnter={() => ringHoverIn(ring.label)}
+                      onMouseLeave={ringHoverOut}
+                    />
                   </g>
                 ))}
               </g>
