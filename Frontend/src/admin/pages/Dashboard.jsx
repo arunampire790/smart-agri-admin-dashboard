@@ -1,3 +1,4 @@
+import { Users, Map } from 'lucide-react';
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
@@ -96,6 +97,9 @@ export default function Dashboard() {
             <div className="text-3xl font-extrabold text-[#000000] mb-1">{users.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
           </div>
+          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+            <Users size={18} color="#6366F1" />
+          </div>
         </div>
         <div
           onClick={() => navigate('/admin/farms')}
@@ -107,6 +111,9 @@ export default function Dashboard() {
             <div className="text-xs font-semibold text-[#6B7280] mb-2">Total Farms</div>
             <div className="text-3xl font-extrabold text-[#000000] mb-1">{farms.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
+          </div>
+          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+            <Map size={18} color="#10B981" />
           </div>
         </div>
       </div>
