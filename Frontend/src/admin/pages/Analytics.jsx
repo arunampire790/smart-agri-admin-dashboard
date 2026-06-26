@@ -75,49 +75,50 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Crop distribution</div>
-          {[
-            { label: 'Wheat', pct: 25, color: '#059669' },
-            { label: 'Others', pct: 22, color: '#66bb6a' },
-            { label: 'Corn', pct: 20, color: '#81c784' },
-            { label: 'Soybeans', pct: 18, color: '#a5d6a7' },
-            { label: 'Rice', pct: 15, color: '#c8e6c9' },
-          ].map((crop) => (
-            <div key={crop.label} className="flex items-center gap-3 mb-3">
-              <div className="text-xs text-text-secondary w-10 text-right">{crop.label}</div>
-              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.3)' }}>
-                <div className="h-full rounded-full" style={{ width: `${crop.pct}%`, background: crop.color }} />
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-5">Crop distribution</div>
+          <div className="flex flex-col space-y-5">
+            {[
+              { label: 'Wheat', pct: 25, gradient: 'linear-gradient(90deg, #10B981, #059669)' },
+              { label: 'Others', pct: 22, gradient: 'linear-gradient(90deg, #34D399, #10B981)' },
+              { label: 'Corn', pct: 20, gradient: 'linear-gradient(90deg, #6EE7B7, #34D399)' },
+              { label: 'Soybeans', pct: 18, gradient: 'linear-gradient(90deg, #A7F3D0, #6EE7B7)' },
+              { label: 'Rice', pct: 15, gradient: 'linear-gradient(90deg, #D1FAE5, #A7F3D0)' },
+            ].map((crop) => (
+              <div key={crop.label}>
+                <div className="flex items-center justify-between mb-2">
+                  <div style={{ fontWeight: 500, color: '#374151', fontSize: '13px' }}>{crop.label}</div>
+                  <div style={{ fontWeight: 600, color: '#111827', fontSize: '13px' }}>{crop.pct}%</div>
+                </div>
+                <div className="w-full overflow-hidden" style={{ height: '8px', borderRadius: '9999px', background: 'rgba(0,0,0,0.05)' }}>
+                  <div className="h-full" style={{ width: `${crop.pct}%`, height: '8px', borderRadius: '9999px', background: crop.gradient, transition: 'width 1s ease-in-out' }} />
+                </div>
               </div>
-              <div className="text-xs font-medium text-[#1C1C1E] w-8">{crop.pct}%</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Robot status</div>
-          {[
-            { label: 'Active', val: String(active), dot: '#10B981' },
-            { label: 'Idle', val: String(idle), dot: '#F59E0B' },
-            { label: 'Offline', val: String(offline), dot: '#F43F5E' },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-xs text-text-secondary mb-2">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.dot }} />
-              {item.label}
-              <span className="ml-auto font-medium text-[#1C1C1E]">{item.val}</span>
-            </div>
-          ))}
-          <div className="mt-4">
-            <div className="h-1.5 rounded-[6px] overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.3)' }}>
-              <div className="h-full" style={{ width: `${activePct}%`, background: '#10B981' }} />
-              <div className="h-full" style={{ width: `${idlePct}%`, background: '#F59E0B' }} />
-              <div className="h-full" style={{ width: `${offlinePct}%`, background: '#F43F5E' }} />
-            </div>
-            <div className="flex justify-between text-[10px] text-[#6B7280] mt-1.5">
-              <span>Active {activePct}%</span>
-              <span>Idle {idlePct}%</span>
-              <span>Offline {offlinePct}%</span>
-            </div>
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div className="text-sm font-semibold text-[#1C1C1E] mb-5">Robot status</div>
+          <div className="flex flex-col space-y-5">
+            {[
+              { label: 'Active', val: String(active), pct: activePct, dot: '#10B981' },
+              { label: 'Idle', val: String(idle), pct: idlePct, dot: '#F59E0B' },
+              { label: 'Offline', val: String(offline), pct: offlinePct, dot: '#F43F5E' },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.dot, filter: 'drop-shadow(0 0 4px ' + item.dot + '80)' }} />
+                    <span style={{ fontWeight: 500, color: '#374151', fontSize: '13px' }}>{item.label}</span>
+                  </div>
+                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>{item.val}</span>
+                </div>
+                <div className="w-full overflow-hidden" style={{ height: '6px', borderRadius: '9999px', background: 'rgba(0,0,0,0.05)' }}>
+                  <div className="h-full" style={{ width: `${item.pct}%`, height: '6px', borderRadius: '9999px', background: item.dot, transition: 'width 1s ease-in-out' }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
