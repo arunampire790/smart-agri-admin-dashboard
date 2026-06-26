@@ -1,8 +1,10 @@
-﻿import { useState, useMemo, useRef, useEffect } from 'react';
+﻿import { Check } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useUsers } from '../../context/UserContext';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const modalInput = "modal-input-field";
+const addModalInput = "add-modal-input";
 
 const StatusDropdown = ({ value, onChange, options }) => {
   const [open, setOpen] = useState(false);
@@ -19,8 +21,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
       <div
         onClick={() => setOpen(!open)}
         style={{ outline: 'none !important', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%23757575%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-          className="modal-input-field"
-        style={{ outline: 'none !important', cursor: 'pointer', paddingRight: '2.5rem' }}
+          className="add-modal-input"
+        style={{ cursor: 'pointer', paddingRight: '2.5rem', display: 'flex', alignItems: 'center' }}
       >
         {value}
       </div>
@@ -140,6 +142,10 @@ export default function Users() {
 .modal-input-field { background: #F3F4F6; border: 1px solid transparent; transition: all 0.2s ease; cursor: text; text-sm px-3.5 py-2.5 rounded-[12px] w-full placeholder:text-text-placeholder text-[#1C1C1E]; }
 .modal-input-field:hover { background: #E5E7EB; border-color: #D1D5DB; }
 .modal-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
+.add-modal-input { width: 100%; height: 42px; border-radius: 10px; padding: 0 14px; font-size: 14px; background: #F3F4F6; color: #111827; border: 1px solid transparent; transition: all 0.2s ease; box-sizing: border-box; }
+.add-modal-input:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); outline: none; }
+.add-modal-input::placeholder { color: #9CA3AF; }
+.add-modal-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
 .modal-close-btn { cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; background: none; border: none; text-text-placeholder; font-size: 1.25rem; }
 .modal-close-btn:hover { transform: scale(1.1); color: #EF4444; }
 .modal-btn-cancel { cursor: pointer; transition: all 0.2s ease; flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem; border: 1px solid rgba(255,255,255,0.6); border-radius: 0.75rem; background: rgba(255,255,255,0.5); color: #6B7280; font-weight: 500; }
@@ -215,48 +221,57 @@ export default function Users() {
 
       {/* Add New User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
           <div
-            className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
+            className="w-[440px] max-w-[calc(100vw-32px)]"
+            style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: '20px', boxShadow: '0 24px 64px -12px rgba(0,0,0,0.12)', padding: '28px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-start justify-between mb-6">
               <div>
-                <div className="text-lg font-bold text-[#1C1C1E]">Add New User</div>
-                <div className="text-xs text-text-secondary mt-0.5">Enter details to register a new user.</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>Add New User</div>
+                <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>Enter details to register a new user.</div>
               </div>
-              <button type="button" onClick={() => setShowAddModal(false)} className="modal-close-btn">
+              <button type="button" onClick={() => setShowAddModal(false)} style={{ color: '#9CA3AF', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.25rem', padding: 0, lineHeight: 1 }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#4B5563'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+              >
                 <i className="ph ph-x" />
               </button>
             </div>
 
             <form onSubmit={handleAdd}>
               <div className="space-y-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Name</label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={modalInput} />
+                <div>
+                  <label className="add-modal-label">Name</label>
+                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={addModalInput} />
                   {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={modalInput} />
+                <div>
+                  <label className="add-modal-label">Email</label>
+                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={addModalInput} />
                   {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Phone</label>
-                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={modalInput} />
+                <div>
+                  <label className="add-modal-label">Phone</label>
+                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={addModalInput} />
                   {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Status</label>
+                <div>
+                  <label className="add-modal-label">Status</label>
                   <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className="modal-btn-cancel">Cancel</button>
-                <button type="submit" className="modal-btn-primary"><i className="ph ph-check" /> Save User</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} style={{ background: '#F3F4F6', color: '#374151', fontWeight: 500, borderRadius: '10px', padding: '10px 20px', transition: 'background 0.2s', cursor: 'pointer', border: 'none', fontSize: '0.875rem' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#E5E7EB'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#F3F4F6'}
+                >Cancel</button>
+                <button type="submit" style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '10px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', cursor: 'pointer', border: 'none', fontSize: '0.875rem' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = ''; }}
+                ><Check size={16} color="#FFFFFF" /> Save User</button>
               </div>
             </form>
           </div>
