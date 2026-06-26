@@ -124,12 +124,12 @@ export default function Analytics() {
                 <text x={donutCx} y={donutCy + 16} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">100%</text>
               </svg>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '16px 1fr auto', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '240px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {cropSegments.map((crop) => (
-                <div key={crop.label} className="contents">
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: crop.color }} />
-                  <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563', textAlign: 'left' }}>{crop.label}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827', textAlign: 'right' }}>{crop.pct}%</span>
+                <div key={crop.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', width: 'fit-content' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: crop.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563', minWidth: '80px' }}>{crop.label}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginLeft: '4px' }}>{crop.pct}%</span>
                 </div>
               ))}
             </div>
