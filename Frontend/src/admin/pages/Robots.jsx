@@ -14,7 +14,7 @@ const statusOpts = {
   Offline: { stCls: 'bg-danger-bg text-danger-text pill' },
 };
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full placeholder:text-text-placeholder text-[#1C1C1E] transition-all duration-200";
 const labelClass = "text-xs font-medium text-[#1C1C1E]";
 const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
 const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
@@ -33,7 +33,10 @@ function Select({ options, value, onChange, placeholder }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
+        onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#9CA3AF'; } }}
+        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; } }}
+      >
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value || placeholder}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -59,12 +62,24 @@ function FormFields({ form, setForm, errors, userNames }) {
     <>
       <div className="flex flex-col gap-1.5 mb-4">
         <label className={labelClass}>Robot Name</label>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., AgriBot Alpha" className={inputClass} />
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., AgriBot Alpha" className={inputClass}
+          style={{ cursor: 'text' }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+        />
         {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
       </div>
       <div className="flex flex-col gap-1.5 mb-4">
         <label className={labelClass}>Robot ID</label>
-        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass} />
+        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass}
+          style={{ cursor: 'text' }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+        />
         {errors.id && <span className="text-[10px] text-danger-text">{errors.id}</span>}
       </div>
       <div className="flex flex-col gap-1.5 mb-4">
@@ -212,7 +227,13 @@ export default function Robots() {
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Robots ({robots.length})</div>
-          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
+          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass}
+            style={{ cursor: 'text' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+          />
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
           <thead>
@@ -250,14 +271,30 @@ export default function Robots() {
       {showAddModal && (
         <div className={modalOverlay}>
           <div className={modalBox} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
+              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+            ><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New Robot</div>
             <div className="text-xs text-text-secondary mb-5">Register a new agricultural robot.</div>
             <form onSubmit={handleAdd}>
               <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
-                <button type="submit" className={submitBtnClass}>Add Robot</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                >Cancel</button>
+                <button type="submit" className={submitBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+                >Add Robot</button>
               </div>
             </form>
           </div>
@@ -267,14 +304,30 @@ export default function Robots() {
       {editRobot && (
         <div className={modalOverlay}>
           <div className={modalBox} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <button onClick={() => setEditRobot(null)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
+              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+            ><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit Robot</div>
             <div className="text-xs text-text-secondary mb-5">Update details for {editRobot.name}.</div>
             <form onSubmit={handleEdit}>
               <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setEditRobot(null)} className={cancelBtnClass}>Cancel</button>
-                <button type="submit" className={submitBtnClass}>Save Changes</button>
+                <button type="button" onClick={() => setEditRobot(null)} className={cancelBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                >Cancel</button>
+                <button type="submit" className={submitBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+                >Save Changes</button>
               </div>
             </form>
           </div>
@@ -289,8 +342,20 @@ export default function Robots() {
               Are you sure you want to remove <strong className="text-[#1C1C1E] font-medium">{deleteRobot.name}</strong> ({deleteRobot.id}) from the fleet registry? This action cannot be reverted.
             </div>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setDeleteRobot(null)} className={cancelBtnClass}>Cancel</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90"><i className="ph ph-trash" /> Delete</button>
+              <button onClick={() => setDeleteRobot(null)} className={cancelBtnClass}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+              >Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 transition-all duration-200"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,38,38,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+              ><i className="ph ph-trash" /> Delete</button>
             </div>
           </div>
         </div>
