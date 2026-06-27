@@ -5,9 +5,10 @@ import { useUsers } from '../../context/UserContext';
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const modalInput = "modal-input-field";
 const addModalInput = "add-modal-input";
-const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
-const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+const inputClass = "add-input-field";
+const cancelBtnClass = "add-cancel-btn";
+const submitBtnClass = "add-submit-btn";
+const closeBtnClass = "add-close-btn";
 
 const StatusDropdown = ({ value, onChange, options }) => {
   const [open, setOpen] = useState(false);
@@ -21,7 +22,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`} style={{ outline: 'none !important' }}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`add-input-field flex items-center justify-between ${open ? 'add-input-open' : ''}`} style={{ cursor: 'pointer' }}>
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -146,14 +147,19 @@ export default function Users() {
 .add-modal-input:focus { border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); outline: none; }
 .add-modal-input::placeholder { color: #4B5563; }
 .add-modal-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
-.modal-close-btn { cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; background: none; border: none; text-text-placeholder; font-size: 1.25rem; }
-.modal-close-btn:hover { transform: scale(1.1); color: #EF4444; }
-.modal-btn-cancel { cursor: pointer; transition: all 0.2s ease; flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem; border: 1px solid rgba(255,255,255,0.6); border-radius: 0.75rem; background: rgba(255,255,255,0.5); color: #6B7280; font-weight: 500; }
-.modal-btn-cancel:hover { background: #E5E7EB; color: #1F2937; }
-.modal-btn-cancel:active { transform: scale(0.98); }
-.modal-btn-primary { cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); flex: 1; background: #059669; color: white; border: none; border-radius: 0.75rem; padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.modal-btn-primary:hover { background: #059669; box-shadow: 0 4px 12px rgba(16,185,129,0.2); transform: translateY(-1px); }
-.modal-btn-primary:active { transform: translateY(0px) scale(0.97); opacity: 0.95; }
+.add-close-btn { cursor: pointer; transition: color 0.15s ease, transform 0.15s ease; background: none; border: none; font-size: 1.25rem; line-height: 1; padding: 0; color: #9CA3AF; }
+.add-close-btn:hover { color: #EF4444; transform: scale(1.1); }
+.add-input-field { font-size: 0.875rem; padding: 0.625rem 0.875rem; border-radius: 0.75rem; width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); outline: none; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); cursor: text; box-sizing: border-box; color: #1C1C1E; }
+.add-input-field::placeholder { color: #98989D; }
+.add-input-field:hover { border-color: #9CA3AF; }
+.add-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); outline: none; }
+.add-input-open { background: #FFFFFF !important; border-color: #10B981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.15) !important; }
+.add-cancel-btn { cursor: pointer; transition: all 0.15s ease; font-size: 0.8125rem; padding: 0.375rem 0.875rem; border: 1px solid rgba(0,0,0,0.05); border-radius: 0.75rem; background: #FFFFFF; color: #6B7280; font-weight: 500; }
+.add-cancel-btn:hover { background: #F3F4F6; border-color: #9CA3AF; color: #111827; }
+.add-cancel-btn:active { transform: scale(0.97); }
+.add-submit-btn { cursor: pointer; transition: all 0.2s ease; background: #10B981; color: #FFFFFF; font-weight: 600; border: none; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+.add-submit-btn:hover { background: #059669; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transform: translateY(-1px); }
+.add-submit-btn:active { transform: translateY(1px) scale(0.96); opacity: 0.95; }
 `}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -223,7 +229,7 @@ export default function Users() {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
           <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <button onClick={() => setShowAddModal(false)} className="add-close-btn absolute top-4 right-4"><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New User</div>
             <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
             <form onSubmit={handleAdd}>
