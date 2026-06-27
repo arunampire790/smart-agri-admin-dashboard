@@ -303,27 +303,27 @@ export default function Users() {
 
       {/* Delete User Modal */}
       {deleteUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setDeleteUser(null)}>
-          <div className="w-[400px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-bold text-[#1C1C1E]">Delete User?</div>
-              <button type="button" onClick={() => setDeleteUser(null)} className="modal-close-btn">
-                <i className="ph ph-x" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteUser(null)}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteUser.name}</strong>? This action cannot be undone.
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteUser(null)} className="modal-btn-cancel">Cancel</button>
-              <button onClick={handleDelete} className="modal-btn-primary" style={{ background: '#FEE2E2', color: '#DC2626' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#FECACA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,38,38,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
-                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(0px) scale(0.97)'; e.currentTarget.style.opacity = '0.95'; }}
-                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-              >
-                <i className="ph ph-trash" /> Delete
-              </button>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteUser(null)} className={cancelBtnClass}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+              >Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 transition-all duration-200"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(220,38,38,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+              ><i className="ph ph-trash" /> Delete</button>
             </div>
           </div>
         </div>
