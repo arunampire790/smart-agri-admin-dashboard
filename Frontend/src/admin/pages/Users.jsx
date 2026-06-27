@@ -298,42 +298,34 @@ export default function Users() {
 
       {/* Edit User Modal */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }}>
-          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="text-lg font-bold text-[#1C1C1E]">Edit User Details</div>
-                <div className="text-xs text-text-secondary mt-0.5">Update information for {editUser.name}.</div>
-              </div>
-              <button type="button" onClick={() => setEditUser(null)} className="modal-close-btn">
-                <i className="ph ph-x" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setEditUser(false)}>
+          <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setEditUser(null)} className="add-close-btn absolute top-4 right-4"><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Edit User Details</div>
+            <div className="text-xs text-text-secondary mb-5">Update information for {editUser.name}.</div>
             <form onSubmit={handleEdit}>
-              <div className="space-y-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Name</label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={modalInput} />
-                  {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={modalInput} />
-                  {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Phone</label>
-                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={modalInput} />
-                  {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Status</label>
-                  <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
-                </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
               </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setEditUser(null)} className="modal-btn-cancel">Cancel</button>
-                <button type="submit" className="modal-btn-primary"><i className="ph ph-check" /> Save Changes</button>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
+                {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Phone</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
+                {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Status</label>
+                <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setEditUser(null)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Save Changes</button>
               </div>
             </form>
           </div>
