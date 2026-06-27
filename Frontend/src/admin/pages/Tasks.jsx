@@ -1,6 +1,9 @@
+import { Check } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../../context/TaskContext';
+import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
 
 const tabs = [
   { key: 'all', label: 'All' },
@@ -9,14 +12,28 @@ const tabs = [
   { key: 'done', label: 'Completed' },
 ];
 
+const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
+const priorityOptions = ['High', 'Medium', 'Low'];
+
 const priorityClass = (p) =>
   p === 'High' ? 'bg-danger-bg text-danger-text' : p === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark';
+
+const inputClass = "add-input-field";
+const cancelBtnClass = "add-cancel-btn";
+const submitBtnClass = "add-submit-btn";
+const labelClass = "add-modal-label";
+const closeBtnClass = "add-close-btn";
 
 export default function Tasks() {
   const navigate = useNavigate();
   const { tasks, addTask, updateTaskStatus, removeTask } = useTasks();
+  const { users } = useUsers();
+  const { farms } = useFarms();
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
+  const [errors, setErrors] = useState({});
 
   const filtered = useMemo(() => {
     let list = tasks;
@@ -37,6 +54,33 @@ export default function Tasks() {
     done: tasks.filter((t) => t.status === 'Completed').length,
   }), [tasks]);
 
+  const openAssign = () => {
+    setForm({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
+    setErrors({});
+    setShowAssignModal(true);
+  };
+
+  const handleAssignTaskSubmit = (e) => {
+    e.preventDefault();
+    const errs = {};
+    if (!form.title.trim()) errs.title = 'Task title is required';
+    if (!form.assignedTo) errs.assignedTo = 'Please select an assignee';
+    if (!form.farm) errs.farm = 'Please select a farm';
+    if (!form.dueDate) errs.dueDate = 'Please select a due date';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    addTask({
+      id: `TSK-${Date.now().toString().slice(-4)}`,
+      title: form.title.trim(),
+      assignedTo: form.assignedTo,
+      farm: form.farm,
+      type: form.type,
+      priority: form.priority,
+      dueDate: form.dueDate,
+      status: 'Pending',
+    });
+    setShowAssignModal(false);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -45,9 +89,7 @@ export default function Tasks() {
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
         <button
-          onClick={() => addTask({
-            title: 'New task', assignedTo: 'Unassigned', farm: '—', type: 'Other', priority: 'Medium', dueDate: new Date().toISOString().slice(0, 10), status: 'Pending',
-          })}
+          onClick={openAssign}
           className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90"
         >
           <i className="ph ph-plus" /> Assign Task
@@ -142,6 +184,109 @@ export default function Tasks() {
           </tbody>
         </table>
       </div>
+
+      {/* Assign Task Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAssignModal(false)}>
+          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="text-lg font-bold text-[#1C1C1E]">Assign Task</div>
+                <div className="text-xs text-text-secondary mt-0.5">Create and assign a new task to a team member.</div>
+              </div>
+              <button type="button" onClick={() => setShowAssignModal(false)} className={closeBtnClass}>
+                <i className="ph ph-x" />
+              </button>
+            </div>
+            <form onSubmit={handleAssignTaskSubmit}>
+              <div className="space-y-4 mb-6">
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Task Title</label>
+                  <input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="e.g. Irrigate plot 4"
+                    className={inputClass}
+                    autoFocus
+                  />
+                  {errors.title && <span className="text-[10px] text-danger-text">{errors.title}</span>}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Assigned To</label>
+                  <select
+                    value={form.assignedTo}
+                    onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
+                    className={inputClass}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <option value="">Select assignee</option>
+                    {users.map((u) => <option key={u.name} value={u.name}>{u.name}</option>)}
+                  </select>
+                  {errors.assignedTo && <span className="text-[10px] text-danger-text">{errors.assignedTo}</span>}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Farm Sector</label>
+                  <select
+                    value={form.farm}
+                    onChange={(e) => setForm({ ...form, farm: e.target.value })}
+                    className={inputClass}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <option value="">Select farm</option>
+                    {farms.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
+                  </select>
+                  {errors.farm && <span className="text-[10px] text-danger-text">{errors.farm}</span>}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Type Tag</label>
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                    className={inputClass}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {typeOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Priority Tier</label>
+                  <div className="flex gap-2">
+                    {priorityOptions.map((p) => (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => setForm({ ...form, priority: p })}
+                        className={`text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-200 cursor-pointer ${
+                          form.priority === p
+                            ? 'bg-brand text-white border-brand'
+                            : 'bg-white/50 text-text-secondary border-white/60 hover:border-brand hover:text-brand'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass}>Due Date</label>
+                  <input
+                    type="date"
+                    value={form.dueDate}
+                    onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                    className={inputClass}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  {errors.dueDate && <span className="text-[10px] text-danger-text">{errors.dueDate}</span>}
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setShowAssignModal(false)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Assign Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

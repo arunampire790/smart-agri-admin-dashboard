@@ -18,7 +18,7 @@ const TaskContext = createContext(null);
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState(initialTasks);
 
-  const addTask = (task) => setTasks((prev) => [...prev, { ...task, id: 't' + Date.now() }]);
+  const addTask = (task) => setTasks((prev) => [...prev, { ...task, id: task.id || 't' + Date.now() }]);
   const updateTaskStatus = (id, status) =>
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
   const updateTask = (id, newData) =>
