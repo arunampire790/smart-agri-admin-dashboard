@@ -157,6 +157,7 @@ export default function Robots() {
 
   return (
     <>
+      <style>{`@keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }`}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-2xl font-bold text-[#000000]">Robot Management</div>
@@ -263,7 +264,12 @@ export default function Robots() {
                     <span className="text-xs font-medium text-[#1C1C1E] flex-shrink-0">{r.battery}%</span>
                   </div>
                 </td>
-                <td className="px-3 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold ${statusOpts[r.status]?.stCls || 'bg-white/30 text-text-secondary'}`}>{r.status}</span></td>
+                <td className="px-3 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  <span className="inline-flex items-center" style={{ gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#D97706' : '#EF4444', animation: r.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                    <span style={{ color: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#D97706' : '#EF4444', fontSize: '12px', fontWeight: 500, letterSpacing: '0.01em' }}>{r.status}</span>
+                  </span>
+                </td>
                 <td className="px-3 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex gap-2 items-center">
                     <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-pencil" /></button>
