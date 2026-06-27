@@ -145,7 +145,13 @@ export default function Robots() {
           <div className="text-2xl font-bold text-[#000000]">Robot Management</div>
           <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
-        <button onClick={openAdd} className={submitBtnClass}><i className="ph ph-plus" /> Add Robot</button>
+        <button onClick={openAdd} className={submitBtnClass}
+          style={{ cursor: 'pointer' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+        ><i className="ph ph-plus" /> Add Robot</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
