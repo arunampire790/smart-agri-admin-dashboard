@@ -110,7 +110,10 @@ export default function DatePicker({ value, onChange }) {
   return (
     <>
       <div ref={containerRef}>
-        <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+        <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
+          onMouseEnter={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
+          onMouseLeave={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }}
+        >
           <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
           <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
         </button>

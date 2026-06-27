@@ -19,10 +19,10 @@ const priorityOptions = ['High', 'Medium', 'Low'];
 const priorityClass = (p) =>
   p === 'High' ? 'bg-danger-bg text-danger-text' : p === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark';
 
-const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full placeholder:text-text-placeholder text-[#1C1C1E] transition-all duration-200";
 const labelClass = "text-xs font-medium text-[#1C1C1E]";
-const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium transition-all duration-150";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 transition-all duration-200";
 
 function Select({ options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -36,7 +36,10 @@ function Select({ options, value, onChange, placeholder }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
+        onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#9CA3AF'; } }}
+        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; } }}
+      >
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value || placeholder}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -171,6 +174,11 @@ export default function Tasks() {
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search tasks"
             className={inputClass}
+            style={{ cursor: 'text' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
           />
         </div>
 
@@ -220,13 +228,23 @@ export default function Tasks() {
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAssignModal(false)}>
           <div className="glass-card rounded-[16px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
+              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+            ><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-[#1C1C1E] mb-1">Assign Task</div>
             <div className="text-xs text-text-secondary mb-5">Create and assign a new task to a team member.</div>
             <form onSubmit={handleAssignTaskSubmit}>
               <div className="flex flex-col gap-1.5 mb-4">
                 <label className={labelClass}>Task Title</label>
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Irrigate plot 4" className={inputClass} />
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Irrigate plot 4" className={inputClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
                 {errors.title && <span className="text-[10px] text-danger-text">{errors.title}</span>}
               </div>
               <div className="flex flex-col gap-1.5 mb-4">
@@ -246,20 +264,26 @@ export default function Tasks() {
               <div className="flex flex-col gap-1.5 mb-4">
                 <label className={labelClass}>Priority Tier</label>
                 <div className="flex gap-2">
-                  {priorityOptions.map((p) => (
-                    <button
-                      type="button"
-                      key={p}
-                      onClick={() => setForm({ ...form, priority: p })}
-                      className={`flex-1 text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-200 cursor-pointer ${
-                        form.priority === p
-                          ? 'bg-brand text-white border-brand'
-                          : 'bg-white/50 text-text-secondary border-white/60 hover:border-brand hover:text-brand'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+                  {priorityOptions.map((p) => {
+                    const isActive = form.priority === p;
+                    return (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => setForm({ ...form, priority: p })}
+                        className={`flex-1 text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-150 ${
+                          isActive ? 'bg-brand text-white border-brand' : 'bg-white/50 text-text-secondary border-white/60'
+                        }`}
+                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                        onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; } }}
+                        onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; } }}
+                        onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
+                        onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                      >
+                        {p}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 mb-4">
@@ -268,8 +292,20 @@ export default function Tasks() {
                 {errors.dueDate && <span className="text-[10px] text-danger-text">{errors.dueDate}</span>}
               </div>
               <div className="flex justify-end items-center gap-3 mt-5 w-full">
-                <button type="button" onClick={() => setShowAssignModal(false)} className={cancelBtnClass}>Cancel</button>
-                <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Assign Task</button>
+                <button type="button" onClick={() => setShowAssignModal(false)} className={cancelBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                >Cancel</button>
+                <button type="submit" className={submitBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+                ><Check size={16} color="#FFFFFF" /> Assign Task</button>
               </div>
             </form>
           </div>
