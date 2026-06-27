@@ -1,6 +1,7 @@
 ﻿import { Check } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useUsers } from '../../context/UserContext';
+import UserProfileModal from '../../admin/components/UserProfileModal';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const modalInput = "modal-input-field";
@@ -262,39 +263,7 @@ export default function Users() {
       )}
 
       {/* View User Modal */}
-      {viewUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setViewUser(null)}>
-          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="text-lg font-bold text-[#1C1C1E]">User Details</div>
-                <div className="text-xs text-text-secondary mt-0.5">Viewing information for {viewUser.name}.</div>
-              </div>
-              <button type="button" onClick={() => setViewUser(null)} className="modal-close-btn">
-                <i className="ph ph-x" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { label: 'Name', value: viewUser.name },
-                { label: 'Email', value: viewUser.email },
-                { label: 'Phone', value: viewUser.phone },
-                { label: 'Number of Farms', value: viewUser.farms },
-                { label: 'Status', value: viewUser.status },
-                { label: 'Date Created', value: viewUser.joined },
-              ].map((field) => (
-                <div key={field.label} className="flex flex-col gap-1">
-                  <span className={labelClass}>{field.label}</span>
-                  <div className="text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 text-[#1C1C1E] w-full">{field.value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end mt-6">
-              <button onClick={() => setViewUser(null)} className={btnGhost}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {viewUser && <UserProfileModal user={viewUser} onClose={() => setViewUser(null)} />}
 
       {/* Edit User Modal */}
       {editUser && (
