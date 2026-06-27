@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -85,13 +84,15 @@ export default function DatePicker({ value, onChange }) {
     : '';
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
-        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
-        <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
-      </button>
-      {isCalendarOpen && createPortal(
-        <div ref={popoverRef} style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 99999, width: '280px', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)' }}>
+    <>
+      <div ref={containerRef}>
+        <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+          <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
+          <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
+        </button>
+      </div>
+      {isCalendarOpen && (
+        <div ref={popoverRef} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 250, width: '100%', maxWidth: '290px', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)' }}>
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
               <i className="ph ph-caret-left text-sm" />
@@ -146,9 +147,8 @@ export default function DatePicker({ value, onChange }) {
             <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Clear</button>
             <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Today</button>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
-    </div>
+    </>
   );
 }
