@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -22,8 +23,13 @@ function formatDate(year, month, day) {
   return `${year}-${m}-${d}`;
 }
 
+const POPOVER_HEIGHT = 320;
+const POPOVER_WIDTH = 290;
+const GAP = 6;
+
 export default function DatePicker({ value, onChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, below: true });
   const containerRef = useRef(null);
   const popoverRef = useRef(null);
   const today = new Date();
@@ -34,8 +40,8 @@ export default function DatePicker({ value, onChange }) {
   const [viewMonth, setViewMonth] = useState(selectedDate ? selectedDate.getMonth() : today.getMonth());
 
   useEffect(() => {
+    if (!isCalendarOpen) return;
     const handler = (e) => {
-      if (!isCalendarOpen) return;
       const target = e.target;
       const insideTrigger = containerRef.current && containerRef.current.contains(target);
       const insidePopover = popoverRef.current && popoverRef.current.contains(target);
@@ -51,6 +57,21 @@ export default function DatePicker({ value, onChange }) {
       const d = value ? new Date(value + 'T00:00:00') : today;
       setViewYear(d.getFullYear());
       setViewMonth(d.getMonth());
+      const btn = containerRef.current;
+      if (btn) {
+        const rect = btn.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const below = spaceBelow >= POPOVER_HEIGHT + GAP || spaceBelow >= spaceAbove;
+        const centerX = rect.left + rect.width / 2;
+        const halfW = POPOVER_WIDTH / 2;
+        const left = Math.max(halfW, Math.min(centerX, window.innerWidth - halfW));
+        setPopoverPos({
+          top: below ? rect.bottom + GAP : rect.top - POPOVER_HEIGHT - GAP,
+          left,
+          below,
+        });
+      }
     }
     setIsCalendarOpen(opening);
   };
@@ -91,16 +112,32 @@ export default function DatePicker({ value, onChange }) {
           <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
         </button>
       </div>
-      {isCalendarOpen && (
-        <div ref={popoverRef} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 250, width: '100%', maxWidth: '290px', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)' }}>
+      {isCalendarOpen && createPortal(
+        <div
+          ref={popoverRef}
+          style={{
+            position: 'fixed',
+            top: popoverPos.top + 'px',
+            left: popoverPos.left + 'px',
+            transform: 'translateX(-50%)',
+            zIndex: 99999,
+            width: '100%',
+            maxWidth: POPOVER_WIDTH + 'px',
+            background: '#FFFFFF',
+            border: '1px solid #E5E7EB',
+            borderRadius: '12px',
+            padding: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)',
+          }}
+        >
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
+            <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
               <i className="ph ph-caret-left text-sm" />
             </button>
             <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>
               {MONTHS[viewMonth]}, {viewYear}
             </span>
-            <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
+            <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
               <i className="ph ph-caret-right text-sm" />
             </button>
           </div>
@@ -114,7 +151,11 @@ export default function DatePicker({ value, onChange }) {
           {rows.map((week, i) => (
             <div key={i} className="grid grid-cols-7">
               {week.map((cell, j) => {
-                const dateStr = formatDate(cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear, cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth, cell.day);
+                const dateStr = formatDate(
+                  cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear,
+                  cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth,
+                  cell.day
+                );
                 const isSelected = dateStr === value;
                 const isToday = dateStr === todayStr;
                 return (
@@ -123,6 +164,7 @@ export default function DatePicker({ value, onChange }) {
                     key={j}
                     onClick={() => selectDay(cell.day, cell.outside)}
                     className="cursor-pointer inline-flex items-center justify-center transition-colors duration-150"
+                    tabIndex={-1}
                     style={{
                       width: '32px',
                       height: '32px',
@@ -144,10 +186,11 @@ export default function DatePicker({ value, onChange }) {
           ))}
 
           <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-            <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Clear</button>
-            <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Today</button>
+            <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }} tabIndex={-1}>Clear</button>
+            <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }} tabIndex={-1}>Today</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
