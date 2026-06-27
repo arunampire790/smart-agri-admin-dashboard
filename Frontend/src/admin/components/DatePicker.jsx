@@ -23,8 +23,8 @@ function formatDate(year, month, day) {
 }
 
 export default function DatePicker({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const containerRef = useRef(null);
   const today = new Date();
   const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -33,16 +33,21 @@ export default function DatePicker({ value, onChange }) {
   const [viewMonth, setViewMonth] = useState(selectedDate ? selectedDate.getMonth() : today.getMonth());
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsCalendarOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const openCalendar = () => {
-    const d = value ? new Date(value + 'T00:00:00') : today;
-    setViewYear(d.getFullYear());
-    setViewMonth(d.getMonth());
-    setOpen(true);
+  const toggleCalendar = () => {
+    const opening = !isCalendarOpen;
+    if (opening) {
+      const d = value ? new Date(value + 'T00:00:00') : today;
+      setViewYear(d.getFullYear());
+      setViewMonth(d.getMonth());
+    }
+    setIsCalendarOpen(opening);
   };
 
   const prevMonth = () => {
@@ -62,11 +67,11 @@ export default function DatePicker({ value, onChange }) {
     const m = outside && day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth;
     const y = outside && day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear;
     onChange(formatDate(y, m, day));
-    setOpen(false);
+    setIsCalendarOpen(false);
   };
 
-  const todayClick = () => { onChange(todayStr); setOpen(false); };
-  const clearClick = () => { onChange(''); setOpen(false); };
+  const todayClick = () => { onChange(todayStr); setIsCalendarOpen(false); };
+  const clearClick = () => { onChange(''); setIsCalendarOpen(false); };
 
   const rows = buildCalendar(viewYear, viewMonth);
   const displayValue = value
@@ -74,76 +79,80 @@ export default function DatePicker({ value, onChange }) {
     : '';
 
   return (
-    <div className="relative" ref={ref}>
-      <button type="button" onClick={openCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+    <div className="relative" ref={containerRef}>
+      <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
         <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
         <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
       </button>
-      {open && (
-        <div className="absolute z-[100]" style={{ top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: '280px' }}>
-          <div
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid #E5E7EB',
-              borderRadius: '12px',
-              padding: '16px',
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
-                <i className="ph ph-caret-left text-sm" />
-              </button>
-              <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>
-                {MONTHS[viewMonth]}, {viewYear}
-              </span>
-              <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
-                <i className="ph ph-caret-right text-sm" />
-              </button>
-            </div>
+      {isCalendarOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 200,
+            width: '280px',
+            background: '#FFFFFF',
+            border: '1px solid #E5E7EB',
+            borderRadius: '12px',
+            padding: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
+              <i className="ph ph-caret-left text-sm" />
+            </button>
+            <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>
+              {MONTHS[viewMonth]}, {viewYear}
+            </span>
+            <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }}>
+              <i className="ph ph-caret-right text-sm" />
+            </button>
+          </div>
 
-            <div className="grid grid-cols-7 mb-1">
-              {WEEKDAYS.map((w) => (
-                <div key={w} className="flex items-center justify-center" style={{ color: '#6B7280', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
-              ))}
-            </div>
-
-            {rows.map((week, i) => (
-              <div key={i} className="grid grid-cols-7">
-                {week.map((cell, j) => {
-                  const dateStr = formatDate(cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear, cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth, cell.day);
-                  const isSelected = dateStr === value;
-                  const isToday = dateStr === todayStr;
-                  return (
-                    <button
-                      type="button"
-                      key={j}
-                      onClick={() => selectDay(cell.day, cell.outside)}
-                      className="cursor-pointer inline-flex items-center justify-center transition-colors duration-150"
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        fontSize: '13px',
-                        fontWeight: isSelected ? 700 : 500,
-                        color: cell.outside ? '#D1D5DB' : isSelected ? '#FFFFFF' : isToday ? '#10B981' : '#374151',
-                        background: isSelected ? '#10B981' : 'transparent',
-                        border: isToday && !isSelected ? '1px solid #10B981' : 'none',
-                        borderRadius: '8px',
-                      }}
-                      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = '#F3F4F6'; }}
-                      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      {cell.day}
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="grid grid-cols-7 mb-1">
+            {WEEKDAYS.map((w) => (
+              <div key={w} className="flex items-center justify-center" style={{ color: '#6B7280', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
             ))}
+          </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-              <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Clear</button>
-              <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Today</button>
+          {rows.map((week, i) => (
+            <div key={i} className="grid grid-cols-7">
+              {week.map((cell, j) => {
+                const dateStr = formatDate(cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear, cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth, cell.day);
+                const isSelected = dateStr === value;
+                const isToday = dateStr === todayStr;
+                return (
+                  <button
+                    type="button"
+                    key={j}
+                    onClick={() => selectDay(cell.day, cell.outside)}
+                    className="cursor-pointer inline-flex items-center justify-center transition-colors duration-150"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      fontSize: '13px',
+                      fontWeight: isSelected ? 700 : 500,
+                      color: cell.outside ? '#D1D5DB' : isSelected ? '#FFFFFF' : isToday ? '#10B981' : '#374151',
+                      background: isSelected ? '#10B981' : 'transparent',
+                      border: isToday && !isSelected ? '1px solid #10B981' : 'none',
+                      borderRadius: '8px',
+                    }}
+                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = '#F3F4F6'; }}
+                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {cell.day}
+                  </button>
+                );
+              })}
             </div>
+          ))}
+
+          <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
+            <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Clear</button>
+            <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Today</button>
           </div>
         </div>
       )}
