@@ -5,6 +5,9 @@ import { useUsers } from '../../context/UserContext';
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const modalInput = "modal-input-field";
 const addModalInput = "add-modal-input";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
 
 const StatusDropdown = ({ value, onChange, options }) => {
   const [open, setOpen] = useState(false);
@@ -18,14 +21,10 @@ const StatusDropdown = ({ value, onChange, options }) => {
 
   return (
     <div ref={ref} className="relative">
-      <div
-        onClick={() => setOpen(!open)}
-        style={{ outline: 'none !important' }}
-          className="add-modal-input"
-        style={{ cursor: 'pointer', paddingRight: '36px', display: 'flex', alignItems: 'center', caretColor: 'transparent', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px' }}
-      >
-        {value}
-      </div>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`} style={{ outline: 'none !important' }}>
+        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
       {open && (
         <div
           className="absolute z-50 w-full mt-1 overflow-hidden"
@@ -222,63 +221,34 @@ export default function Users() {
 
       {/* Add New User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
-          <div
-            className="w-[440px] max-w-[calc(100vw-32px)] rounded-[20px] p-[28px]"
-            style={{ background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(229,231,235,0.5)', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>Add New User</div>
-                <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>Enter details to register a new user.</div>
-              </div>
-              <button type="button" onClick={() => setShowAddModal(false)} style={{ color: '#9CA3AF', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.25rem', padding: 0, lineHeight: 1 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#4B5563'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
-              >
-                <i className="ph ph-x" />
-              </button>
-            </div>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
+          <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New User</div>
+            <div className="text-xs text-text-secondary mb-5">Enter details to register a new user.</div>
             <form onSubmit={handleAdd}>
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="add-modal-label">Name</label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={addModalInput} />
-                  {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
-                </div>
-                <div>
-                  <label className="add-modal-label">Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={addModalInput} />
-                  {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
-                </div>
-                <div>
-                  <label className="add-modal-label">Phone</label>
-                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={addModalInput} />
-                  {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
-                </div>
-                <div>
-                  <label className="add-modal-label">Status</label>
-                  <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
-                </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)}
-                  style={{ background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 500, borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', transition: 'all 0.15s ease', fontSize: '0.875rem' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = ''}
-                >Cancel</button>
-                <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)', border: 'none', fontSize: '0.875rem' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.97)'; e.currentTarget.style.opacity = '0.95'; }}
-                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-                ><Check size={16} color="#FFFFFF" /> Save User</button>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
+                {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Phone</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
+                {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Status</label>
+                <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
+                <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Save User</button>
               </div>
             </form>
           </div>
