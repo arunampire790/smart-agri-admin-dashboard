@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../../context/TaskContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import DatePicker from '../../admin/components/DatePicker';
 
 const tabs = [
   { key: 'all', label: 'All' },
@@ -263,7 +264,7 @@ export default function Tasks() {
               </div>
               <div className="flex flex-col gap-1.5 mb-4">
                 <label className={labelClass}>Due Date</label>
-                <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className={inputClass} />
+                <DatePicker value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
                 {errors.dueDate && <span className="text-[10px] text-danger-text">{errors.dueDate}</span>}
               </div>
               <div className="flex justify-end items-center gap-3 mt-5 w-full">
