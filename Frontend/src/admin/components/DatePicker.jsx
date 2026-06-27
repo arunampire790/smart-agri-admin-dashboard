@@ -29,6 +29,7 @@ const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('day');
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, below: true });
   const containerRef = useRef(null);
   const popoverRef = useRef(null);
@@ -54,6 +55,7 @@ export default function DatePicker({ value, onChange }) {
   const toggleCalendar = () => {
     const opening = !isCalendarOpen;
     if (opening) {
+      setViewMode('day');
       const d = value ? new Date(value + 'T00:00:00') : today;
       setViewYear(d.getFullYear());
       setViewMonth(d.getMonth());
@@ -99,6 +101,7 @@ export default function DatePicker({ value, onChange }) {
   const todayClick = () => { onChange(todayStr); setIsCalendarOpen(false); };
   const clearClick = () => { onChange(''); setIsCalendarOpen(false); };
 
+  const yearRange = Array.from({ length: 101 }, (_, i) => today.getFullYear() - 50 + i);
   const rows = buildCalendar(viewYear, viewMonth);
   const displayValue = value
     ? `${MONTHS[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`
@@ -131,59 +134,105 @@ export default function DatePicker({ value, onChange }) {
           }}
         >
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
-              <i className="ph ph-caret-left text-sm" />
-            </button>
-            <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>
-              {MONTHS[viewMonth]}, {viewYear}
-            </span>
-            <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
-              <i className="ph ph-caret-right text-sm" />
-            </button>
+            {viewMode === 'day' ? (
+              <>
+                <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
+                  <i className="ph ph-caret-left text-sm" />
+                </button>
+                <span onClick={() => setViewMode('year')} style={{ color: '#111827', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
+                  {MONTHS[viewMonth]}, {viewYear}
+                </span>
+                <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
+                  <i className="ph ph-caret-right text-sm" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => setViewMode('day')} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}>
+                  <i className="ph ph-caret-left text-sm" />
+                </button>
+                <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>{viewYear}</span>
+                <div style={{ width: '32px' }} />
+              </>
+            )}
           </div>
 
-          <div className="grid grid-cols-7 mb-1">
-            {WEEKDAYS.map((w) => (
-              <div key={w} className="flex items-center justify-center" style={{ color: '#6B7280', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
-            ))}
-          </div>
+          {viewMode === 'day' ? (
+            <>
+              <div className="grid grid-cols-7 mb-1">
+                {WEEKDAYS.map((w) => (
+                  <div key={w} className="flex items-center justify-center" style={{ color: '#6B7280', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
+                ))}
+              </div>
 
-          {rows.map((week, i) => (
-            <div key={i} className="grid grid-cols-7">
-              {week.map((cell, j) => {
-                const dateStr = formatDate(
-                  cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear,
-                  cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth,
-                  cell.day
-                );
-                const isSelected = dateStr === value;
-                const isToday = dateStr === todayStr;
-                return (
-                  <button
-                    type="button"
-                    key={j}
-                    onClick={() => selectDay(cell.day, cell.outside)}
-                    className="cursor-pointer inline-flex items-center justify-center transition-colors duration-150"
-                    tabIndex={-1}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      fontSize: '13px',
-                      fontWeight: isSelected ? 700 : 500,
-                      color: cell.outside ? '#D1D5DB' : isSelected ? '#FFFFFF' : isToday ? '#10B981' : '#374151',
-                      background: isSelected ? '#10B981' : 'transparent',
-                      border: isToday && !isSelected ? '1px solid #10B981' : 'none',
-                      borderRadius: '8px',
-                    }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = '#F3F4F6'; }}
-                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    {cell.day}
-                  </button>
-                );
-              })}
+              {rows.map((week, i) => (
+                <div key={i} className="grid grid-cols-7">
+                  {week.map((cell, j) => {
+                    const dateStr = formatDate(
+                      cell.outside && cell.day > 15 ? (viewMonth === 0 ? viewYear - 1 : viewYear) : cell.outside ? (viewMonth === 11 ? viewYear + 1 : viewYear) : viewYear,
+                      cell.outside && cell.day > 15 ? (viewMonth === 0 ? 11 : viewMonth - 1) : cell.outside ? (viewMonth === 11 ? 0 : viewMonth + 1) : viewMonth,
+                      cell.day
+                    );
+                    const isSelected = dateStr === value;
+                    const isToday = dateStr === todayStr;
+                    return (
+                      <button
+                        type="button"
+                        key={j}
+                        onClick={() => selectDay(cell.day, cell.outside)}
+                        className="cursor-pointer inline-flex items-center justify-center transition-colors duration-150"
+                        tabIndex={-1}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          fontSize: '13px',
+                          fontWeight: isSelected ? 700 : 500,
+                          color: cell.outside ? '#D1D5DB' : isSelected ? '#FFFFFF' : isToday ? '#10B981' : '#374151',
+                          background: isSelected ? '#10B981' : 'transparent',
+                          border: isToday && !isSelected ? '1px solid #10B981' : 'none',
+                          borderRadius: '8px',
+                        }}
+                        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = '#F3F4F6'; }}
+                        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        {cell.day}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </>
+          ) : (
+            <div style={{ maxHeight: '248px', overflowY: 'auto' }}>
+              <div className="grid grid-cols-4 gap-1">
+                {yearRange.map((y) => {
+                  const isActive = y === viewYear;
+                  return (
+                    <button
+                      type="button"
+                      key={y}
+                      onClick={() => { setViewYear(y); setViewMode('day'); }}
+                      className="cursor-pointer transition-colors duration-150"
+                      tabIndex={-1}
+                      style={{
+                        padding: '8px 4px',
+                        fontSize: '13px',
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? '#FFFFFF' : '#374151',
+                        background: isActive ? '#10B981' : 'transparent',
+                        borderRadius: '8px',
+                        border: 'none',
+                      }}
+                      onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = '#F3F4F6'; }}
+                      onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      {y}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          ))}
+          )}
 
           <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
             <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }} tabIndex={-1}>Clear</button>
