@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../../context/TaskContext';
 import { useUsers } from '../../context/UserContext';
@@ -18,11 +18,43 @@ const priorityOptions = ['High', 'Medium', 'Low'];
 const priorityClass = (p) =>
   p === 'High' ? 'bg-danger-bg text-danger-text' : p === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark';
 
-const inputClass = "add-input-field";
-const cancelBtnClass = "add-cancel-btn";
-const submitBtnClass = "add-submit-btn";
-const labelClass = "add-modal-label";
-const closeBtnClass = "add-close-btn";
+const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const labelClass = "text-xs font-medium text-[#1C1C1E]";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+
+function Select({ options, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}>
+        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value || placeholder}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }} className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer ${selected ? 'bg-brand-light text-brand-dark' : 'text-[#1C1C1E] hover:bg-brand-light hover:text-brand-dark'}`}>
+                <span>{opt}</span>
+                {selected && <i className="ph ph-check text-sm text-brand-dark" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Tasks() {
   const navigate = useNavigate();
@@ -34,6 +66,9 @@ export default function Tasks() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [errors, setErrors] = useState({});
+
+  const userNames = users.length ? users.map((u) => u.name) : [];
+  const farmNames = farms.length ? farms.map((f) => f.name) : [];
 
   const filtered = useMemo(() => {
     let list = tasks;
@@ -88,12 +123,7 @@ export default function Tasks() {
           <div className="text-2xl font-bold text-[#000000]">Task Management</div>
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button
-          onClick={openAssign}
-          className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90"
-        >
-          <i className="ph ph-plus" /> Assign Task
-        </button>
+        <button onClick={openAssign} className={submitBtnClass}><i className="ph ph-plus" /> Assign Task</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -139,7 +169,7 @@ export default function Tasks() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search tasks"
-            className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]"
+            className={inputClass}
           />
         </div>
 
@@ -187,99 +217,56 @@ export default function Tasks() {
 
       {/* Assign Task Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAssignModal(false)}>
-          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="text-lg font-bold text-[#1C1C1E]">Assign Task</div>
-                <div className="text-xs text-text-secondary mt-0.5">Create and assign a new task to a team member.</div>
-              </div>
-              <button type="button" onClick={() => setShowAssignModal(false)} className={closeBtnClass}>
-                <i className="ph ph-x" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAssignModal(false)}>
+          <div className="glass-card rounded-[16px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Assign Task</div>
+            <div className="text-xs text-text-secondary mb-5">Create and assign a new task to a team member.</div>
             <form onSubmit={handleAssignTaskSubmit}>
-              <div className="space-y-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Task Title</label>
-                  <input
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="e.g. Irrigate plot 4"
-                    className={inputClass}
-                    autoFocus
-                  />
-                  {errors.title && <span className="text-[10px] text-danger-text">{errors.title}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Assigned To</label>
-                  <select
-                    value={form.assignedTo}
-                    onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
-                    className={inputClass}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <option value="">Select assignee</option>
-                    {users.map((u) => <option key={u.name} value={u.name}>{u.name}</option>)}
-                  </select>
-                  {errors.assignedTo && <span className="text-[10px] text-danger-text">{errors.assignedTo}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Farm Sector</label>
-                  <select
-                    value={form.farm}
-                    onChange={(e) => setForm({ ...form, farm: e.target.value })}
-                    className={inputClass}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <option value="">Select farm</option>
-                    {farms.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
-                  </select>
-                  {errors.farm && <span className="text-[10px] text-danger-text">{errors.farm}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Type Tag</label>
-                  <select
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className={inputClass}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {typeOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Priority Tier</label>
-                  <div className="flex gap-2">
-                    {priorityOptions.map((p) => (
-                      <button
-                        type="button"
-                        key={p}
-                        onClick={() => setForm({ ...form, priority: p })}
-                        className={`text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-200 cursor-pointer ${
-                          form.priority === p
-                            ? 'bg-brand text-white border-brand'
-                            : 'bg-white/50 text-text-secondary border-white/60 hover:border-brand hover:text-brand'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Due Date</label>
-                  <input
-                    type="date"
-                    value={form.dueDate}
-                    onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                    className={inputClass}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  {errors.dueDate && <span className="text-[10px] text-danger-text">{errors.dueDate}</span>}
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Task Title</label>
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Irrigate plot 4" className={inputClass} />
+                {errors.title && <span className="text-[10px] text-danger-text">{errors.title}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Assigned To</label>
+                <Select options={userNames} value={form.assignedTo} onChange={(v) => setForm({ ...form, assignedTo: v })} placeholder="Select assignee" />
+                {errors.assignedTo && <span className="text-[10px] text-danger-text">{errors.assignedTo}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Farm Sector</label>
+                <Select options={farmNames} value={form.farm} onChange={(v) => setForm({ ...form, farm: v })} placeholder="Select farm" />
+                {errors.farm && <span className="text-[10px] text-danger-text">{errors.farm}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Type Tag</label>
+                <Select options={typeOptions} value={form.type} onChange={(v) => setForm({ ...form, type: v })} />
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Priority Tier</label>
+                <div className="flex gap-2">
+                  {priorityOptions.map((p) => (
+                    <button
+                      type="button"
+                      key={p}
+                      onClick={() => setForm({ ...form, priority: p })}
+                      className={`flex-1 text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-200 cursor-pointer ${
+                        form.priority === p
+                          ? 'bg-brand text-white border-brand'
+                          : 'bg-white/50 text-text-secondary border-white/60 hover:border-brand hover:text-brand'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Due Date</label>
+                <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className={inputClass} />
+                {errors.dueDate && <span className="text-[10px] text-danger-text">{errors.dueDate}</span>}
+              </div>
+              <div className="flex justify-end items-center gap-3 mt-5 w-full">
                 <button type="button" onClick={() => setShowAssignModal(false)} className={cancelBtnClass}>Cancel</button>
                 <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Assign Task</button>
               </div>
