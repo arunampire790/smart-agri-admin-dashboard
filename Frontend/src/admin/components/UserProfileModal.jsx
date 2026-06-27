@@ -117,7 +117,7 @@ export default function UserProfileModal({ user, onClose }) {
               <div style={valStyle}>{primaryFarm}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Layers size={13} color="#9CA3AF" /> Sector Sectors</div>
+              <div style={labelIconStyle}><Layers size={13} color="#9CA3AF" /> Crop Types</div>
               <div style={valStyle}>{sectors}</div>
             </div>
             <div>
