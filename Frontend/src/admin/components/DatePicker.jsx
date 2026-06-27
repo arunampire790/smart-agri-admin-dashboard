@@ -116,14 +116,15 @@ export default function DatePicker({ value, onChange }) {
         </button>
       </div>
       {isCalendarOpen && createPortal(
-        <div
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
+          <div
           ref={popoverRef}
           style={{
-            position: 'fixed',
+            pointerEvents: 'auto',
+            position: 'absolute',
             top: popoverPos.top + 'px',
             left: popoverPos.left + 'px',
             transform: 'translateX(-50%)',
-            zIndex: 99999,
             width: '100%',
             maxWidth: POPOVER_WIDTH + 'px',
             background: '#FFFFFF',
@@ -238,6 +239,7 @@ export default function DatePicker({ value, onChange }) {
             <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }} tabIndex={-1}>Clear</button>
             <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }} tabIndex={-1}>Today</button>
           </div>
+          </div>,
         </div>,
         document.body
       )}
