@@ -1,10 +1,11 @@
 import { Users, Map } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
+import UserProfileModal from '../../admin/components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const userGrowth = [
@@ -75,6 +76,7 @@ export default function Dashboard() {
   const idleRobots = robots.filter((r) => r.status === 'Idle').length;
   const offlineRobots = robots.filter((r) => r.status === 'Offline').length;
   const { tasks } = useTasks();
+  const [selectedUser, setSelectedUser] = useState(null);
   const activeCount = tasks.filter((t) => t.status === 'In Progress').length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
@@ -212,7 +214,13 @@ export default function Dashboard() {
               return (
                 <tr key={row.id}>
                   <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{row.title}</strong></td>
-                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.assignedTo}</td>
+                  <td className="px-4 py-4 border-b border-table-sep">
+                    <span style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
+                      onClick={() => { const u = users.find((x) => x.name === row.assignedTo); if (u) setSelectedUser(u); }}
+                    >{row.assignedTo}</span>
+                  </td>
                   <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.farm}</td>
                   <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priClass}`}>{row.priority}</span></td>
                   <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${stClass}`}>{row.status}</span></td>
@@ -222,6 +230,7 @@ export default function Dashboard() {
           </tbody>
         </table>
       </div>
+      {selectedUser && <UserProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
     </>
   );
 }
