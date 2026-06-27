@@ -80,7 +80,7 @@ export default function DatePicker({ value, onChange }) {
         <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
       </button>
       {open && (
-        <div className="absolute z-[100] top-full left-0 right-0 mt-1" style={{ width: '280px' }}>
+        <div className="absolute z-[100]" style={{ top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: '280px' }}>
           <div
             style={{
               background: '#FFFFFF',
