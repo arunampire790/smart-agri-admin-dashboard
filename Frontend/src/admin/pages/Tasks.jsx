@@ -196,7 +196,11 @@ export default function Tasks() {
             style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <button type="button" onClick={() => setShowAssignModal(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: '18px', transition: 'color 0.15s ease, transform 0.15s ease', position: 'absolute', top: '16px', right: '16px' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
+            ><i className="ph ph-x" /></button>
             <div className="text-lg font-bold text-primary mb-1">Assign Task</div>
             <div className="text-xs text-text-secondary mb-5">Schedule a new farming operation.</div>
 
@@ -230,8 +234,8 @@ export default function Tasks() {
                       backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
                       backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
@@ -252,8 +256,8 @@ export default function Tasks() {
                       backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
                       backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
@@ -274,8 +278,8 @@ export default function Tasks() {
                       backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
                       backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
@@ -285,21 +289,23 @@ export default function Tasks() {
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-medium text-primary">Priority</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" style={{ userSelect: 'none' }}>
                     {priorityOptions.map((p) => {
                       const active = form.priority === p;
                       const colorMap = { High: '#DC2626', Medium: '#D97706', Low: '#10B981' };
                       return (
                         <button key={p} type="button" onClick={() => setForm({ ...form, priority: p })}
                           style={{
-                            flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                            flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, cursor: 'pointer', userSelect: 'none',
                             borderRadius: '8px', border: active ? `2px solid ${colorMap[p]}` : '1px solid #D1D5DB',
                             background: active ? `${colorMap[p]}15` : '#FFFFFF',
                             color: active ? colorMap[p] : '#4B5563',
                             transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = colorMap[p]; e.currentTarget.style.background = `${colorMap[p]}10`; } }}
-                          onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; } }}
+                          onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; } }}
+                          onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; } }}
+                          onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
+                          onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                         >
                           {p}
                         </button>
@@ -317,12 +323,20 @@ export default function Tasks() {
 
               <div className="flex justify-end items-center gap-3 mt-5 w-full">
                 <button type="button" onClick={() => setShowAssignModal(false)}
-                  className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] active:scale-[0.97] transition-all duration-150"
+                  style={{ fontSize: '13px', padding: '8px 16px', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '12px', cursor: 'pointer', background: '#FFFFFF', color: '#4B5563', fontWeight: 500, transition: 'all 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.05)'; e.currentTarget.style.color = '#4B5563'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                 >
                   Cancel
                 </button>
                 <button type="submit"
-                  className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90 active:scale-[0.97] transition-all duration-150"
+                  style={{ background: '#10B981', color: '#FFFFFF', border: 'none', borderRadius: '12px', padding: '8px 16px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
                   <i className="ph ph-check" /> Assign Task
                 </button>
