@@ -110,7 +110,7 @@ export default function AdminLogin() {
       <div className="fixed pointer-events-none" style={{ width: 400, height: 400, background: '#10B981', filter: 'blur(120px)', opacity: 0.35, top: '-10%', left: '-10%' }} />
       <div className="fixed pointer-events-none" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
-      <div className="rounded-2xl p-8 w-[400px]" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(16px) saturate(150%)', WebkitBackdropFilter: 'blur(16px) saturate(150%)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 20px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02)', willChange: 'transform', transform: 'translateZ(0)' }}>
+      <div className="p-8 w-[400px]" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(16px) saturate(150%)', WebkitBackdropFilter: 'blur(16px) saturate(150%)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)', willChange: 'transform', transform: 'translateZ(0)' }}>
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
             <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
