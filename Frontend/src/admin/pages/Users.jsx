@@ -142,7 +142,11 @@ export default function Users() {
                 <div className="text-lg font-bold" style={{ color: '#111827' }}>Add New User</div>
                 <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>Enter details to register a new user.</div>
               </div>
-              <button type="button" onClick={() => setShowAddModal(false)} className="bg-none border-none cursor-pointer text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" style={{ color: '#9CA3AF' }}>
+              <button type="button" onClick={() => setShowAddModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: '20px', padding: 0, lineHeight: 1, transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
+              >
                 <i className="ph ph-x" />
               </button>
             </div>
@@ -155,12 +159,13 @@ export default function Users() {
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
                       color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box', transition: 'all 0.2s ease',
+                      width: '100%', outline: 'none', boxSizing: 'border-box',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                   {errors.name && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.name}</span>}
                 </div>
@@ -170,12 +175,13 @@ export default function Users() {
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
                       color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box', transition: 'all 0.2s ease',
+                      width: '100%', outline: 'none', boxSizing: 'border-box',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                   {errors.email && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.email}</span>}
                 </div>
@@ -185,12 +191,13 @@ export default function Users() {
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
                       color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box', transition: 'all 0.2s ease',
+                      width: '100%', outline: 'none', boxSizing: 'border-box',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                   {errors.phone && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.phone}</span>}
                 </div>
@@ -226,7 +233,7 @@ export default function Users() {
                     fontWeight: 500, borderRadius: '8px', cursor: 'pointer',
                     transition: 'all 0.15s ease', padding: '8px 16px', fontSize: '13px',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -236,12 +243,12 @@ export default function Users() {
                 <button type="submit"
                   style={{
                     background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
-                    padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s ease',
                     border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.97)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
                   <i className="ph ph-check" /> Save User
