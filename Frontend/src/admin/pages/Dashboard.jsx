@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
-import { useTaskStore } from '../../../../stores/taskStore';
+import { useTaskStore } from '../../stores/taskStore';
 import UserProfileModal from '../components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 

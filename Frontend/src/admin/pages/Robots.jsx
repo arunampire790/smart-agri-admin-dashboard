@@ -296,6 +296,8 @@ export default function Robots() {
             </div>
           </div>
         </div>
+      )}
+
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
