@@ -138,7 +138,7 @@ export default function SensorsDetails() {
                       />
                       <text x="27" y="27" textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="700" fill="#1C1C1E">{nutrient.value}%</text>
                     </svg>
-                    <span className="text-[10px] font-semibold text-text-secondary">{label}</span>
+                    <span className="text-[10px] font-semibold text-text-secondary">{fullLabel}</span>
                     <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: colors.bg, color: colors.text }}>{nutrient.status}</span>
                   </div>
                 );
