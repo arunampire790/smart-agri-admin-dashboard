@@ -6,6 +6,7 @@ import GlobalHeader from './GlobalHeader';
 const baseNavItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
   { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots', isDropdown: true },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
@@ -59,58 +60,59 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex flex-col gap-0.5">
-          {navItems.map(({ to, icon, label }) => {
-            const isActive = location.pathname === to;
+          {navItems.map((item) => {
+            if (item.isDropdown) {
+              return (
+                <div key={item.to} className="mx-2">
+                  <div
+                    onClick={() => { setRobotsOpen((o) => !o); navigate('/admin/robots'); }}
+                    className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                      robotsActive
+                        ? 'glass-active text-[#1C1C1E] nav-active-indicator'
+                        : 'hover:bg-white/30 hover:text-[#1C1C1E]'
+                    }`}
+                  >
+                    <i className={`${item.icon} text-lg`} />
+                    <span className="flex-1">{item.label}</span>
+                    <i className={`ph ph-caret-down text-xs transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                  <div className={`overflow-hidden transition-all duration-200 ${robotsOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    {robotSubItems.map(({ to, label }) => {
+                      const isSubActive = location.pathname === to;
+                      return (
+                        <div
+                          key={to}
+                          onClick={() => navigate(to)}
+                          className={`flex items-center gap-2.5 px-4 py-3 ml-4 rounded-xl text-sm no-underline cursor-pointer transition-all duration-150 ${
+                            isSubActive
+                              ? 'glass-active text-[#1C1C1E] nav-active-indicator'
+                              : 'text-text-secondary hover:bg-white/30 hover:text-[#1C1C1E]'
+                          }`}
+                        >
+                          {label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }
+            const isActive = location.pathname === item.to;
             return (
               <div
-                key={to}
-                onClick={() => navigate(to)}
+                key={item.to}
+                onClick={() => navigate(item.to)}
                 className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                   isActive
                     ? 'glass-active text-[#1C1C1E] nav-active-indicator'
                     : 'hover:bg-white/30 hover:text-[#1C1C1E]'
                 }`}
               >
-                <i className={`${icon} text-lg`} />
-                {label}
+                <i className={`${item.icon} text-lg`} />
+                {item.label}
               </div>
             );
           })}
-
-          {/* Robots dropdown */}
-          <div className="mx-2">
-            <div
-              onClick={() => { setRobotsOpen((o) => !o); navigate('/admin/robots'); }}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
-                robotsActive
-                  ? 'glass-active text-[#1C1C1E] nav-active-indicator'
-                  : 'hover:bg-white/30 hover:text-[#1C1C1E]'
-              }`}
-            >
-              <i className="ph ph-robot text-lg" />
-              <span className="flex-1">Robots</span>
-              <i className={`ph ph-caret-down text-sm transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
-            </div>
-            <div className={`overflow-hidden transition-all duration-200 ${robotsOpen ? 'max-h-40 opacity-100 mt-0.5' : 'max-h-0 opacity-0'}`}>
-              {robotSubItems.map(({ to, label }) => {
-                const isSubActive = location.pathname === to;
-                return (
-                  <div
-                    key={to}
-                    onClick={() => navigate(to)}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 ml-4 mr-0 rounded-xl text-sm no-underline cursor-pointer transition-all duration-150 ${
-                      isSubActive
-                        ? 'glass-active text-[#1C1C1E] nav-active-indicator'
-                        : 'text-text-secondary hover:bg-white/30 hover:text-[#1C1C1E]'
-                    }`}
-                  >
-                    <i className={`${isSubActive ? 'ph ph-dot-outline' : 'ph ph-dot-outline'} text-base`} />
-                    {label}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </nav>
 
         <div className="mt-auto px-4 py-4 border-t border-white/30">
