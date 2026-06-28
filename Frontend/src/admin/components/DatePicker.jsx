@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -23,16 +22,12 @@ function formatDate(year, month, day) {
   return `${year}-${m}-${d}`;
 }
 
-const POPOVER_HEIGHT = 320;
 const POPOVER_WIDTH = 280;
-const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState('day');
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, below: true });
   const containerRef = useRef(null);
-  const popoverRef = useRef(null);
   const today = new Date();
   const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -43,10 +38,7 @@ export default function DatePicker({ value, onChange }) {
   useEffect(() => {
     if (!isCalendarOpen) return;
     const handler = (e) => {
-      const target = e.target;
-      const insideTrigger = containerRef.current && containerRef.current.contains(target);
-      const insidePopover = popoverRef.current && popoverRef.current.contains(target);
-      if (!insideTrigger && !insidePopover) setIsCalendarOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsCalendarOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -59,23 +51,6 @@ export default function DatePicker({ value, onChange }) {
       const d = value ? new Date(value + 'T00:00:00') : today;
       setViewYear(d.getFullYear());
       setViewMonth(d.getMonth());
-      const btn = containerRef.current;
-      if (btn) {
-        const rect = btn.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const fitsBelow = spaceBelow >= POPOVER_HEIGHT + GAP;
-        const fitsAbove = spaceAbove >= POPOVER_HEIGHT + GAP;
-        const below = fitsBelow || (!fitsAbove && spaceBelow >= spaceAbove);
-        const centerX = rect.left + rect.width / 2;
-        const halfW = POPOVER_WIDTH / 2;
-        const left = Math.max(halfW, Math.min(centerX, window.innerWidth - halfW));
-        setPopoverPos({
-          top: below ? rect.bottom + GAP : rect.top - POPOVER_HEIGHT - GAP,
-          left,
-          below,
-        });
-      }
     }
     setIsCalendarOpen(opening);
   };
@@ -110,36 +85,30 @@ export default function DatePicker({ value, onChange }) {
     : '';
 
   return (
-    <>
-      <div ref={containerRef}>
-        <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
-          onMouseEnter={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
-          onMouseLeave={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }}
-        >
-          <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
-          <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
-        </button>
-      </div>
-      {isCalendarOpen && createPortal(
-        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
-          <div
-          ref={popoverRef}
-          style={{
-            pointerEvents: 'auto',
-            position: 'absolute',
-            top: popoverPos.top + 'px',
-            left: popoverPos.left + 'px',
-            transform: 'translateX(-50%)',
-            width: '100%',
-            maxWidth: POPOVER_WIDTH + 'px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '12px',
-            padding: '16px',
-            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03)',
-            overflow: 'hidden',
-          }}
-        >
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      <button type="button" onClick={toggleCalendar} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${isCalendarOpen ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
+        onMouseEnter={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
+        onMouseLeave={(e) => { if (!isCalendarOpen) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }}
+      >
+        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{displayValue || 'Select due date'}</span>
+        <i className="ph ph-calendar-blank text-text-placeholder text-sm" />
+      </button>
+      {isCalendarOpen && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 8px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          width: '100%',
+          maxWidth: POPOVER_WIDTH + 'px',
+          background: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03)',
+          overflow: 'hidden',
+        }}>
           <div className="flex items-center justify-between mb-3">
             {viewMode === 'day' ? (
               <>
@@ -260,10 +229,8 @@ export default function DatePicker({ value, onChange }) {
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >Today</button>
           </div>
-          </div>,
-        </div>,
-        document.body
+        </div>
       )}
-    </>
+    </div>
   );
 }
