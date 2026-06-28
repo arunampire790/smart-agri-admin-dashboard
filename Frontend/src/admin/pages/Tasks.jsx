@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../stores/taskStore';
+import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
 
 const priorityStyles = {
   High: { cls: 'bg-danger-bg text-danger-text' },
@@ -8,11 +10,49 @@ const priorityStyles = {
   Low: { cls: 'bg-brand-light text-brand-dark' },
 };
 
+const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
+const priorityOptions = ['High', 'Medium', 'Low'];
+
 export default function Tasks() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const tasks = useTaskStore((s) => s.tasks);
   const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
+  const addTask = useTaskStore((s) => s.addTask);
+  const { users } = useUsers();
+  const { farms } = useFarms();
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
+  const [formErrors, setFormErrors] = useState({});
+
+  const openAssign = () => {
+    setForm({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
+    setFormErrors({});
+    setShowAssignModal(true);
+  };
+
+  const handleAssignTaskSubmit = (e) => {
+    e.preventDefault();
+    const errs = {};
+    if (!form.title.trim()) errs.title = 'Task title is required';
+    if (!form.assignedTo) errs.assignedTo = 'Select an assignee';
+    if (!form.farm) errs.farm = 'Select a farm';
+    if (!form.dueDate) errs.dueDate = 'Select a due date';
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    addTask({
+      id: `TSK-${Date.now().toString().slice(-4)}`,
+      title: form.title.trim(),
+      assignedTo: form.assignedTo,
+      farm: form.farm,
+      type: form.type,
+      priority: form.priority,
+      dueDate: form.dueDate,
+      status: 'Pending',
+    });
+    setShowAssignModal(false);
+  };
 
   const totalTasks = tasks.length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
@@ -41,7 +81,7 @@ export default function Tasks() {
           <div className="text-2xl font-bold text-primary">Task Management</div>
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
           <i className="ph ph-plus" /> Assign Task
         </button>
       </div>
@@ -149,6 +189,189 @@ export default function Tasks() {
           </tbody>
         </table>
       </div>
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAssignModal(false)}>
+          <div className="w-[480px] max-w-[calc(100vw-32px)] p-8"
+            style={{
+              background: 'rgba(255, 255, 255, 0.96)',
+              border: '1px solid rgba(229, 231, 235, 0.5)',
+              borderRadius: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="text-lg font-bold" style={{ color: '#111827' }}>Assign Task</div>
+                <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>Schedule a new farming operation.</div>
+              </div>
+              <button type="button" onClick={() => setShowAssignModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: '20px', padding: 0, lineHeight: 1, transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
+              >
+                <i className="ph ph-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignTaskSubmit}>
+              <div className="space-y-4 mb-6">
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Task Title</label>
+                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Irrigate plot 4"
+                    style={{
+                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
+                      width: '100%', outline: 'none', boxSizing: 'border-box',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  {formErrors.title && <span className="text-[10px]" style={{ color: '#DC2626' }}>{formErrors.title}</span>}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Assigned To</label>
+                  <select value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
+                    style={{
+                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+                      color: form.assignedTo ? '#111827' : '#9CA3AF', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
+                      width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+                      transition: 'all 0.2s ease', appearance: 'none',
+                      backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <option value="" disabled>Select a user</option>
+                    {users.map((u) => <option key={u.email} value={u.name}>{u.name}</option>)}
+                  </select>
+                  {formErrors.assignedTo && <span className="text-[10px]" style={{ color: '#DC2626' }}>{formErrors.assignedTo}</span>}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Farm Sector</label>
+                  <select value={form.farm} onChange={(e) => setForm({ ...form, farm: e.target.value })}
+                    style={{
+                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+                      color: form.farm ? '#111827' : '#9CA3AF', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
+                      width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+                      transition: 'all 0.2s ease', appearance: 'none',
+                      backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <option value="" disabled>Select a farm</option>
+                    {farms.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
+                  </select>
+                  {formErrors.farm && <span className="text-[10px]" style={{ color: '#DC2626' }}>{formErrors.farm}</span>}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Type</label>
+                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
+                    style={{
+                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
+                      width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+                      transition: 'all 0.2s ease', appearance: 'none',
+                      backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    {typeOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Priority</label>
+                  <div className="flex gap-2">
+                    {priorityOptions.map((p) => {
+                      const active = form.priority === p;
+                      const colorMap = { High: '#DC2626', Medium: '#D97706', Low: '#10B981' };
+                      return (
+                        <button key={p} type="button" onClick={() => setForm({ ...form, priority: p })}
+                          style={{
+                            flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                            borderRadius: '8px', border: active ? `2px solid ${colorMap[p]}` : '1px solid #D1D5DB',
+                            background: active ? `${colorMap[p]}15` : '#FFFFFF',
+                            color: active ? colorMap[p] : '#4B5563',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = colorMap[p]; e.currentTarget.style.background = `${colorMap[p]}10`; } }}
+                          onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; } }}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Due Date</label>
+                  <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                    style={{
+                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
+                      width: '100%', outline: 'none', boxSizing: 'border-box',
+                      transition: 'all 0.2s ease', cursor: 'text',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  {formErrors.dueDate && <span className="text-[10px]" style={{ color: '#DC2626' }}>{formErrors.dueDate}</span>}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowAssignModal(false)}
+                  style={{
+                    background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563',
+                    fontWeight: 500, borderRadius: '8px', cursor: 'pointer',
+                    transition: 'all 0.15s ease', padding: '8px 16px', fontSize: '13px',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  Cancel
+                </button>
+                <button type="submit"
+                  style={{
+                    background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
+                    padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s ease',
+                    border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+                >
+                  <i className="ph ph-check" /> Create Task
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
