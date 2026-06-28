@@ -1,4 +1,4 @@
-import { AlertTriangle, FlaskRoundIcon as Flask, Camera, TestTube, Leaf } from 'lucide-react';
+import { AlertTriangle, FlaskRoundIcon as Flask, Camera, TestTube, Leaf, Radar } from 'lucide-react';
 
 // TODO: Replace mock sensor data with real backend/IoT integration once available.
 const sectorData = [
@@ -29,19 +29,26 @@ export default function SensorsDetails() {
     <>
       <style>{`
         @keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
+        .sensor-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .sensor-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
       `}</style>
 
       {/* Page Header */}
-      <div className="mb-6">
-        <div className="text-2xl font-bold text-[#000000]">Sensors Details</div>
-        <div className="text-sm text-text-secondary mt-1">A simple look at your farm sensors and soil health</div>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center shrink-0">
+          <Radar size={22} color="#059669" />
+        </div>
+        <div>
+          <div className="text-2xl font-bold text-[#000000]">Sensors Details</div>
+          <div className="text-sm text-text-secondary mt-1">A simple look at your farm sensors and soil health</div>
+        </div>
       </div>
 
       {/* Sensor Connection Checklist */}
       <div className="text-base font-semibold text-[#1C1C1E] mb-4">Sensor Connection Checklist</div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         {/* NPK Soil Probes */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -56,7 +63,7 @@ export default function SensorsDetails() {
         </div>
 
         {/* Field Camera */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(217,119,6,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -71,7 +78,7 @@ export default function SensorsDetails() {
         </div>
 
         {/* Fertilizer Tester */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -90,12 +97,12 @@ export default function SensorsDetails() {
       <div className="text-base font-semibold text-[#1C1C1E] mb-4">AI Field Camera Feed</div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         {cameraFeeds.map((feed) => (
-          <div key={feed.id} className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div key={feed.id} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
             {/* TODO: Replace placeholder with real camera feed integration. */}
-            <div className="w-full h-40 rounded-xl mb-3 flex flex-col items-center justify-center gap-2 text-text-placeholder relative overflow-hidden" style={{ background: 'rgba(0,0,0,0.04)' }}>
-              <Camera size={28} strokeWidth={1.5} className="opacity-40" />
-              <span className="text-xs opacity-50">Camera Feed</span>
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
+            <div className="w-full h-40 rounded-xl mb-3 flex flex-col items-center justify-center gap-2 text-text-secondary relative overflow-hidden border border-dashed" style={{ background: 'rgba(0,0,0,0.03)' }}>
+              <Camera size={36} strokeWidth={1.2} className="opacity-60" />
+              <span className="text-xs font-medium tracking-wide">Camera Feed</span>
+              <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
             </div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text mb-2">
               <span>{feed.warning}</span>
@@ -118,7 +125,7 @@ export default function SensorsDetails() {
       <div className="text-base font-semibold text-[#1C1C1E] mb-4">Soil Nutrition Breakdown</div>
       <div className="grid grid-cols-2 gap-4 mb-6">
         {sectorData.map((sector) => (
-          <div key={sector.name} className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <div key={sector.name} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-[#1C1C1E] mb-4">{sector.name}</div>
             <div className="flex items-center justify-around">
               {['nitrogen', 'phosphorus', 'potassium'].map((key) => {
