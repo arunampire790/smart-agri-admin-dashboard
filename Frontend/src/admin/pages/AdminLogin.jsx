@@ -6,6 +6,16 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('admin123');
   const navigate = useNavigate();
 
+  // ── Forgot Password flow state ──
+  const [step, setStep] = useState('login'); // login | email | code | reset | success
+  const [resetEmail, setResetEmail] = useState('');
+  const [generatedCode, setGeneratedCode] = useState(''); // TODO: Replace with real backend API call to send email
+  const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
   const handleLogin = (e) => {
     e.preventDefault();
     if (email === 'admin@smartagri.com' && password === 'admin123') {
@@ -13,6 +23,79 @@ export default function AdminLogin() {
     } else {
       alert('Invalid credentials. Use demo credentials shown below.');
     }
+  };
+
+  // TODO: Replace with real backend API call to send email with code
+  const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const handleSendCode = (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) return;
+    const code = generateCode();
+    setGeneratedCode(code);
+    setCodeDigits(['', '', '', '', '', '']);
+    setCodeError('');
+    setStep('code');
+  };
+
+  const handleDigitChange = (index, value) => {
+    if (value && !/^\d$/.test(value)) return;
+    const next = [...codeDigits];
+    next[index] = value;
+    setCodeDigits(next);
+    setCodeError('');
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`code-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleDigitKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !codeDigits[index] && index > 0) {
+      const prevInput = document.getElementById(`code-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  // TODO: Replace with real backend API call to verify code
+  const handleVerifyCode = (e) => {
+    e.preventDefault();
+    const entered = codeDigits.join('');
+    if (entered !== generatedCode) {
+      setCodeError('Incorrect code, please try again');
+      return;
+    }
+    setCodeError('');
+    setStep('reset');
+  };
+
+  const handleResetPassword = (e) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    setPasswordError('');
+    setStep('success');
+  };
+
+  const backToLogin = () => {
+    setStep('login');
+    setResetEmail('');
+    setGeneratedCode('');
+    setCodeDigits(['', '', '', '', '', '']);
+    setNewPassword('');
+    setConfirmPassword('');
+    setCodeError('');
+    setPasswordError('');
+  };
+
+  const sharedInputStyle = {
+    background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', fontWeight: 400,
   };
 
   return (
@@ -28,37 +111,152 @@ export default function AdminLogin() {
             </div>
           </div>
           <div className="text-2xl font-bold" style={{ color: '#111827' }}>Smart Agriculture</div>
-          <div className="text-sm mt-0.5" style={{ color: '#4B5563' }}>Admin Panel · Sign in to continue</div>
+          <div className="text-sm mt-0.5" style={{ color: '#4B5563' }}>
+            {step === 'login' && 'Admin Panel · Sign in to continue'}
+            {step === 'email' && 'Enter your email to reset your password'}
+            {step === 'code' && 'Enter the verification code'}
+            {step === 'reset' && 'Choose a new password'}
+            {step === 'success' && 'Password has been reset'}
+          </div>
         </div>
 
-        <form onSubmit={handleLogin}>
-          <div className="flex flex-col mb-2.5">
-            <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
-              style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', fontWeight: 400 }}
-            />
+        {/* ── LOGIN SCREEN ── */}
+        {step === 'login' && (
+          <form onSubmit={handleLogin}>
+            <div className="flex flex-col mb-2.5">
+              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
+                style={sharedInputStyle}
+              />
+            </div>
+            <div className="flex flex-col mb-2">
+              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
+                style={sharedInputStyle}
+              />
+            </div>
+            <div className="flex justify-end mb-4">
+              <button type="button" onClick={() => { setResetEmail(''); setStep('email'); }} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Forgot Password?</button>
+            </div>
+            <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">
+              Sign in
+            </button>
+            <div className="mt-3 p-3 rounded-xl text-xs" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
+              <strong>Demo:</strong> admin@smartagri.com / admin123
+            </div>
+          </form>
+        )}
+
+        {/* ── STEP 2: ENTER EMAIL ── */}
+        {step === 'email' && (
+          <form onSubmit={handleSendCode}>
+            <div className="flex flex-col mb-4">
+              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Email Address</label>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
+                style={sharedInputStyle}
+              />
+            </div>
+            <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Send Code</button>
+            <div className="mt-4 text-center">
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+            </div>
+          </form>
+        )}
+
+        {/* ── STEP 3: ENTER CODE ── */}
+        {step === 'code' && (
+          <form onSubmit={handleVerifyCode}>
+            <div className="text-xs mb-4 text-center" style={{ color: '#4B5563' }}>
+              A 6-digit code has been sent to <strong>{resetEmail}</strong>.
+            </div>
+            {/* TODO: Remove demo box when real email integration is in place */}
+            <div className="mb-4 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
+              <strong>Demo Code:</strong> {generatedCode}
+            </div>
+            <div className="flex justify-center gap-2 mb-4">
+              {codeDigits.map((digit, i) => (
+                <input
+                  key={i}
+                  id={`code-${i}`}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleDigitChange(i, e.target.value)}
+                  onKeyDown={(e) => handleDigitKeyDown(i, e)}
+                  className="w-10 h-12 text-center text-sm rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)]"
+                  style={{ ...sharedInputStyle, fontWeight: 600, fontSize: '16px' }}
+                />
+              ))}
+            </div>
+            {codeError && <div className="text-xs text-center mb-3" style={{ color: '#DC2626' }}>{codeError}</div>}
+            <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Verify Code</button>
+            <div className="mt-4 text-center">
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+            </div>
+          </form>
+        )}
+
+        {/* ── STEP 4: RESET PASSWORD ── */}
+        {step === 'reset' && (
+          <form onSubmit={handleResetPassword}>
+            <div className="flex flex-col mb-3">
+              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
+                style={sharedInputStyle}
+              />
+            </div>
+            <div className="flex flex-col mb-4">
+              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
+                style={sharedInputStyle}
+              />
+            </div>
+            {passwordError && <div className="text-xs text-center mb-3" style={{ color: '#DC2626' }}>{passwordError}</div>}
+            <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Reset Password</button>
+            <div className="mt-4 text-center">
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+            </div>
+          </form>
+        )}
+
+        {/* ── STEP 5: SUCCESS ── */}
+        {step === 'success' && (
+          <div>
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
+                <i className="ph ph-check" style={{ color: '#10B981', fontSize: '28px' }} />
+              </div>
+            </div>
+            <div className="text-center text-sm mb-6" style={{ color: '#374151' }}>Password reset successful!</div>
+            <button onClick={backToLogin} className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">
+              Back to Sign in
+            </button>
           </div>
-          <div className="flex flex-col mb-4">
-            <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="text-sm px-3.5 py-2.5 rounded-xl outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full"
-              style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', fontWeight: 400 }}
-            />
-          </div>
-          <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">
-            Sign in
-          </button>
-          <div className="mt-3 p-3 rounded-xl text-xs" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
-            <strong>Demo:</strong> admin@smartagri.com / admin123
-          </div>
-        </form>
+        )}
       </div>
     </div>
   );
