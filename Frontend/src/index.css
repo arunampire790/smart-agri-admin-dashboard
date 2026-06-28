@@ -120,6 +120,16 @@ input, textarea, [contenteditable] {
   transform-origin: center;
 }
 
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
 .login-signin-btn {
   cursor: pointer !important;
   user-select: none !important;

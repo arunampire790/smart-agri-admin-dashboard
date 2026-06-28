@@ -1,6 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
+import { useRobots } from '../../context/RobotContext';
+import { useTasks } from '../../context/TaskContext';
 import AdminProfileModal from './AdminProfileModal';
 
 // TODO: Replace placeholder notifications with real backend/notification service integration once available.
@@ -16,8 +20,11 @@ export default function GlobalHeader() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const bellRef = useRef(null);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
 
   const doLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
 
@@ -26,6 +33,26 @@ export default function GlobalHeader() {
     : 'AD';
 
   const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const { users } = useUsers();
+  const { farms } = useFarms();
+  const { robots } = useRobots();
+  const { tasks } = useTasks();
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.toLowerCase();
+    const matchedUsers = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    const matchedFarms = farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q));
+    const matchedRobots = robots.filter((r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q));
+    const matchedTasks = tasks.filter((t) => t.title.toLowerCase().includes(q));
+    const groups = [];
+    if (matchedUsers.length) groups.push({ category: 'Users', icon: 'ph-users', route: '/admin/users', items: matchedUsers });
+    if (matchedFarms.length) groups.push({ category: 'Farms', icon: 'ph-warehouse', route: '/admin/farms', items: matchedFarms });
+    if (matchedRobots.length) groups.push({ category: 'Robots', icon: 'ph-robot', route: '/admin/robots', items: matchedRobots });
+    if (matchedTasks.length) groups.push({ category: 'Tasks', icon: 'ph-clipboard-text', route: '/admin/tasks', items: matchedTasks });
+    return { groups, hasResults: groups.length > 0 };
+  }, [searchQuery, users, farms, robots, tasks]);
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
@@ -55,20 +82,71 @@ export default function GlobalHeader() {
     return () => document.removeEventListener('keydown', handler);
   }, [bellOpen]);
 
+  const handleSearchClickOutside = useCallback((e) => {
+    if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    document.addEventListener('mousedown', handleSearchClickOutside);
+    return () => document.removeEventListener('mousedown', handleSearchClickOutside);
+  }, [searchOpen, handleSearchClickOutside]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [searchOpen]);
+
   return (
     <>
     <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
-      <div className="flex items-center">
+      <div ref={searchRef} className="relative">
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
           <i className="ph ph-magnifying-glass text-[#6B7280] text-sm" />
-          <input placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-[#1C1C1E] w-full outline-none placeholder:text-[#9CA3AF]" />
+          <input
+            placeholder="Search..."
+            aria-label="Search"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onFocus={() => setSearchOpen(true)}
+            className="border-none bg-transparent text-sm text-[#1C1C1E] w-full outline-none placeholder:text-[#9CA3AF]"
+          />
         </div>
+        {searchOpen && searchResults && (
+          <div className="absolute left-0 z-50 min-w-[320px] overflow-hidden rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60"
+            style={{ top: 'calc(100% + 6px)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+          >
+            {searchResults.hasResults ? (
+              searchResults.groups.map((group) => (
+                <div key={group.category}>
+                  <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-placeholder">{group.category}</div>
+                  {group.items.map((item, idx) => (
+                    <div key={`${group.category}-${idx}`}
+                      onClick={() => { navigate(group.route); setSearchOpen(false); setSearchQuery(''); }}
+                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/50 transition-colors duration-100"
+                    >
+                      <i className={`${group.icon} text-sm text-text-placeholder`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm text-[#1C1C1E] font-medium truncate">{item.name || item.title}</div>
+                        <div className="text-[11px] text-text-placeholder truncate">{item.email || item.location || item.id || item.assignedTo || ''}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-xs text-text-placeholder">No results found</div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-4 shrink-0">
         <div className="flex items-center px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>EN / 日本語</div>
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
-          <span className="w-2 h-2 rounded-full bg-brand inline-block" />
+          <span className="w-2 h-2 rounded-full bg-brand inline-block pulse-dot" />
           System Online
         </div>
 
