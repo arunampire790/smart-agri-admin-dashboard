@@ -5,15 +5,14 @@ import GlobalHeader from './GlobalHeader';
 
 const baseNavItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
+  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
-  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
-  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/employees', icon: 'ph-user-circle', label: 'Employees' },
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
-
-const masterOnlyNavItem = { to: '/admin/employees', icon: 'ph-user-circle', label: 'Employees' };
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -23,9 +22,9 @@ export default function AdminLayout() {
   // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
   const navItems = useMemo(() => {
     if (currentUser?.role === 'masterAdmin') {
-      return [...baseNavItems, masterOnlyNavItem];
+      return baseNavItems;
     }
-    return baseNavItems;
+    return baseNavItems.filter((item) => item.label !== 'Employees');
   }, [currentUser]);
 
   const handleLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
