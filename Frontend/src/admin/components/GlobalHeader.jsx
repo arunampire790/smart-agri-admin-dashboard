@@ -35,7 +35,7 @@ export default function GlobalHeader() {
           <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">3</span>
         </button>
 
-        <button onClick={() => setProfileOpen(true)} aria-label="Profile" className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs font-semibold cursor-pointer shrink-0 hover:ring-2 hover:ring-white/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white/60">
+        <button onClick={() => setProfileOpen(true)} aria-label="Profile" className="w-6 h-6 rounded-full bg-brand-dark text-white flex items-center justify-center text-[10px] font-bold cursor-pointer shrink-0 hover:ring-2 hover:ring-white/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white/60">
           {initials}
         </button>
 
