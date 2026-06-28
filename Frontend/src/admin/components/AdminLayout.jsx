@@ -64,7 +64,7 @@ export default function AdminLayout() {
               return (
                 <div key={item.to} className="mx-2">
                   <div
-                    onClick={() => navigate('/admin/robots')}
+                    onClick={() => { setRobotsOpen((o) => !o); navigate('/admin/robots'); }}
                     className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                       robotsActive
                         ? 'glass-active text-[#1C1C1E] nav-active-indicator'
