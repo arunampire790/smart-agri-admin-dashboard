@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import GlobalHeader from './GlobalHeader';
 
-const navItems = [
+const baseNavItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
@@ -11,9 +13,26 @@ const navItems = [
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
 
+const masterOnlyNavItem = { to: '/admin/employees', icon: 'ph-user-circle', label: 'Employees' };
+
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+
+  // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
+  const navItems = useMemo(() => {
+    if (currentUser?.role === 'masterAdmin') {
+      return [...baseNavItems, masterOnlyNavItem];
+    }
+    return baseNavItems;
+  }, [currentUser]);
+
+  const handleLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
+
+  const initials = currentUser?.name
+    ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    : 'AD';
 
   return (
     <div className="relative bg-surface text-[#1C1C1E] h-screen overflow-hidden flex">
@@ -55,12 +74,12 @@ export default function AdminLayout() {
 
         <div className="mt-auto px-4 py-4 border-t border-white/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">AD</div>
+            <div className="w-8 h-8 rounded-xl bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">{initials}</div>
             <div>
-              <div className="text-sm font-medium text-[#1C1C1E]">Admin User</div>
-              <div className="text-xs text-text-placeholder">admin@smartagri.com</div>
+              <div className="text-sm font-medium text-[#1C1C1E]">{currentUser?.name || 'Admin User'}</div>
+              <div className="text-xs text-text-placeholder">{currentUser?.email || 'admin@smartagri.com'}</div>
             </div>
-            <button onClick={() => { localStorage.clear(); navigate('/login'); }} title="Sign out" className="ml-auto bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg p-0">
+            <button onClick={handleLogout} title="Sign out" className="ml-auto bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg p-0">
               <i className="ph ph-sign-out" />
             </button>
           </div>

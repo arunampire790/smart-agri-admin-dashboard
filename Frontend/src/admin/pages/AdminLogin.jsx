@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@smartagri.com');
   const [password, setPassword] = useState('admin123');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // ── Forgot Password flow state ──
   const [step, setStep] = useState('login'); // login | email | code | reset | success
@@ -19,6 +21,7 @@ export default function AdminLogin() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (email === 'admin@smartagri.com' && password === 'admin123') {
+      login({ name: 'Admin User', email: 'admin@smartagri.com', role: 'masterAdmin' });
       navigate('/admin/dashboard');
     } else {
       alert('Invalid credentials. Use demo credentials shown below.');

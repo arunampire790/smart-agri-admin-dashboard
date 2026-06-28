@@ -7,6 +7,7 @@ import Robots from '../admin/pages/Robots';
 import Tasks from '../admin/pages/Tasks';
 import Analytics from '../admin/pages/Analytics';
 import Settings from '../admin/pages/Settings';
+import Employees from '../admin/pages/Employees';
 
 export default function AdminRoutes() {
   return (
@@ -20,6 +21,7 @@ export default function AdminRoutes() {
         <Route path="tasks" element={<Tasks />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="employees" element={<Employees />} />
       </Route>
     </Routes>
   );

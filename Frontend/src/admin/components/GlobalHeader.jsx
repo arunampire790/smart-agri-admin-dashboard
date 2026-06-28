@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function GlobalHeader() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
@@ -31,7 +33,7 @@ export default function GlobalHeader() {
     if (e.key === 'Escape') { setMenuOpen(false); btnRef.current?.focus(); }
   };
 
-  const doLogout = () => { localStorage.clear(); navigate('/login'); };
+  const doLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
 
   return (
     <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
