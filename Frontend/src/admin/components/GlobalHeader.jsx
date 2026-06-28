@@ -5,10 +5,14 @@ import AdminProfileModal from './AdminProfileModal';
 
 export default function GlobalHeader() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const doLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
+
+  const initials = currentUser?.name
+    ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    : 'AD';
 
   return (
     <>
@@ -31,8 +35,8 @@ export default function GlobalHeader() {
           <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">3</span>
         </button>
 
-        <button onClick={() => setProfileOpen(true)} aria-label="Profile" className="bg-none border-none cursor-pointer text-lg text-[#4B5563] hover:text-[#1C1C1E] shrink-0">
-          <i className="ph ph-user" />
+        <button onClick={() => setProfileOpen(true)} aria-label="Profile" className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs font-semibold cursor-pointer shrink-0 hover:ring-2 hover:ring-white/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white/60">
+          {initials}
         </button>
 
         <button onClick={doLogout} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-[#4B5563] hover:text-[#1C1C1E] shrink-0">

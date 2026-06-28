@@ -21,7 +21,7 @@ const robotSubItems = [
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   const [robotsOpen, setRobotsOpen] = useState(false);
 
   // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
@@ -31,8 +31,6 @@ export default function AdminLayout() {
     }
     return baseNavItems.filter((item) => item.label !== 'Employees');
   }, [currentUser]);
-
-  const handleLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
 
   const initials = currentUser?.name
     ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
@@ -123,9 +121,6 @@ export default function AdminLayout() {
               <div className="text-sm font-medium text-[#1C1C1E]">{currentUser?.name || 'Admin User'}</div>
               <div className="text-xs text-text-placeholder">{currentUser?.email || 'admin@smartagri.com'}</div>
             </div>
-            <button onClick={handleLogout} title="Sign out" className="ml-auto bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg p-0">
-              <i className="ph ph-sign-out" />
-            </button>
           </div>
         </div>
       </aside>
