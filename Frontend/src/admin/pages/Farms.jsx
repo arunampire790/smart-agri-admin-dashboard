@@ -79,7 +79,7 @@ function getIconConfig(label) {
 
 export default function Farms() {
   const navigate = useNavigate();
-  const { farms } = useFarms();
+  const { farms, addFarm } = useFarms();
   const { robots } = useRobots();
   const { users } = useUsers();
   const { currentUser } = useAuth();
