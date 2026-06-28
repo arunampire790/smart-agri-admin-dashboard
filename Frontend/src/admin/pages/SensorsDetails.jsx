@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { AlertTriangle, FlaskRoundIcon as Flask, Camera, TestTube, Leaf } from 'lucide-react';
 
 // TODO: Replace mock sensor data with real backend/IoT integration once available.
@@ -25,7 +24,6 @@ const cameraFeeds = [
 ];
 
 export default function SensorsDetails() {
-  const [openDropdown, setOpenDropdown] = useState(null);
 
   return (
     <>
@@ -94,8 +92,10 @@ export default function SensorsDetails() {
         {cameraFeeds.map((feed) => (
           <div key={feed.id} className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ contentVisibility: 'auto' }}>
             {/* TODO: Replace placeholder with real camera feed integration. */}
-            <div className="w-full h-40 rounded-xl mb-3 flex items-center justify-center text-text-placeholder text-sm" style={{ background: 'rgba(0,0,0,0.04)' }}>
-              Camera Feed Placeholder
+            <div className="w-full h-40 rounded-xl mb-3 flex flex-col items-center justify-center gap-2 text-text-placeholder relative overflow-hidden" style={{ background: 'rgba(0,0,0,0.04)' }}>
+              <Camera size={28} strokeWidth={1.5} className="opacity-40" />
+              <span className="text-xs opacity-50">Camera Feed</span>
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
             </div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text mb-2">
               <span>{feed.warning}</span>
@@ -123,7 +123,6 @@ export default function SensorsDetails() {
             <div className="flex items-center justify-around">
               {['nitrogen', 'phosphorus', 'potassium'].map((key) => {
                 const nutrient = sector.nutrients[key];
-                const label = key === 'nitrogen' ? 'N' : key === 'phosphorus' ? 'P' : 'K';
                 const fullLabel = key === 'nitrogen' ? 'Nitrogen' : key === 'phosphorus' ? 'Phosphorus' : 'Potassium';
                 const colors = nutrientColor(nutrient.status);
                 const circumference = 2 * Math.PI * 22;
