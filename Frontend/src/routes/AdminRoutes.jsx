@@ -8,6 +8,7 @@ import Tasks from '../admin/pages/Tasks';
 import Analytics from '../admin/pages/Analytics';
 import Settings from '../admin/pages/Settings';
 import Employees from '../admin/pages/Employees';
+import SensorsDetails from '../admin/pages/SensorsDetails';
 
 export default function AdminRoutes() {
   return (
@@ -22,6 +23,7 @@ export default function AdminRoutes() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
         <Route path="employees" element={<Employees />} />
+        <Route path="sensors" element={<SensorsDetails />} />
       </Route>
     </Routes>
   );

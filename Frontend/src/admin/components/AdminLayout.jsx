@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import GlobalHeader from './GlobalHeader';
@@ -6,7 +6,6 @@ import GlobalHeader from './GlobalHeader';
 const baseNavItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
   { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
-  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
@@ -14,10 +13,16 @@ const baseNavItems = [
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
 
+const robotSubItems = [
+  { to: '/admin/robots', label: 'Robots' },
+  { to: '/admin/sensors', label: 'Robot Sensor Details' },
+];
+
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const [robotsOpen, setRobotsOpen] = useState(false);
 
   // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
   const navItems = useMemo(() => {
@@ -32,6 +37,8 @@ export default function AdminLayout() {
   const initials = currentUser?.name
     ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
     : 'AD';
+
+  const robotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
 
   return (
     <div className="relative bg-surface text-[#1C1C1E] h-screen overflow-hidden flex">
@@ -69,6 +76,41 @@ export default function AdminLayout() {
               </div>
             );
           })}
+
+          {/* Robots dropdown */}
+          <div className="mx-2">
+            <div
+              onClick={() => { setRobotsOpen((o) => !o); navigate('/admin/robots'); }}
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                robotsActive
+                  ? 'glass-active text-[#1C1C1E] nav-active-indicator'
+                  : 'hover:bg-white/30 hover:text-[#1C1C1E]'
+              }`}
+            >
+              <i className="ph ph-robot text-lg" />
+              <span className="flex-1">Robots</span>
+              <i className={`ph ph-caret-down text-sm transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+            </div>
+            <div className={`overflow-hidden transition-all duration-200 ${robotsOpen ? 'max-h-40 opacity-100 mt-0.5' : 'max-h-0 opacity-0'}`}>
+              {robotSubItems.map(({ to, label }) => {
+                const isSubActive = location.pathname === to;
+                return (
+                  <div
+                    key={to}
+                    onClick={() => navigate(to)}
+                    className={`flex items-center gap-2.5 px-4 py-2.5 ml-4 mr-0 rounded-xl text-sm no-underline cursor-pointer transition-all duration-150 ${
+                      isSubActive
+                        ? 'glass-active text-[#1C1C1E] nav-active-indicator'
+                        : 'text-text-secondary hover:bg-white/30 hover:text-[#1C1C1E]'
+                    }`}
+                  >
+                    <i className={`${isSubActive ? 'ph ph-dot-outline' : 'ph ph-dot-outline'} text-base`} />
+                    {label}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         <div className="mt-auto px-4 py-4 border-t border-white/30">
