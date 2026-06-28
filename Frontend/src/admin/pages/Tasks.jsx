@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../stores/taskStore';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import DatePicker from '../components/DatePicker';
 
 const priorityStyles = {
   High: { cls: 'bg-danger-bg text-danger-text' },
@@ -307,20 +308,9 @@ export default function Tasks() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1.5" style={{ position: 'relative' }}>
                   <label className="text-xs font-medium text-primary">Due Date</label>
-                  <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                    style={{
-                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box',
-                      transition: 'all 0.2s ease', cursor: 'text',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
-                  />
+                  <DatePicker value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
                   {formErrors.dueDate && <span className="text-[10px]" style={{ color: '#DC2626' }}>{formErrors.dueDate}</span>}
                 </div>
               </div>

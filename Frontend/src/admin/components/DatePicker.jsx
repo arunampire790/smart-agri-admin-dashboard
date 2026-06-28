@@ -24,7 +24,7 @@ function formatDate(year, month, day) {
 }
 
 const POPOVER_HEIGHT = 320;
-const POPOVER_WIDTH = 290;
+const POPOVER_WIDTH = 320;
 const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
@@ -136,7 +136,8 @@ export default function DatePicker({ value, onChange }) {
             border: '1px solid #E5E7EB',
             borderRadius: '12px',
             padding: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.08)',
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)',
+            overflow: 'hidden',
           }}
         >
           <div className="flex items-center justify-between mb-3">
