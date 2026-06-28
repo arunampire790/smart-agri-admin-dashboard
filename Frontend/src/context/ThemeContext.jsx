@@ -1,29 +1,24 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext(null);
-
-function getInitialTheme() {
-  try {
-    const stored = localStorage.getItem('smartAgri_theme');
-    if (stored === 'dark' || stored === 'light') return stored;
-  } catch {}
-  return 'light';
-}
+const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme);
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smartAgri_theme');
+      return saved || 'light';
+    } catch { return 'light'; }
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try { localStorage.setItem('smartAgri_theme', theme); } catch {}
   }, [theme]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  }, []);
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

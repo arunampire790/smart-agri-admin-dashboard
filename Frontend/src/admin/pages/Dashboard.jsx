@@ -1,11 +1,9 @@
-import { Users, Map } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
-import UserProfileModal from '../../admin/components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const userGrowth = [
@@ -39,8 +37,8 @@ const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks 
     </ResponsiveContainer>
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="text-center">
-        <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalTasks}</div>
-        <div className="text-[10px] text-text-secondary">Total</div>
+        <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: 'var(--color-text-primary)' }}>{totalTasks}</div>
+        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>Total</div>
       </div>
     </div>
   </div>
@@ -59,8 +57,8 @@ const RobotDonut = memo(({ onlineCount, idleCount, offlineCount, totalRobots }) 
     </ResponsiveContainer>
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="text-center">
-        <div className="text-2xl font-extrabold text-[#000000] leading-none mb-0.5">{totalRobots}</div>
-        <div className="text-[10px] text-text-secondary">Total</div>
+        <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: 'var(--color-text-primary)' }}>{totalRobots}</div>
+        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>Total</div>
       </div>
     </div>
   </div>
@@ -76,7 +74,6 @@ export default function Dashboard() {
   const idleRobots = robots.filter((r) => r.status === 'Idle').length;
   const offlineRobots = robots.filter((r) => r.status === 'Offline').length;
   const { tasks } = useTasks();
-  const [selectedUser, setSelectedUser] = useState(null);
   const activeCount = tasks.filter((t) => t.status === 'In Progress').length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
@@ -85,7 +82,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="mb-6">
-        <div className="text-2xl font-bold text-[#000000]">Dashboard</div>
+        <div className="text-2xl font-bold text-primary">Dashboard</div>
         <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
       </div>
 
@@ -97,12 +94,9 @@ export default function Dashboard() {
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10">
-            <div className="text-xs font-semibold text-[#6B7280] mb-2">Total Users</div>
-            <div className="text-3xl font-extrabold text-[#000000] mb-1">{users.length}</div>
+            <div className="text-xs font-semibold text-secondary mb-2">Total Users</div>
+            <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{users.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
-          </div>
-          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid var(--clr-card)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-            <Users size={18} color="#6366F1" />
           </div>
         </div>
         <div
@@ -112,39 +106,36 @@ export default function Dashboard() {
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10">
-            <div className="text-xs font-semibold text-[#6B7280] mb-2">Total Farms</div>
-            <div className="text-3xl font-extrabold text-[#000000] mb-1">{farms.length}</div>
+            <div className="text-xs font-semibold text-secondary mb-2">Total Farms</div>
+            <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{farms.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
-          </div>
-          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid var(--clr-card)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-            <Map size={18} color="#10B981" />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div onClick={() => navigate('/admin/tasks')} className="dashboard-card-link glass-card rounded-2xl p-5">
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Task Lifecycle</div>
+          <div className="text-sm font-semibold text-primary mb-3">Task Lifecycle</div>
           <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
           <div className="flex justify-center gap-5 text-xs mt-1">
             {[{ name: 'Active', value: activeCount, color: '#10B981' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.color }} />
                 <span className="text-text-secondary">{item.name}</span>
-                <span className="font-semibold text-[#1C1C1E]">{item.value}</span>
+                <span className="font-semibold text-primary">{item.value}</span>
               </div>
             ))}
           </div>
         </div>
         <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5">
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">Robot Status</div>
+          <div className="text-sm font-semibold text-primary mb-3">Robot Status</div>
           <RobotDonut onlineCount={activeRobots} idleCount={idleRobots} offlineCount={offlineRobots} totalRobots={robots.length} />
           <div className="flex justify-center gap-4 text-xs mt-1">
             {[{ name: 'Online', value: activeRobots, color: '#22C55E' }, { name: 'Idle', value: idleRobots, color: '#F59E0B' }, { name: 'Offline', value: offlineRobots, color: '#EF4444' }].map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.color }} />
                 <span className="text-text-secondary">{item.name}</span>
-                <span className="font-semibold text-[#1C1C1E]">{item.value}</span>
+                <span className="font-semibold text-primary">{item.value}</span>
               </div>
             ))}
           </div>
@@ -153,7 +144,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">User Growth Over Time</div>
+          <div className="text-sm font-semibold text-primary mb-4">User Growth Over Time</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={userGrowth} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
@@ -163,15 +154,15 @@ export default function Dashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid var(--border-glass)', borderRadius: 8, boxShadow: '0 4px 12px var(--border-divider)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--text-body)' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
               <Area type="monotone" dataKey="val" stroke="#10B981" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-4">Farm Registrations</div>
+          <div className="text-sm font-semibold text-primary mb-4">Farm Registrations</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={farmRegs} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
@@ -181,9 +172,9 @@ export default function Dashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid var(--border-glass)', borderRadius: 8, boxShadow: '0 4px 12px var(--border-divider)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--text-body)' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
               <Area type="monotone" dataKey="val" stroke="#047857" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#047857', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -192,7 +183,7 @@ export default function Dashboard() {
 
       <div className="glass-card rounded-2xl p-5 mb-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-semibold text-[#1C1C1E]">Recent Tasks</div>
+          <div className="text-sm font-semibold text-primary">Recent Tasks</div>
           <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">
             <i className="ph ph-arrow-right" /> View all
           </button>
@@ -208,29 +199,22 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {tasks.slice(0, 5).map((row) => {
-              const priClass = row.priority === 'High' ? 'bg-danger-bg text-danger-text' : row.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark';
-              const stClass = row.status === 'Completed' ? 'bg-brand-light text-brand-dark' : 'bg-warning-bg text-warning-text';
-              return (
-                <tr key={row.id}>
-                  <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{row.title}</strong></td>
-                  <td className="px-4 py-4 border-b border-table-sep">
-                    <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
-                      onClick={() => { const u = users.find((x) => x.name === row.assignedTo); if (u) setSelectedUser(u); }}
-                    >{row.assignedTo}</span>
-                  </td>
-                  <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.farm}</td>
-                  <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priClass}`}>{row.priority}</span></td>
-                  <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${stClass}`}>{row.status}</span></td>
-                </tr>
-              );
-            })}
+            {[
+              { task: 'Water wheat fields', user: 'John Smith', farm: 'Green Valley Farm', priority: 'High', priClass: 'bg-danger-bg text-danger-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
+              { task: 'Apply nitrogen fertilizer', user: 'Michael Brown', farm: 'Golden Harvest', priority: 'Medium', priClass: 'bg-warning-bg text-warning-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
+              { task: 'Inspect apple trees', user: 'Sarah Johnson', farm: 'Sunrise Orchards', priority: 'Low', priClass: 'bg-brand-light text-brand-dark', status: 'In progress', stClass: 'bg-warning-bg text-warning-text' },
+            ].map((row, i) => (
+              <tr key={i}>
+                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{row.task}</strong></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.user}</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.farm}</td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      {selectedUser && <UserProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
     </>
   );
 }
