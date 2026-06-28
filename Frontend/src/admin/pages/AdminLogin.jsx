@@ -20,7 +20,7 @@ export default function AdminLogin() {
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.35) 0%, transparent 70%)', filter: 'blur(80px)', opacity: 0.5 }} />
       <div className="absolute -bottom-48 -right-32 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(4,120,87,0.3) 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.45 }} />
       <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(52,199,89,0.25) 0%, transparent 70%)', filter: 'blur(60px)', opacity: 0.35 }} />
-      <div className="glass-card rounded-2xl p-10 w-[400px]">
+      <div className="glass-card rounded-2xl p-10 w-[400px]" style={{ borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.6)' }}>
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
             <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
