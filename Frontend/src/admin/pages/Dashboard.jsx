@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
-import { useTasks } from '../../context/TaskContext';
+import { useTaskStore } from '../../stores/taskStore';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const userGrowth = [
@@ -73,7 +73,7 @@ export default function Dashboard() {
   const activeRobots = robots.filter((r) => r.status === 'Active').length;
   const idleRobots = robots.filter((r) => r.status === 'Idle').length;
   const offlineRobots = robots.filter((r) => r.status === 'Offline').length;
-  const { tasks } = useTasks();
+  const tasks = useTaskStore((s) => s.tasks);
   const activeCount = tasks.filter((t) => t.status === 'In Progress').length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
@@ -199,17 +199,13 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {[
-              { task: 'Water wheat fields', user: 'John Smith', farm: 'Green Valley Farm', priority: 'High', priClass: 'bg-danger-bg text-danger-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
-              { task: 'Apply nitrogen fertilizer', user: 'Michael Brown', farm: 'Golden Harvest', priority: 'Medium', priClass: 'bg-warning-bg text-warning-text', status: 'Pending', stClass: 'bg-warning-bg text-warning-text' },
-              { task: 'Inspect apple trees', user: 'Sarah Johnson', farm: 'Sunrise Orchards', priority: 'Low', priClass: 'bg-brand-light text-brand-dark', status: 'In progress', stClass: 'bg-warning-bg text-warning-text' },
-            ].map((row, i) => (
-              <tr key={i}>
-                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{row.task}</strong></td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.user}</td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{row.farm}</td>
-                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.priClass}`}>{row.priority}</span></td>
-                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${row.stClass}`}>{row.status}</span></td>
+            {tasks.slice(0, 5).map((task) => (
+              <tr key={task.id}>
+                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.assignedTo}</td>
+                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.farm}</td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>
+                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.status === 'Completed' ? 'bg-brand-light text-brand-dark' : task.status === 'In Progress' ? 'bg-warning-bg text-warning-text' : 'bg-warning-bg text-warning-text'}`}>{task.status}</span></td>
               </tr>
             ))}
           </tbody>

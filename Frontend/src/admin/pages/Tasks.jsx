@@ -1,16 +1,38 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTaskStore } from '../stores/taskStore';
 
-const tabs = [
-  { key: 'all', label: 'All (10)' },
-  { key: 'pending', label: 'Pending (5)' },
-  { key: 'inprog', label: 'In Progress (2)' },
-  { key: 'done', label: 'Completed (3)' },
-];
+const priorityStyles = {
+  High: { cls: 'bg-danger-bg text-danger-text' },
+  Medium: { cls: 'bg-warning-bg text-warning-text' },
+  Low: { cls: 'bg-brand-light text-brand-dark' },
+};
 
 export default function Tasks() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
+  const tasks = useTaskStore((s) => s.tasks);
+  const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
+
+  const totalTasks = tasks.length;
+  const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
+  const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
+  const completedCount = tasks.filter((t) => t.status === 'Completed').length;
+
+  const tabs = useMemo(() => [
+    { key: 'all', label: `All (${totalTasks})` },
+    { key: 'pending', label: `Pending (${pendingCount})` },
+    { key: 'inprog', label: `In Progress (${inProgressCount})` },
+    { key: 'done', label: `Completed (${completedCount})` },
+  ], [totalTasks, pendingCount, inProgressCount, completedCount]);
+
+  const filteredTasks = useMemo(() => {
+    if (activeTab === 'all') return tasks;
+    if (activeTab === 'pending') return tasks.filter((t) => t.status === 'Pending');
+    if (activeTab === 'inprog') return tasks.filter((t) => t.status === 'In Progress');
+    if (activeTab === 'done') return tasks.filter((t) => t.status === 'Completed');
+    return tasks;
+  }, [tasks, activeTab]);
 
   return (
     <>
@@ -30,7 +52,7 @@ export default function Tasks() {
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Tasks</div>
-              <div className="text-3xl font-extrabold text-primary">10</div>
+              <div className="text-3xl font-extrabold text-primary">{totalTasks}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e0f2fe' }}>
               <i className="ph ph-list" style={{ color: '#0284c7' }} />
@@ -42,7 +64,7 @@ export default function Tasks() {
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Pending</div>
-              <div className="text-3xl font-extrabold text-primary">5</div>
+              <div className="text-3xl font-extrabold text-primary">{pendingCount}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#fff3e0' }}>
               <i className="ph ph-clock" style={{ color: '#d97706' }} />
@@ -54,7 +76,7 @@ export default function Tasks() {
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">In Progress</div>
-              <div className="text-3xl font-extrabold text-primary">2</div>
+              <div className="text-3xl font-extrabold text-primary">{inProgressCount}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e3f2fd' }}>
               <i className="ph ph-play" style={{ color: '#1565c0' }} />
@@ -66,7 +88,7 @@ export default function Tasks() {
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Completed</div>
-              <div className="text-3xl font-extrabold text-primary">3</div>
+              <div className="text-3xl font-extrabold text-primary">{completedCount}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e8f5e9' }}>
               <i className="ph ph-check-circle" style={{ color: '#059669' }} />
@@ -99,41 +121,30 @@ export default function Tasks() {
             <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Task</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Assigned to</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Type</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Priority</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Due date</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Action</th></tr>
           </thead>
           <tbody>
-            {(activeTab === 'all' || activeTab === 'pending') && (
-              <>
-                <tr>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">Water wheat fields</strong></td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>John Smith</td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Green Valley Farm</td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">Irrigation</span></td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-danger-bg text-danger-text">High</span></td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>2026-04-09</td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><button className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button></td>
+            {filteredTasks.length === 0 ? (
+              <tr><td colSpan="7" className="text-center py-6 text-text-secondary">No tasks in this category.</td></tr>
+            ) : (
+              filteredTasks.map((task) => (
+                <tr key={task.id}>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{task.title}</strong></td>
+                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.assignedTo}</td>
+                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.farm}</td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">{task.type}</span></td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
+                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.dueDate}</td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    {task.status === 'Pending' && (
+                      <button onClick={() => updateTaskStatus(task.id, 'In Progress')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
+                    )}
+                    {task.status === 'In Progress' && (
+                      <button onClick={() => updateTaskStatus(task.id, 'Completed')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
+                    )}
+                    {task.status === 'Completed' && (
+                      <span className="text-xs font-medium text-text-secondary">Done</span>
+                    )}
+                  </td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">Apply nitrogen fertilizer</strong></td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Michael Brown</td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Golden Harvest</td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">Fertilizer</span></td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text">Medium</span></td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>2026-04-10</td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><button className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button></td>
-                </tr>
-              </>
-            )}
-            {(activeTab === 'all' || activeTab === 'inprog') && (
-              <tr>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">Inspect apple trees</strong></td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Sarah Johnson</td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Sunrise Orchards</td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">Inspection</span></td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-brand-light text-brand-dark">Low</span></td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>2026-04-07</td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><button className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button></td>
-              </tr>
-            )}
-            {activeTab === 'done' && (
-              <tr><td colSpan="7" className="text-center py-6 text-text-secondary">No newly completed tasks to show.</td></tr>
+              ))
             )}
           </tbody>
         </table>
