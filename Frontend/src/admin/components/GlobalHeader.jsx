@@ -22,9 +22,11 @@ export default function GlobalHeader() {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const bellRef = useRef(null);
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+  const dropdownListRef = useRef(null);
 
   const doLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
 
@@ -53,6 +55,35 @@ export default function GlobalHeader() {
     if (matchedTasks.length) groups.push({ category: 'Tasks', icon: 'ph-clipboard-text', route: '/admin/tasks', items: matchedTasks });
     return { groups, hasResults: groups.length > 0 };
   }, [searchQuery, users, farms, robots, tasks]);
+
+  const flatItems = useMemo(() => {
+    if (!searchResults?.hasResults) return [];
+    const items = [];
+    searchResults.groups.forEach((g) => g.items.forEach((item) => items.push({ group: g, item })));
+    return items;
+  }, [searchResults]);
+
+  const handleSearchKeyDown = useCallback((e) => {
+    if (!searchOpen || !searchResults?.hasResults) return;
+    const last = flatItems.length - 1;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setFocusedIndex((p) => p < last ? p + 1 : p); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setFocusedIndex((p) => p > 0 ? p - 1 : 0); }
+    else if (e.key === 'Enter' && focusedIndex >= 0) {
+      e.preventDefault();
+      const entry = flatItems[focusedIndex];
+      if (entry) { navigate(entry.group.route); setSearchOpen(false); setSearchQuery(''); setFocusedIndex(-1); }
+    } else if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); setFocusedIndex(-1); }
+  }, [searchOpen, searchResults, flatItems, focusedIndex, navigate]);
+
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (focusedIndex < 0 || !dropdownListRef.current) return;
+    const el = dropdownListRef.current.querySelector(`[data-index="${focusedIndex}"]`);
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [focusedIndex]);
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
@@ -109,8 +140,9 @@ export default function GlobalHeader() {
             placeholder="Search..."
             aria-label="Search"
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); setFocusedIndex(-1); }}
             onFocus={() => setSearchOpen(true)}
+            onKeyDown={handleSearchKeyDown}
             className="border-none bg-transparent text-sm text-[#1C1C1E] w-full outline-none placeholder:text-[#9CA3AF]"
           />
         </div>
@@ -119,23 +151,27 @@ export default function GlobalHeader() {
             style={{ top: 'calc(100% + 6px)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
           >
             {searchResults.hasResults ? (
-              searchResults.groups.map((group) => (
-                <div key={group.category}>
-                  <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-placeholder">{group.category}</div>
-                  {group.items.map((item, idx) => (
-                    <div key={`${group.category}-${idx}`}
-                      onClick={() => { navigate(group.route); setSearchOpen(false); setSearchQuery(''); }}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/50 transition-colors duration-100"
-                    >
-                      <i className={`${group.icon} text-sm text-text-placeholder`} />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm text-[#1C1C1E] font-medium truncate">{item.name || item.title}</div>
-                        <div className="text-[11px] text-text-placeholder truncate">{item.email || item.location || item.id || item.assignedTo || ''}</div>
+              <div ref={dropdownListRef} className="max-h-80 overflow-y-auto">
+                {(() => { let idx = -1; return searchResults.groups.map((group) => (
+                  <div key={group.category}>
+                    <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-placeholder">{group.category}</div>
+                    {group.items.map((item, i) => { idx++; const fi = idx; return (
+                      <div key={`${group.category}-${i}`}
+                        data-index={fi}
+                        onClick={() => { navigate(group.route); setSearchOpen(false); setSearchQuery(''); setFocusedIndex(-1); }}
+                        onMouseEnter={() => setFocusedIndex(fi)}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-100 ${fi === focusedIndex ? 'bg-brand-light' : 'hover:bg-white/50'}`}
+                      >
+                        <i className={`${group.icon} text-sm text-text-placeholder`} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm text-[#1C1C1E] font-medium truncate">{item.name || item.title}</div>
+                          <div className="text-[11px] text-text-placeholder truncate">{item.email || item.location || item.id || item.assignedTo || ''}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ))
+                    ); })}
+                  </div>
+                )); })()}
+              </div>
             ) : (
               <div className="py-8 text-center text-xs text-text-placeholder">No results found</div>
             )}
