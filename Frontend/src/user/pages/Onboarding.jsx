@@ -5,7 +5,7 @@ export default function Onboarding() {
         <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-6">
           <i className="ph ph-plant text-3xl text-white" />
         </div>
-        <div className="text-2xl font-bold text-[#000000] mb-2">Welcome to Smart Agriculture</div>
+        <div className="text-2xl font-bold text-primary mb-2">Welcome to Smart Agriculture</div>
         <div className="text-sm text-text-secondary mb-8">Let's get you started with your farm management journey</div>
 
         <div className="flex flex-col gap-4 mb-8 text-left">
@@ -19,7 +19,7 @@ export default function Onboarding() {
                 <i className={`ti ${step.icon} text-lg`} />
               </div>
               <div>
-                <div className="text-sm font-medium text-[#1C1C1E]">{step.title}</div>
+                <div className="text-sm font-medium text-primary">{step.title}</div>
                 <div className="text-[10px] text-text-secondary mt-0.5">{step.desc}</div>
               </div>
             </div>
