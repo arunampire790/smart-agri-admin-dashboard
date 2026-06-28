@@ -190,34 +190,19 @@ export default function Tasks() {
         </table>
       </div>
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAssignModal(false)}>
-          <div className="w-[480px] max-w-[calc(100vw-32px)] p-8"
-            style={{
-              background: 'rgba(255, 255, 255, 0.96)',
-              border: '1px solid rgba(229, 231, 235, 0.5)',
-              borderRadius: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            }}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAssignModal(false)}>
+          <div className="glass-card rounded-[16px] p-6 w-[480px] max-w-[calc(100vw-32px)] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative"
+            style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="text-lg font-bold" style={{ color: '#111827' }}>Assign Task</div>
-                <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>Schedule a new farming operation.</div>
-              </div>
-              <button type="button" onClick={() => setShowAssignModal(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: '20px', padding: 0, lineHeight: 1, transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
-              >
-                <i className="ph ph-x" />
-              </button>
-            </div>
+            <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg"><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-primary mb-1">Assign Task</div>
+            <div className="text-xs text-text-secondary mb-5">Schedule a new farming operation.</div>
 
             <form onSubmit={handleAssignTaskSubmit}>
               <div className="space-y-4 mb-6">
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Task Title</label>
+                  <label className="text-xs font-medium text-primary">Task Title</label>
                   <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Irrigate plot 4"
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -234,7 +219,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Assigned To</label>
+                  <label className="text-xs font-medium text-primary">Assigned To</label>
                   <select value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -256,7 +241,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Farm Sector</label>
+                  <label className="text-xs font-medium text-primary">Farm Sector</label>
                   <select value={form.farm} onChange={(e) => setForm({ ...form, farm: e.target.value })}
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -278,7 +263,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Type</label>
+                  <label className="text-xs font-medium text-primary">Type</label>
                   <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -298,7 +283,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Priority</label>
+                  <label className="text-xs font-medium text-primary">Priority</label>
                   <div className="flex gap-2">
                     {priorityOptions.map((p) => {
                       const active = form.priority === p;
@@ -323,7 +308,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Due Date</label>
+                  <label className="text-xs font-medium text-primary">Due Date</label>
                   <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                     style={{
                       background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -340,32 +325,16 @@ export default function Tasks() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end items-center gap-3 mt-5 w-full">
                 <button type="button" onClick={() => setShowAssignModal(false)}
-                  style={{
-                    background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563',
-                    fontWeight: 500, borderRadius: '8px', cursor: 'pointer',
-                    transition: 'all 0.15s ease', padding: '8px 16px', fontSize: '13px',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] active:scale-[0.97] transition-all duration-150"
                 >
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{
-                    background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
-                    padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s ease',
-                    border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
-                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+                  className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90 active:scale-[0.97] transition-all duration-150"
                 >
-                  <i className="ph ph-check" /> Create Task
+                  <i className="ph ph-check" /> Assign Task
                 </button>
               </div>
             </form>
