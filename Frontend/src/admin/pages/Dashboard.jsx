@@ -101,7 +101,7 @@ export default function Dashboard() {
             <div className="text-3xl font-extrabold text-[#000000] mb-1">{users.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
           </div>
-          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid var(--clr-card)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <Users size={18} color="#6366F1" />
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function Dashboard() {
             <div className="text-3xl font-extrabold text-[#000000] mb-1">{farms.length}</div>
             <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
           </div>
-          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+          <div className="absolute flex items-center justify-center" style={{ width: '40px', height: '40px', borderRadius: '12px', top: '24px', right: '24px', zIndex: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid var(--clr-card)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
             <Map size={18} color="#10B981" />
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#1C1C1E' }} />
+              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid var(--border-glass)', borderRadius: 8, boxShadow: '0 4px 12px var(--border-divider)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--text-body)' }} />
               <Area type="monotone" dataKey="val" stroke="#10B981" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -183,7 +183,7 @@ export default function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#1C1C1E' }} />
+              <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid var(--border-glass)', borderRadius: 8, boxShadow: '0 4px 12px var(--border-divider)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--text-body)' }} />
               <Area type="monotone" dataKey="val" stroke="#047857" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#047857', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -215,7 +215,7 @@ export default function Dashboard() {
                 <tr key={row.id}>
                   <td className="px-4 py-4 border-b border-table-sep"><strong className="text-[#1C1C1E] font-medium">{row.title}</strong></td>
                   <td className="px-4 py-4 border-b border-table-sep">
-                    <span style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                    <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
                       onClick={() => { const u = users.find((x) => x.name === row.assignedTo); if (u) setSelectedUser(u); }}

@@ -100,7 +100,7 @@ export default function AdminLogin() {
   };
 
   const sharedInputStyle = {
-    background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', fontWeight: 400,
+    background: 'var(--bg-white)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', fontWeight: 400,
   };
 
   const inputBase = "text-sm w-full rounded-xl outline-none transition-all duration-200 text-[#1C1C1E]";
@@ -110,15 +110,15 @@ export default function AdminLogin() {
       <div className="absolute pointer-events-none" style={{ width: 400, height: 400, background: '#10B981', filter: 'blur(120px)', opacity: 0.35, top: '-10%', left: '-10%' }} />
       <div className="absolute pointer-events-none" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
       <div className="absolute pointer-events-none" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
-      <div className="p-8 w-[400px]" style={{ position: 'relative', zIndex: 2, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(16px) saturate(150%)', WebkitBackdropFilter: 'blur(16px) saturate(150%)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)', willChange: 'transform', transform: 'translateZ(0)' }}>
+      <div className="p-8 w-[400px]" style={{ position: 'relative', zIndex: 2, background: 'var(--bg-glass)', backdropFilter: 'blur(16px) saturate(150%)', WebkitBackdropFilter: 'blur(16px) saturate(150%)', border: '1px solid var(--border-glass)', borderRadius: '24px', boxShadow: 'var(--shadow-card)', willChange: 'transform', transform: 'translateZ(0)' }}>
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
             <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
               <i className="ph ph-plant" />
             </div>
           </div>
-          <div className="text-2xl font-bold" style={{ color: '#111827' }}>Smart Agriculture</div>
-          <div className="text-sm mt-0.5" style={{ color: '#4B5563' }}>
+          <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Smart Agriculture</div>
+          <div className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
             {step === 'login' && 'Admin Panel · Sign in to continue'}
             {step === 'email' && 'Enter your email to reset your password'}
             {step === 'code' && 'Enter the verification code'}
@@ -168,7 +168,7 @@ export default function AdminLogin() {
               </div>
             </div>
             <div className="flex justify-end mb-5 mt-2">
-              <button type="button" onClick={() => { setResetEmail(''); setStep('email'); }} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Forgot Password?</button>
+              <button type="button" onClick={() => { setResetEmail(''); setStep('email'); }} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: 'var(--clr-brand)', padding: 0 }}>Forgot Password?</button>
             </div>
             <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
               onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
@@ -176,7 +176,7 @@ export default function AdminLogin() {
               onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.98)'; }}
               onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
             >Sign in</button>
-            <div className="mt-4 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
+            <div className="mt-4 p-3 rounded-xl text-xs text-center" style={{ background: 'var(--bg-glass-heavy)', color: 'var(--text-label)', border: '1px dashed var(--border-input)' }}>
               <strong>Demo:</strong> admin@smartagri.com / admin123
             </div>
           </form>
@@ -186,7 +186,7 @@ export default function AdminLogin() {
         {step === 'email' && (
           <form onSubmit={handleSendCode}>
             <div className="flex flex-col mb-4">
-              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Email Address</label>
+              <label style={{ color: 'var(--text-label)', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Email Address</label>
               <input
                 type="email"
                 value={resetEmail}
@@ -198,7 +198,7 @@ export default function AdminLogin() {
             </div>
             <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Send Code</button>
             <div className="mt-4 text-center">
-              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: 'var(--clr-brand)', padding: 0 }}>Back to Sign in</button>
             </div>
           </form>
         )}
@@ -206,11 +206,11 @@ export default function AdminLogin() {
         {/* ── STEP 3: ENTER CODE ── */}
         {step === 'code' && (
           <form onSubmit={handleVerifyCode}>
-            <div className="text-xs mb-4 text-center" style={{ color: '#4B5563' }}>
+            <div className="text-xs mb-4 text-center" style={{ color: 'var(--text-secondary)' }}>
               A 6-digit code has been sent to <strong>{resetEmail}</strong>.
             </div>
             {/* TODO: Remove demo box when real email integration is in place */}
-            <div className="mb-4 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.9)', color: '#374151', border: '1px dashed #D1D5DB' }}>
+            <div className="mb-4 p-3 rounded-xl text-xs text-center" style={{ background: 'var(--bg-glass-heavy)', color: 'var(--text-label)', border: '1px dashed var(--border-input)' }}>
               <strong>Demo Code:</strong> {generatedCode}
             </div>
             <div className="flex justify-center gap-2 mb-4">
@@ -232,7 +232,7 @@ export default function AdminLogin() {
             {codeError && <div className="text-xs text-center mb-3" style={{ color: '#DC2626' }}>{codeError}</div>}
             <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Verify Code</button>
             <div className="mt-4 text-center">
-              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: 'var(--clr-brand)', padding: 0 }}>Back to Sign in</button>
             </div>
           </form>
         )}
@@ -241,7 +241,7 @@ export default function AdminLogin() {
         {step === 'reset' && (
           <form onSubmit={handleResetPassword}>
             <div className="flex flex-col mb-3">
-              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>New Password</label>
+              <label style={{ color: 'var(--text-label)', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>New Password</label>
               <input
                 type="password"
                 value={newPassword}
@@ -252,7 +252,7 @@ export default function AdminLogin() {
               />
             </div>
             <div className="flex flex-col mb-4">
-              <label style={{ color: '#374151', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Confirm New Password</label>
+              <label style={{ color: 'var(--text-label)', fontWeight: 500, fontSize: '13px', marginBottom: '6px' }}>Confirm New Password</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -265,7 +265,7 @@ export default function AdminLogin() {
             {passwordError && <div className="text-xs text-center mb-3" style={{ color: '#DC2626' }}>{passwordError}</div>}
             <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">Reset Password</button>
             <div className="mt-4 text-center">
-              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: '#059669', padding: 0 }}>Back to Sign in</button>
+              <button type="button" onClick={backToLogin} className="bg-none border-none text-xs font-medium cursor-pointer hover:underline" style={{ color: 'var(--clr-brand)', padding: 0 }}>Back to Sign in</button>
             </div>
           </form>
         )}
@@ -278,7 +278,7 @@ export default function AdminLogin() {
                 <i className="ph ph-check" style={{ color: '#10B981', fontSize: '28px' }} />
               </div>
             </div>
-            <div className="text-center text-sm mb-6" style={{ color: '#374151' }}>Password reset successful!</div>
+            <div className="text-center text-sm mb-6" style={{ color: 'var(--text-label)' }}>Password reset successful!</div>
             <button onClick={backToLogin} className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 login-signin-btn">
               Back to Sign in
             </button>

@@ -119,7 +119,7 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
           onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(31,38,135,0.06)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
         >
@@ -145,20 +145,20 @@ export default function Analytics() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {cropSegments.map((crop) => (
                 <div key={crop.label}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', width: 'fit-content', cursor: 'pointer', userSelect: 'none', borderRadius: '8px', padding: '2px 6px', margin: '-2px -6px', background: hoveredDonut === crop.label ? 'rgba(255,255,255,0.3)' : 'transparent', transition: 'background 0.2s ease' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', width: 'fit-content', cursor: 'pointer', userSelect: 'none', borderRadius: '8px', padding: '2px 6px', margin: '-2px -6px', background: hoveredDonut === crop.label ? 'var(--border-glass-light)' : 'transparent', transition: 'background 0.2s ease' }}
                   onMouseEnter={() => donutHoverIn(crop.label)}
                   onMouseLeave={donutHoverOut}
                 >
                   <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: crop.color, flexShrink: 0, transition: 'transform 0.2s ease', transform: hoveredDonut === crop.label ? 'scale(1.3)' : 'scale(1)' }} />
-                  <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563', minWidth: '80px' }}>{crop.label}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginLeft: '4px' }}>{crop.pct}%</span>
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)', minWidth: '80px' }}>{crop.label}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginLeft: '4px' }}>{crop.pct}%</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
+        <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 min-h-[340px]" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease' }}
           onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(31,38,135,0.06)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
         >
@@ -170,13 +170,13 @@ export default function Analytics() {
               { label: 'Offline', val: offline, color: '#EF4444' },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5 text-xs"
-                style={{ cursor: 'pointer', userSelect: 'none', padding: '2px 6px', borderRadius: '6px', background: hoveredRing === item.label ? 'rgba(255,255,255,0.3)' : 'transparent', transition: 'background 0.2s ease' }}
+                style={{ cursor: 'pointer', userSelect: 'none', padding: '2px 6px', borderRadius: '6px', background: hoveredRing === item.label ? 'var(--border-glass-light)' : 'transparent', transition: 'background 0.2s ease' }}
                 onMouseEnter={() => ringHoverIn(item.label)}
                 onMouseLeave={ringHoverOut}
               >
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
-                <span style={{ color: '#6B7280' }}>{item.label}:</span>
-                <span style={{ color: '#111827', fontWeight: 600 }}>{item.val}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{item.label}:</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{item.val}</span>
               </div>
             ))}
           </div>
@@ -199,8 +199,8 @@ export default function Analytics() {
               </g>
             </svg>
             <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <div style={{ fontSize: '11px', fontWeight: 500, color: '#6B7280' }}>Total Robots</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827' }}>{total}</div>
+              <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)' }}>Total Robots</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>{total}</div>
             </div>
           </div>
         </div>

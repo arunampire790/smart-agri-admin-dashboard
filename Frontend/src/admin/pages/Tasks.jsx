@@ -47,7 +47,7 @@ function Select({ options, value, onChange, placeholder }) {
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-[100] top-full left-0 right-0 mt-1 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           {options.map((opt) => {
             const selected = opt === value;
             return (
@@ -165,7 +165,7 @@ export default function Tasks() {
         ))}
       </div>
 
-      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex gap-6 mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           {tabs.map((tab) => (
             <div
@@ -215,7 +215,7 @@ export default function Tasks() {
                 <tr key={row.id}>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-[#1C1C1E] font-medium">{row.title}</strong></td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                    <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
                       onClick={() => { const u = users.find((x) => x.name === row.assignedTo); if (u) setSelectedUser(u); }}
@@ -246,7 +246,7 @@ export default function Tasks() {
       {/* Assign Task Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAssignModal(false)}>
-          <div className="glass-card rounded-[16px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="glass-card rounded-[16px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <button type="button" onClick={() => setShowAssignModal(false)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
               style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
@@ -294,7 +294,7 @@ export default function Tasks() {
                           isActive ? 'bg-brand text-white border-brand' : 'bg-white/50 text-text-secondary border-white/60'
                         }`}
                         style={{ cursor: 'pointer', userSelect: 'none' }}
-                        onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; } }}
+                        onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
                         onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; } }}
                         onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
                         onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
@@ -313,7 +313,7 @@ export default function Tasks() {
               <div className="flex justify-end items-center gap-3 mt-5 w-full">
                 <button type="button" onClick={() => setShowAssignModal(false)} className={cancelBtnClass}
                   style={{ cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = 'var(--text-primary)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}

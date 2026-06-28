@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
@@ -17,6 +18,7 @@ const initialNotifications = [
 export default function GlobalHeader() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
@@ -132,9 +134,9 @@ export default function GlobalHeader() {
 
   return (
     <>
-    <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
+    <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border-glass-light)' }}>
       <div ref={searchRef} className="relative">
-        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
+        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--clr-card)', border: '1px solid var(--border-glass-med)' }}>
           <i className="ph ph-magnifying-glass text-[#6B7280] text-sm" />
           <input
             placeholder="Search..."
@@ -148,7 +150,7 @@ export default function GlobalHeader() {
         </div>
         {searchOpen && searchResults && (
           <div className="absolute left-0 z-50 min-w-[320px] overflow-hidden rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60"
-            style={{ top: 'calc(100% + 6px)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+            style={{ top: 'calc(100% + 6px)', background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
           >
             {searchResults.hasResults ? (
               <div ref={dropdownListRef} className="max-h-80 overflow-y-auto">
@@ -180,8 +182,11 @@ export default function GlobalHeader() {
       </div>
 
       <div className="flex items-center gap-4 shrink-0">
-        <div className="flex items-center px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>EN / 日本語</div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
+        <div className="flex items-center px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'var(--clr-card)', border: '1px solid var(--border-glass-med)' }}>EN / 日本語</div>
+        <button onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className="bg-none border-none cursor-pointer text-lg text-[#4B5563] hover:text-[#1C1C1E] shrink-0 flex">
+          <i className={`ph ${isDark ? 'ph-sun' : 'ph-moon'}`} />
+        </button>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#4B5563] font-medium whitespace-nowrap" style={{ background: 'var(--clr-card)', border: '1px solid var(--border-glass-med)' }}>
           <span className="w-2 h-2 rounded-full bg-brand inline-block pulse-dot" />
           System Online
         </div>
@@ -195,7 +200,7 @@ export default function GlobalHeader() {
           </button>
           {bellOpen && (
             <div ref={dropdownRef} className="absolute right-0 z-50 min-w-[280px] overflow-hidden rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-white/60"
-              style={{ top: 'calc(100% + 6px)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+              style={{ top: 'calc(100% + 6px)', background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/40">
                 <span className="text-sm font-semibold text-[#1C1C1E]">Notifications</span>

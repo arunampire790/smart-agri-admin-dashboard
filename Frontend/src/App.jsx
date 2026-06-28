@@ -5,12 +5,14 @@ import { FarmProvider } from "./context/FarmContext";
 import { RobotProvider } from "./context/RobotContext";
 import { TaskProvider } from "./context/TaskContext";
 import { EmployeeProvider } from "./context/EmployeeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminRoutes from "./routes/AdminRoutes";
 import UserRoutes from "./routes/UserRoutes";
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <UserProvider>
         <FarmProvider>
@@ -31,6 +33,7 @@ function App() {
         </FarmProvider>
       </UserProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

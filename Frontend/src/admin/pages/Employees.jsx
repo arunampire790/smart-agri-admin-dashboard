@@ -95,7 +95,7 @@ function ActivityLog({ employeeName }) {
   return (
     <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-1">
       {entries.map((entry) => (
-        <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.3)' }}>
+        <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--clr-card)', border: '1px solid rgba(255,255,255,0.3)' }}>
           <div className="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center shrink-0 mt-0.5">
             <Clock size={14} color="#059669" />
           </div>
@@ -239,7 +239,7 @@ export default function Employees() {
         </button>
       </div>
 
-      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Employees ({employees.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search employees by name or email..." aria-label="Search employees" className={glassInput} />
@@ -263,7 +263,7 @@ export default function Employees() {
               {filtered.map((emp, i) => (
                 <tr key={i} className="group">
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                    <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
                       onClick={() => { if (isMasterAdmin) setViewActivity(emp); }}
@@ -385,7 +385,7 @@ export default function Employees() {
       {/* Activity History Modal (Master Admin only) */}
       {viewActivity && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setViewActivity(null)}>
-          <div className="rounded-[20px] p-6 w-[520px] max-h-[80vh] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[20px] p-6 w-[520px] max-h-[80vh] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <button onClick={() => setViewActivity(null)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
               style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
@@ -401,7 +401,7 @@ export default function Employees() {
       {/* Delete Employee Modal */}
       {deleteEmployee && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete Employee?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-[#1C1C1E] font-medium">{deleteEmployee.name}</strong>? This action cannot be undone.
@@ -409,7 +409,7 @@ export default function Employees() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteEmployee(null)} className={cancelBtnClass}
                 style={{ cursor: 'pointer' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = 'var(--text-primary)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
                 onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}

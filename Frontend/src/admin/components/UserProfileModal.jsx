@@ -4,11 +4,11 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 
 const cardStyle = {
-  background: 'rgba(255,255,255,0.75)',
+  background: 'var(--bg-glass)',
   borderRadius: '16px',
   padding: '20px',
-  border: '1px solid rgba(255,255,255,0.5)',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  border: '1px solid var(--border-glass-med)',
+  boxShadow: 'var(--shadow-sm)',
   marginBottom: '16px',
 };
 
@@ -18,7 +18,7 @@ const labelIconStyle = {
   gap: '6px',
   fontSize: '11px',
   fontWeight: 600,
-  color: '#6B7280',
+  color: 'var(--text-muted)',
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   marginBottom: '4px',
@@ -27,7 +27,7 @@ const labelIconStyle = {
 const valStyle = {
   fontSize: '14px',
   fontWeight: 500,
-  color: '#111827',
+  color: 'var(--text-primary)',
   lineHeight: '1.5',
 };
 
@@ -55,9 +55,9 @@ export default function UserProfileModal({ user, onClose }) {
   const initials = user.name.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
       <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-        style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+        style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -65,16 +65,16 @@ export default function UserProfileModal({ user, onClose }) {
               <span style={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}>{initials}</span>
             </div>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{user.name}</div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{user.email}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.3' }}>{user.name}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{user.email}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: user.status === 'Active' ? '#D1FAE5' : '#FEE2E2', color: user.status === 'Active' ? '#065F46' : '#991B1B' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: user.status === 'Active' ? 'var(--green-pill-bg)' : 'var(--clr-danger-bg)', color: user.status === 'Active' ? 'var(--green-pill-text)' : 'var(--clr-danger-text)' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: user.status === 'Active' ? 'var(--clr-brand)' : 'var(--clr-danger-text)' }} />
               {user.status}
             </span>
-            <button type="button" onClick={onClose} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+            <button type="button" onClick={onClose} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--clr-text-placeholder)', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
             ><X size={18} /></button>
@@ -82,9 +82,9 @@ export default function UserProfileModal({ user, onClose }) {
         </div>
 
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
             <UsersIcon size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Core Identity Matrix</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Core Identity Matrix</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
             <div>
@@ -107,9 +107,9 @@ export default function UserProfileModal({ user, onClose }) {
         </div>
 
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
             <Map size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Details Infrastructure</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Details Infrastructure</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
             <div>
@@ -128,9 +128,9 @@ export default function UserProfileModal({ user, onClose }) {
         </div>
 
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
             <Bot size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assigned Robots Dynamic Data</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assigned Robots Dynamic Data</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
             <div>
