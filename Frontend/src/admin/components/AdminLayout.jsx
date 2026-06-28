@@ -15,7 +15,6 @@ const baseNavItems = [
 ];
 
 const robotSubItems = [
-  { to: '/admin/robots', label: 'Robots' },
   { to: '/admin/sensors', label: 'Robot Sensor Details' },
 ];
 
@@ -65,7 +64,7 @@ export default function AdminLayout() {
               return (
                 <div key={item.to} className="mx-2">
                   <div
-                    onClick={() => { setRobotsOpen((o) => !o); navigate('/admin/robots'); }}
+                    onClick={() => navigate('/admin/robots')}
                     className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                       robotsActive
                         ? 'glass-active text-[#1C1C1E] nav-active-indicator'
@@ -74,7 +73,9 @@ export default function AdminLayout() {
                   >
                     <i className={`${item.icon} text-lg`} />
                     <span className="flex-1">{item.label}</span>
-                    <i className={`ph ph-caret-down text-xs transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+                    <i className={`ph ph-caret-down text-xs transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
+                    />
                   </div>
                   <div className={`overflow-hidden transition-all duration-200 ${robotsOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
                     {robotSubItems.map(({ to, label }) => {
