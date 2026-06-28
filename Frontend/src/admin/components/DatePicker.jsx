@@ -24,7 +24,7 @@ function formatDate(year, month, day) {
 }
 
 const POPOVER_HEIGHT = 320;
-const POPOVER_WIDTH = 320;
+const POPOVER_WIDTH = 280;
 const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
@@ -136,29 +136,38 @@ export default function DatePicker({ value, onChange }) {
             border: '1px solid #E5E7EB',
             borderRadius: '12px',
             padding: '16px',
-            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)',
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03)',
             overflow: 'hidden',
           }}
         >
           <div className="flex items-center justify-between mb-3">
             {viewMode === 'day' ? (
               <>
-                <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: 'var(--text-primary)' }} tabIndex={-1}>
+                <button type="button" onClick={prevMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
                   <i className="ph ph-caret-left text-sm" />
                 </button>
-                <span onClick={() => setViewMode('year')} style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
+                <span onClick={() => setViewMode('year')} style={{ color: '#111827', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
                   {MONTHS[viewMonth]}, {viewYear}
                 </span>
-                <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: 'var(--text-primary)' }} tabIndex={-1}>
+                <button type="button" onClick={nextMonth} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
                   <i className="ph ph-caret-right text-sm" />
                 </button>
               </>
             ) : (
               <>
-                <button type="button" onClick={() => setViewMode('day')} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg hover:bg-[#F3F4F6] transition-colors duration-150" style={{ color: 'var(--text-primary)' }} tabIndex={-1}>
+                <button type="button" onClick={() => setViewMode('day')} className="w-8 h-8 inline-flex items-center justify-center cursor-pointer rounded-lg transition-colors duration-150" style={{ color: '#111827' }} tabIndex={-1}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
                   <i className="ph ph-caret-left text-sm" />
                 </button>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '14px' }}>{viewYear}</span>
+                <span style={{ color: '#111827', fontWeight: 700, fontSize: '14px' }}>{viewYear}</span>
                 <div style={{ width: '32px' }} />
               </>
             )}
@@ -168,7 +177,7 @@ export default function DatePicker({ value, onChange }) {
             <>
               <div className="grid grid-cols-7 mb-1">
                 {WEEKDAYS.map((w) => (
-                  <div key={w} className="flex items-center justify-center" style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
+                  <div key={w} className="flex items-center justify-center" style={{ color: '#6B7280', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase', height: '24px' }}>{w}</div>
                 ))}
               </div>
 
@@ -242,8 +251,14 @@ export default function DatePicker({ value, onChange }) {
           )}
 
           <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-            <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }} tabIndex={-1}>Clear</button>
-            <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }} tabIndex={-1}>Today</button>
+            <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease' }} tabIndex={-1}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >Clear</button>
+            <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease' }} tabIndex={-1}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >Today</button>
           </div>
           </div>,
         </div>,
