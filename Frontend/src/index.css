@@ -80,7 +80,7 @@
   --clr-card: rgba(30, 41, 59, 0.65);
   --clr-border: rgba(255, 255, 255, 0.06);
   --clr-text-secondary: #94A3B8;
-  --clr-text-placeholder: #475569;
+  --clr-text-placeholder: #64748B;
   --clr-table-sep: rgba(255, 255, 255, 0.08);
 
   --text-primary: #F1F5F9;
@@ -303,6 +303,8 @@ input, textarea, [contenteditable] {
 [data-theme="dark"] .bg-white\/90 { background: var(--bg-glass-heavy); }
 [data-theme="dark"] .bg-\[\#F2F2F7\] { background: var(--clr-surface); }
 [data-theme="dark"] .bg-\[\#FFFFFF\] { background: var(--bg-white); }
+[data-theme="dark"] .bg-white { background: var(--bg-white); }
+[data-theme="dark"] .border-gray-200 { border-color: var(--border-input); }
 [data-theme="dark"] .hover\:bg-\[\#F3F4F6\]:hover { background: rgba(255, 255, 255, 0.06); }
 [data-theme="dark"] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.15\)\] { box-shadow: var(--shadow-dropdown); }
 
