@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
@@ -108,6 +110,7 @@ export default function Robots() {
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
   const { farms, addFarm, updateFarm } = useFarms();
+  const { currentUser } = useAuth();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [showAddModal, setShowAddModal] = useState(false);
@@ -129,27 +132,35 @@ export default function Robots() {
     return Object.keys(errs).length === 0;
   };
 
+  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
     addRobot({ name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, owner: form.owner, battery: 100, status: form.status, stCls: statusOpts[form.status].stCls });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Model: ${form.model}, Farm: ${form.farm}` });
     const targetFarm = farms.find((f) => f.name === form.farm);
     if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
     else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
     setShowAddModal(false);
   };
 
+  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
     updateRobot(editRobot, { name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, owner: form.owner, status: form.status, stCls: statusOpts[form.status].stCls });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Robot', target: editRobot.name, details: `ID: ${editRobot.id} → Status: ${form.status}` });
     const targetFarm = farms.find((f) => f.name === form.farm);
     if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
     else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
     setEditRobot(null);
   };
 
-  const handleDelete = () => { removeRobot(deleteRobot); setDeleteRobot(null); };
+  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+  const handleDelete = () => {
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Robot', target: deleteRobot.name, details: `ID: ${deleteRobot.id}, Model: ${deleteRobot.model}` });
+    removeRobot(deleteRobot); setDeleteRobot(null);
+  };
 
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;

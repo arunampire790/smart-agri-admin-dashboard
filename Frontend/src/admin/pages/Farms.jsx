@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../../admin/components/UserProfileModal';
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
@@ -80,6 +82,7 @@ export default function Farms() {
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { users } = useUsers();
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -119,6 +122,8 @@ export default function Farms() {
       cropTypes: form.cropTypes.trim() || '—',
       devices: form.devices || '0',
     });
+    // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Location: ${form.location.trim()}, Owner: ${form.owner}, Acreage: ${form.acreage || '—'}` });
     setShowAddModal(false);
   };
 

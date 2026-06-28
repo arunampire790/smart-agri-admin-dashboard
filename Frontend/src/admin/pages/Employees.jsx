@@ -1,7 +1,8 @@
-import { Check } from 'lucide-react';
+import { Check, Clock } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { logActivity, getActivityLogByUser } from '../../utils/activityLogger';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
 const inputClass = "add-input-field";
@@ -79,6 +80,39 @@ const StatusDropdown = ({ value, onChange, options }) => {
   );
 };
 
+function ActivityLog({ employeeName }) {
+  const entries = useMemo(() => getActivityLogByUser(employeeName), [employeeName]);
+
+  if (entries.length === 0) {
+    return (
+      <div className="py-10 text-center">
+        <i className="ph ph-clock text-4xl text-text-placeholder mb-3" />
+        <p className="text-sm text-text-secondary">No activity recorded yet for this employee.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-1">
+      {entries.map((entry) => (
+        <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.3)' }}>
+          <div className="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center shrink-0 mt-0.5">
+            <Clock size={14} color="#059669" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-[#1C1C1E]">{entry.action}</span>
+              <span className="text-[10px] text-text-placeholder whitespace-nowrap">{new Date(entry.timestamp).toLocaleString()}</span>
+            </div>
+            {entry.target && <div className="text-xs text-text-secondary mt-0.5">Target: <span className="font-medium text-[#1C1C1E]">{entry.target}</span></div>}
+            {entry.details && <div className="text-xs text-text-secondary mt-0.5">{entry.details}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AccessDenied() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
@@ -98,6 +132,7 @@ export default function Employees() {
   const [deleteEmployee, setDeleteEmployee] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
   const [errors, setErrors] = useState({});
+  const [viewActivity, setViewActivity] = useState(null);
 
   // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
@@ -134,6 +169,7 @@ export default function Employees() {
       status,
       joined: new Date().toISOString().slice(0, 10),
     });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Employee', target: form.name.trim(), details: `Email: ${form.email.trim()}, Role: admin` });
     setShowAddModal(false);
   };
 
@@ -143,11 +179,15 @@ export default function Employees() {
     if (!validate()) return;
     const status = form.status;
     updateEmployee(editEmployee, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), status });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Employee', target: editEmployee.name, details: `Status: ${editEmployee.status} → ${status}` });
     setEditEmployee(null);
   };
 
   // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
-  const handleDelete = () => { removeEmployee(deleteEmployee); setDeleteEmployee(null); };
+  const handleDelete = () => {
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Employee', target: deleteEmployee.name, details: `Email: ${deleteEmployee.email}` });
+    removeEmployee(deleteEmployee); setDeleteEmployee(null);
+  };
 
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
 
@@ -222,7 +262,13 @@ export default function Employees() {
             <tbody>
               {filtered.map((emp, i) => (
                 <tr key={i} className="group">
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-[#1C1C1E] font-medium">{emp.name}</strong></td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <span style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
+                      onClick={() => { if (isMasterAdmin) setViewActivity(emp); }}
+                    >{emp.name}</span>
+                  </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.email}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.phone}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.role}</td>
@@ -332,6 +378,22 @@ export default function Employees() {
                 <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Save Changes</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Activity History Modal (Master Admin only) */}
+      {viewActivity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setViewActivity(null)}>
+          <div className="rounded-[20px] p-6 w-[520px] max-h-[80vh] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <button onClick={() => setViewActivity(null)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
+              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+            ><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Activity Log — {viewActivity.name}</div>
+            <div className="text-xs text-text-secondary mb-5">All actions performed by this employee.</div>
+            <ActivityLog employeeName={viewActivity.name} />
           </div>
         </div>
       )}

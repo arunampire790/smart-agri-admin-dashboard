@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../../context/TaskContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import DatePicker from '../../admin/components/DatePicker';
 import UserProfileModal from '../../admin/components/UserProfileModal';
 
@@ -66,6 +68,7 @@ export default function Tasks() {
   const { tasks, addTask, updateTaskStatus, removeTask } = useTasks();
   const { users } = useUsers();
   const { farms } = useFarms();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -101,6 +104,7 @@ export default function Tasks() {
     setShowAssignModal(true);
   };
 
+  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
   const handleAssignTaskSubmit = (e) => {
     e.preventDefault();
     const errs = {};
@@ -119,6 +123,7 @@ export default function Tasks() {
       dueDate: form.dueDate,
       status: 'Pending',
     });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Assigned Task', target: form.title.trim(), details: `Assigned to: ${form.assignedTo}, Farm: ${form.farm}, Priority: ${form.priority}` });
     setShowAssignModal(false);
   };
 
@@ -222,13 +227,13 @@ export default function Tasks() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{row.dueDate}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     {row.status === 'Pending' && (
-                      <button onClick={() => updateTaskStatus(row.id, 'In Progress')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
+                      <button onClick={() => { updateTaskStatus(row.id, 'In Progress'); logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Started Task', target: row.title, details: `Task moved to In Progress` }); }} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
                     )}
                     {row.status === 'In Progress' && (
-                      <button onClick={() => updateTaskStatus(row.id, 'Completed')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
+                      <button onClick={() => { updateTaskStatus(row.id, 'Completed'); logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Completed Task', target: row.title, details: `Task marked as completed` }); }} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
                     )}
                     {row.status === 'Completed' && (
-                      <button onClick={() => removeTask(row.id)} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-danger-text transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Delete</button>
+                      <button onClick={() => { removeTask(row.id); logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Task', target: row.title, details: `Task removed from registry` }); }} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-danger-text transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Delete</button>
                     )}
                   </td>
                 </tr>

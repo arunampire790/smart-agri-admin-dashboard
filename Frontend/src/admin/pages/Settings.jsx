@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 
 const Toggle = ({ checked, onChange }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
@@ -31,6 +33,7 @@ function SettingsRow({ label, sublabel, children }) {
 }
 
 export default function Settings() {
+  const { currentUser } = useAuth();
   const [firstName, setFirstName] = useState('Admin');
   const [lastName, setLastName] = useState('User');
   const [email, setEmail] = useState('admin@smartagri.com');
@@ -105,8 +108,8 @@ export default function Settings() {
       </SettingsSection>
 
       <div className="flex gap-3 mt-6">
-        <button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]" onClick={() => { setFirstName('Admin'); setLastName('User'); setEmail('admin@smartagri.com'); setPhone('+1-555-0199'); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setNotifyEmail(true); setNotifyTasks(true); setNotifyRobotAlerts(true); setWeeklyReports(false); setTwoFactor(false); setAutoAssign(true); setAutoSchedule(true); setCloudBackup(false); }}>Cancel</button>
-        <button className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => alert('Settings saved successfully!')}>Save Changes</button>
+        <button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]" onClick={() => { setFirstName('Admin'); setLastName('User'); setEmail('admin@smartagri.com'); setPhone('+1-555-0199'); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setNotifyEmail(true); setNotifyTasks(true); setNotifyRobotAlerts(true); setWeeklyReports(false); setTwoFactor(false); setAutoAssign(true); setAutoSchedule(true); setCloudBackup(false); logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Reset Settings', target: 'Profile & System', details: 'All settings reset to defaults' }); }}>Cancel</button>
+        <button className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => { alert('Settings saved successfully!'); logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Changed Settings', target: 'Profile & System', details: `Notifications: email=${notifyEmail}, tasks=${notifyTasks}, robotAlerts=${notifyRobotAlerts}, weeklyReports=${weeklyReports} | Security: twoFactor=${twoFactor} | System: autoAssign=${autoAssign}, autoSchedule=${autoSchedule}, cloudBackup=${cloudBackup}` }); }}>Save Changes</button>
       </div>
     </>
   );
