@@ -1,9 +1,10 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTaskStore } from '../../stores/taskStore';
+import UserProfileModal from '../components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const userGrowth = [
@@ -78,6 +79,7 @@ export default function Dashboard() {
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
   const totalTasks = tasks.length;
+  const [profileUser, setProfileUser] = useState(null);
 
   return (
     <>
@@ -202,7 +204,13 @@ export default function Dashboard() {
             {tasks.slice(0, 5).map((task) => (
               <tr key={task.id}>
                 <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.assignedTo}</td>
+                <td className="px-4 py-4 border-b border-table-sep">
+                  <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                  >{task.assignedTo}</span>
+                </td>
                 <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.farm}</td>
                 <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>
                 <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.status === 'Completed' ? 'bg-brand-light text-brand-dark' : task.status === 'In Progress' ? 'bg-warning-bg text-warning-text' : 'bg-warning-bg text-warning-text'}`}>{task.status}</span></td>
@@ -211,6 +219,7 @@ export default function Dashboard() {
           </tbody>
         </table>
       </div>
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useUsers } from '../../context/UserContext';
+import UserProfileModal from '../components/UserProfileModal';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary select-none";
 const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary select-none";
@@ -11,6 +12,7 @@ export default function Users() {
   const [viewUser, setViewUser] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [deleteUser, setDeleteUser] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
   const [errors, setErrors] = useState({});
 
@@ -96,7 +98,13 @@ export default function Users() {
             <tbody>
               {filteredUsers.map((u, i) => (
                 <tr key={i}>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{u.name}</strong></td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <span onClick={() => setProfileUser(u)}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    >{u.name}</span>
+                  </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.email}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.phone}</td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.farms}</td>
@@ -375,6 +383,7 @@ export default function Users() {
           </div>
         </div>
       )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }

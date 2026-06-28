@@ -4,6 +4,7 @@ import { useTaskStore } from '../stores/taskStore';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import DatePicker from '../components/DatePicker';
+import UserProfileModal from '../components/UserProfileModal';
 
 const priorityStyles = {
   High: { cls: 'bg-danger-bg text-danger-text' },
@@ -25,6 +26,7 @@ export default function Tasks() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [formErrors, setFormErrors] = useState({});
+  const [profileUser, setProfileUser] = useState(null);
 
   const openAssign = () => {
     setForm({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
@@ -168,7 +170,13 @@ export default function Tasks() {
               filteredTasks.map((task) => (
                 <tr key={task.id}>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{task.title}</strong></td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.assignedTo}</td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    >{task.assignedTo}</span>
+                  </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.farm}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">{task.type}</span></td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
@@ -345,6 +353,7 @@ export default function Tasks() {
           </div>
         </div>
       )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }

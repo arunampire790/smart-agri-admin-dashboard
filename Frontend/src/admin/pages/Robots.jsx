@@ -3,6 +3,7 @@ import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useNavigate } from 'react-router-dom';
+import UserProfileModal from '../components/UserProfileModal';
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farmNames = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -97,6 +98,7 @@ export default function Robots() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
@@ -217,7 +219,13 @@ export default function Robots() {
               <tr key={i}>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.owner}</td>
+                <td className="px-4 py-4 border-b">
+                  <span onClick={() => { const u = users.find((x) => x.name === r.owner); if (u) setProfileUser(u); }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                  >{r.owner}</span>
+                </td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.farm}</td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
@@ -288,7 +296,7 @@ export default function Robots() {
             </div>
           </div>
         </div>
-      )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }
