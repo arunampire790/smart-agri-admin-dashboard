@@ -64,7 +64,9 @@ export default function DatePicker({ value, onChange }) {
         const rect = btn.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
-        const below = spaceBelow >= POPOVER_HEIGHT + GAP || spaceBelow >= spaceAbove;
+        const fitsBelow = spaceBelow >= POPOVER_HEIGHT + GAP;
+        const fitsAbove = spaceAbove >= POPOVER_HEIGHT + GAP;
+        const below = fitsBelow || (!fitsAbove && spaceBelow >= spaceAbove);
         const centerX = rect.left + rect.width / 2;
         const halfW = POPOVER_WIDTH / 2;
         const left = Math.max(halfW, Math.min(centerX, window.innerWidth - halfW));
