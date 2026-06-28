@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import AdminProfileModal from './AdminProfileModal';
 
 export default function GlobalHeader() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
 
@@ -36,6 +38,7 @@ export default function GlobalHeader() {
   const doLogout = () => { logout(); localStorage.clear(); navigate('/login'); };
 
   return (
+    <>
     <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0" style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
       <div className="flex items-center">
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.5)' }}>
@@ -64,7 +67,7 @@ export default function GlobalHeader() {
               style={{ top: 'calc(100% + 6px)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
               onKeyDown={(e) => { if (e.key === 'Escape') { setMenuOpen(false); btnRef.current?.focus(); } }}
             >
-              <button role="menuitem" onClick={() => { setMenuOpen(false); navigate('/admin/settings'); }} onKeyDown={(e) => handleMenuKeyDown(e, 0)} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-[#1C1C1E] bg-none border-none cursor-pointer transition-colors duration-100 hover:bg-white/60 text-left">
+              <button role="menuitem" onClick={() => { setMenuOpen(false); setProfileOpen(true); }} onKeyDown={(e) => handleMenuKeyDown(e, 0)} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-[#1C1C1E] bg-none border-none cursor-pointer transition-colors duration-100 hover:bg-white/60 text-left">
                 <i className="ph ph-user text-sm text-[#6B7280]" /> Profile
               </button>
               <button role="menuitem" onClick={() => { setMenuOpen(false); navigate('/admin/settings'); }} onKeyDown={(e) => handleMenuKeyDown(e, 1)} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-[#1C1C1E] bg-none border-none cursor-pointer transition-colors duration-100 hover:bg-white/60 text-left">
@@ -83,5 +86,7 @@ export default function GlobalHeader() {
         </button>
       </div>
     </header>
+    {profileOpen && <AdminProfileModal onClose={() => setProfileOpen(false)} />}
+    </>
   );
 }
