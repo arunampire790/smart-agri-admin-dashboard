@@ -1,5 +1,5 @@
-import { Sprout, Compass, Layers, Bot } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { Sprout, Compass, Layers, Bot, Check } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
@@ -7,6 +7,47 @@ import { useUsers } from '../../context/UserContext';
 import UserProfileModal from '../../admin/components/UserProfileModal';
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E]";
+const labelClass = "text-xs font-medium text-[#1C1C1E]";
+const cancelBtnClass = "text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90";
+const statusOptions = ['Active', 'Idle', 'Offline'];
+const inputFieldClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full placeholder:text-text-placeholder text-[#1C1C1E] transition-all duration-200";
+
+function Select({ options, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={`text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 w-full flex items-center justify-between cursor-pointer transition-all duration-200 ${open ? 'shadow-[0_0_0_2px_rgba(52,199,89,0.3)]' : ''}`}
+        onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#9CA3AF'; } }}
+        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; } }}
+      >
+        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value || placeholder}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] top-full left-0 right-0 mt-1 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }} className={`flex items-center justify-between px-3.5 py-2.5 text-sm cursor-pointer ${selected ? 'bg-brand-light text-brand-dark' : 'text-[#1C1C1E] hover:bg-brand-light hover:text-brand-dark'}`}>
+                <span>{opt}</span>
+                {selected && <i className="ph ph-check text-sm text-brand-dark" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function getStatusLabel(connectedRobots) {
   if (connectedRobots.length === 0) return { label: 'Offline', cls: 'bg-danger-bg text-danger-text pill' };
@@ -41,6 +82,45 @@ export default function Farms() {
   const { users } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
+  const [errors, setErrors] = useState({});
+
+  const userNames = users.length ? users.map((u) => u.name) : [];
+  const defaultOwner = userNames.length ? userNames[0] : '';
+
+  const openAdd = () => { setForm({ name: '', location: '', owner: defaultOwner, cropTypes: '', acreage: '', devices: '0', status: 'Active' }); setErrors({}); setShowAddModal(true); };
+
+  const validateFarm = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Farm name is required';
+    if (!form.location.trim()) errs.location = 'Location is required';
+    if (!form.owner) errs.owner = 'Please select an owner';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+  const handleAddFarm = (e) => {
+    e.preventDefault();
+    if (!validateFarm()) return;
+    const crop = form.cropTypes.trim() ? form.cropTypes.split(',')[0].trim() : '—';
+    const clsMap = { Active: 'active', Idle: 'idle', Offline: 'offline' };
+    addFarm({
+      name: form.name.trim(),
+      owner: form.owner,
+      crop,
+      soil: '—',
+      location: form.location.trim(),
+      robot: '—',
+      status: form.status,
+      cls: clsMap[form.status] || 'active',
+      size: form.acreage ? `${form.acreage} acres` : '—',
+      cropTypes: form.cropTypes.trim() || '—',
+      devices: form.devices || '0',
+    });
+    setShowAddModal(false);
+  };
 
   const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
@@ -76,6 +156,13 @@ export default function Farms() {
           <div className="text-2xl font-bold text-[#000000]">Farm Management</div>
           <div className="text-sm text-text-secondary mt-1">View and manage agricultural properties</div>
         </div>
+        <button onClick={openAdd} className={submitBtnClass}
+          style={{ cursor: 'pointer' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+        ><i className="ph ph-plus" /> Add Farm</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -149,6 +236,120 @@ export default function Farms() {
         )}
       </div>
       {selectedUser && <UserProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
+
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
+          <div className="rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
+              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+            ><i className="ph ph-x" /></button>
+            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New Farm</div>
+            <div className="text-xs text-text-secondary mb-5">Register a new agricultural property.</div>
+            <form onSubmit={handleAddFarm}>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Farm Name</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., Green Valley Farm" className={inputFieldClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
+                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Location</label>
+                <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g., California, USA" className={inputFieldClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
+                {errors.location && <span className="text-[10px] text-danger-text">{errors.location}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Owner</label>
+                <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select owner" />
+                {errors.owner && <span className="text-[10px] text-danger-text">{errors.owner}</span>}
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Crop Types</label>
+                <input value={form.cropTypes} onChange={(e) => setForm({ ...form, cropTypes: e.target.value })} placeholder="e.g., Wheat, Barley, Soybeans" className={inputFieldClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Total Acreage</label>
+                <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })} placeholder="e.g., 270" className={inputFieldClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className={labelClass}>Connected Devices</label>
+                <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0" className={inputFieldClass}
+                  style={{ cursor: 'text' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#9CA3AF'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; e.currentTarget.style.outline = 'none'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 mb-6">
+                <label className={labelClass}>Status</label>
+                <div className="flex gap-2">
+                  {statusOptions.map((s) => {
+                    const isActive = form.status === s;
+                    return (
+                      <button
+                        type="button"
+                        key={s}
+                        onClick={() => setForm({ ...form, status: s })}
+                        className={`flex-1 text-xs px-4 py-2 rounded-xl font-semibold border transition-all duration-150 ${
+                          isActive ? 'bg-brand text-white border-brand' : 'bg-white/50 text-text-secondary border-white/60'
+                        }`}
+                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                        onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; } }}
+                        onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; } }}
+                        onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
+                        onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = '#111827'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; }}
+                >Cancel</button>
+                <button type="submit" className={submitBtnClass}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = ''; }}
+                ><Check size={16} color="#FFFFFF" /> Add Farm</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
