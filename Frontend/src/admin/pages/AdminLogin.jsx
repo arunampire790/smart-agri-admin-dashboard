@@ -93,14 +93,13 @@ export default function AdminLogin() {
 
   const inputClasses = "text-sm outline-none w-full";
   const inputStyle = {
-    padding: '10px 14px',
-    borderRadius: 12,
-    border: '1px solid rgba(255, 255, 255, 0.6)',
-    background: 'rgba(255, 255, 255, 0.5)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
+    padding: '11px 14px',
+    borderRadius: 10,
+    border: '1px solid rgba(0, 0, 0, 0.12)',
+    background: '#ffffff',
     color: '#1C1C1E',
     fontSize: 14,
+    boxSizing: 'border-box',
     transition: 'border-color 0.2s, box-shadow 0.2s',
   };
   const labelClasses = "text-xs font-medium mb-1";
@@ -125,13 +124,19 @@ export default function AdminLogin() {
         </div>
 
         <form onSubmit={handleLogin}>
-          <div className="flex flex-col gap-1.5 mb-2.5">
-            <label className={labelClasses}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} />
+          <div className="flex flex-col gap-1.5 mb-4">
+            <label className={labelClasses} style={labelStyle}>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+            />
           </div>
-          <div className="flex flex-col gap-1.5 mb-2">
-            <label className={labelClasses}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClasses} />
+          <div className="flex flex-col gap-1.5 mb-4">
+            <label className={labelClasses} style={labelStyle}>Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClasses} style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+            />
           </div>
           <div className="mb-4 text-right">
             <button type="button" onClick={openForgotPassword}
@@ -194,7 +199,7 @@ export default function AdminLogin() {
                     placeholder="Enter your email" className={inputClasses}
                     style={inputStyle}
                     onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()}
@@ -225,16 +230,14 @@ export default function AdminLogin() {
                         onKeyDown={(e) => handleDigitKeyDown(i, e)}
                         className="w-10 h-12 text-center text-sm font-semibold outline-none"
                         style={{
-                          borderRadius: 12,
-                          border: '1px solid rgba(255,255,255,0.6)',
-                          background: 'rgba(255,255,255,0.5)',
-                          backdropFilter: 'blur(8px)',
-                          WebkitBackdropFilter: 'blur(8px)',
+                          borderRadius: 10,
+                          border: '1px solid rgba(0,0,0,0.12)',
+                          background: '#ffffff',
                           color: '#1C1C1E',
                           transition: 'border-color 0.2s, box-shadow 0.2s',
                         }}
                         onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                        onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
                       />
                     ))}
                   </div>
@@ -258,7 +261,7 @@ export default function AdminLogin() {
                     placeholder="Enter new password" className={inputClasses}
                     style={inputStyle}
                     onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5 mb-5">
@@ -267,7 +270,7 @@ export default function AdminLogin() {
                     placeholder="Confirm new password" className={inputClasses}
                     style={inputStyle}
                     onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
                   />
                   {passwordError && <span className="text-xs mt-1" style={{ color: '#DC2626' }}>{passwordError}</span>}
                 </div>
