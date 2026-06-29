@@ -246,7 +246,12 @@ export default function Robots() {
                     <span className="text-xs font-medium text-primary">{r.battery}%</span>
                   </div>
                 </td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${statusOpts[r.status]?.stCls || 'bg-white/30 text-text-secondary'}`}>{r.status}</span></td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: r.status === 'Active' ? '#065F46' : r.status === 'Idle' ? '#92400E' : '#991B1B' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#F59E0B' : '#EF4444', flexShrink: 0 }} />
+                    {r.status}
+                  </span>
+                </td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex gap-3 items-center">
                     <button title="Edit" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-pencil" /></button>
