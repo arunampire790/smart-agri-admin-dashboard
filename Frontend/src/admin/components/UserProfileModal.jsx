@@ -150,14 +150,6 @@ export default function UserProfileModal({ user, onClose }) {
           </div>
         </div>
 
-        {/* Close Statement button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-          <button type="button" onClick={onClose}
-            style={{ padding: '10px 28px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', background: '#10B981', color: '#fff', transition: 'all 0.2s ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >Close Statement</button>
-        </div>
       </div>
     </div>
   );
