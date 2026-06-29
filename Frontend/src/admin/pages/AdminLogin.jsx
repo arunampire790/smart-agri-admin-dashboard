@@ -97,16 +97,17 @@ export default function AdminLogin() {
     borderRadius: 10,
     border: '1px solid rgba(0, 0, 0, 0.12)',
     background: '#ffffff',
-    color: '#1C1C1E',
+    color: '#111827',
     fontSize: 14,
     boxSizing: 'border-box',
     transition: 'border-color 0.2s, box-shadow 0.2s',
   };
   const labelClasses = "text-xs font-medium mb-1";
-  const labelStyle = { color: '#6B7280' };
+  const labelStyle = { color: '#374151' };
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center relative overflow-hidden">
+      <style>{`.admin-login-modal input::placeholder { color: #9CA3AF; }`}</style>
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.35) 0%, transparent 70%)', filter: 'blur(80px)', opacity: 0.5 }} />
       <div className="absolute -bottom-48 -right-32 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(4,120,87,0.3) 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.45 }} />
       <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(52,199,89,0.25) 0%, transparent 70%)', filter: 'blur(60px)', opacity: 0.35 }} />
@@ -155,7 +156,7 @@ export default function AdminLogin() {
       {/* Forgot Password Flow Overlay */}
       {flowStep !== 'login' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={closeFlow}>
-          <div className="relative z-10 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
+          <div className="admin-login-modal relative z-10 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
             style={{
               background: 'rgba(255, 255, 255, 0.5)',
               backdropFilter: 'blur(24px) saturate(180%)',
@@ -165,18 +166,18 @@ export default function AdminLogin() {
               boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
               maxHeight: 'calc(100vh - 40px)',
               overflowY: 'auto',
-              padding: 32,
+              padding: '32px 32px 28px',
             }}>
 
             <div className="flex items-center justify-between mb-6">
               <div>
-                <div className="text-lg font-bold" style={{ color: '#1C1C1E' }}>
+                <div className="text-lg font-bold" style={{ color: '#111827' }}>
                   {flowStep === 'email' && 'Reset Password'}
                   {flowStep === 'code' && 'Check Your Email'}
                   {flowStep === 'reset' && 'Create New Password'}
                   {flowStep === 'success' && 'Password Reset'}
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: '#8E8E93' }}>
+                <div className="text-xs mt-0.5" style={{ color: '#4B5563' }}>
                   {flowStep === 'email' && 'Enter your email to receive a reset code'}
                   {flowStep === 'code' && 'Enter the 6-digit code sent to your email'}
                   {flowStep === 'reset' && 'Your new password must be at least 8 characters'}
@@ -184,9 +185,9 @@ export default function AdminLogin() {
                 </div>
               </div>
               <button type="button" onClick={closeFlow}
-                style={{ background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer', color: '#8E8E93', padding: '6px', display: 'flex', borderRadius: 8, transition: 'all 0.15s ease' }}
+                style={{ background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '6px', display: 'flex', borderRadius: 8, transition: 'all 0.15s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#8E8E93'; e.currentTarget.style.transform = 'scale(1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.transform = 'scale(1)'; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
 
@@ -308,9 +309,9 @@ export default function AdminLogin() {
               <div className="text-center mt-4">
                 <button type="button" onClick={closeFlow}
                   className="bg-none border-none p-0 text-xs cursor-pointer font-medium"
-                  style={{ color: '#8E8E93', transition: 'color 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#1C1C1E'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#8E8E93'; }}
+                  style={{ color: '#374151', transition: 'color 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#059669'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; }}
                 >Back to Sign In</button>
               </div>
             )}
