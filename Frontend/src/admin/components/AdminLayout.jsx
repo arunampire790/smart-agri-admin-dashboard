@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import GlobalHeader from './GlobalHeader';
 
 const navItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
   { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
-  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
@@ -15,6 +15,15 @@ const navItems = [
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [robotsOpen, setRobotsOpen] = useState(false);
+  const inRobotsSection = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
+
+  const navClass = (isActive) =>
+    `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+      isActive
+        ? 'glass-active text-primary nav-active-indicator'
+        : 'hover:bg-white/30 hover-text-primary'
+    }`;
 
   return (
     <div className="relative bg-surface text-primary h-screen overflow-hidden flex">
@@ -35,17 +44,53 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex flex-col gap-0.5">
+          {/* Robots dropdown */}
+          <div>
+            <div
+              onClick={() => setRobotsOpen((o) => !o)}
+              className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                inRobotsSection
+                  ? 'glass-active text-primary nav-active-indicator'
+                  : 'hover:bg-white/30 hover-text-primary'
+              }`}
+            >
+              <i className="ph ph-robot text-lg" />
+              <span className="flex-1">Robots</span>
+              <i className={`ph ph-caret-down text-sm transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+            </div>
+            <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div
+                onClick={() => navigate('/admin/robots')}
+                className={`flex items-center gap-2.5 pl-10 pr-4 py-2.5 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                  location.pathname === '/admin/robots'
+                    ? 'glass-active text-primary nav-active-indicator'
+                    : 'hover:bg-white/30 hover-text-primary'
+                }`}
+              >
+                <i className="ph ph-robot text-base" />
+                Robots
+              </div>
+              <div
+                onClick={() => navigate('/admin/sensors')}
+                className={`flex items-center gap-2.5 pl-10 pr-4 py-2.5 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                  location.pathname === '/admin/sensors'
+                    ? 'glass-active text-primary nav-active-indicator'
+                    : 'hover:bg-white/30 hover-text-primary'
+                }`}
+              >
+                <i className="ph ph-radar text-base" />
+                Robot Sensor Details
+              </div>
+            </div>
+          </div>
+
           {navItems.map(({ to, icon, label }) => {
             const isActive = location.pathname === to;
             return (
               <div
                 key={to}
                 onClick={() => navigate(to)}
-                className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
-                  isActive
-                    ? 'glass-active text-primary nav-active-indicator'
-                    : 'hover:bg-white/30 hover-text-primary'
-                }`}
+                className={navClass(isActive)}
               >
                 <i className={`${icon} text-lg`} />
                 {label}
