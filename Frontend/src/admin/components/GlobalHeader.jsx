@@ -25,6 +25,7 @@ export default function GlobalHeader() {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const profileRef = useRef(null);
   const notifRef = useRef(null);
   const searchRef = useRef(null);
@@ -44,8 +45,21 @@ export default function GlobalHeader() {
     return { users: matchedUsers, farms: matchedFarms, robots: matchedRobots, tasks: matchedTasks };
   }, [searchQuery, users, farms, robots, tasks]);
 
+  const flatItems = useMemo(() => {
+    if (!filteredResults) return [];
+    return [...filteredResults.users, ...filteredResults.farms, ...filteredResults.robots, ...filteredResults.tasks];
+  }, [filteredResults]);
+
   const hasAnyResults = filteredResults && Object.values(filteredResults).some((arr) => arr.length > 0);
   const totalCount = filteredResults ? Object.values(filteredResults).reduce((sum, arr) => sum + arr.length, 0) : 0;
+
+  useEffect(() => { setFocusedIndex(-1); }, [searchQuery]);
+
+  useEffect(() => {
+    if (focusedIndex < 0) return;
+    const el = searchRef.current?.querySelector(`[data-search-index="${focusedIndex}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [focusedIndex]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -56,6 +70,25 @@ export default function GlobalHeader() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIndex((prev) => (prev < flatItems.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIndex((prev) => (prev > 0 ? prev - 1 : flatItems.length - 1));
+    } else if (e.key === 'Enter' && focusedIndex >= 0 && focusedIndex < flatItems.length) {
+      e.preventDefault();
+      navigateTo(flatItems[focusedIndex].to);
+    } else if (e.key === 'Escape') {
+      setSearchOpen(false);
+      setSearchQuery('');
+      searchInputRef.current?.blur();
+    }
+  };
+
+  const handleDropdownMouseMove = () => { if (focusedIndex !== -1) setFocusedIndex(-1); };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') { setProfileOpen(false); setNotifOpen(false); setSearchOpen(false); }
@@ -83,7 +116,7 @@ export default function GlobalHeader() {
       <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
           <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />
-          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
+          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
         </div>
 
         {searchOpen && (
@@ -95,24 +128,26 @@ export default function GlobalHeader() {
                 Start typing to search across users, farms, robots, and tasks
               </div>
             ) : hasAnyResults ? (
-              <div className="max-h-80 overflow-y-auto">
-                {Object.entries(filteredResults).map(([cat, items]) => items.length > 0 && (
+              <div className="max-h-80 overflow-y-auto" onMouseMove={handleDropdownMouseMove}>
+                {(() => { let idx = 0; return Object.entries(filteredResults).map(([cat, items]) => items.length > 0 && (
                   <div key={cat}>
                     <div className="px-4 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{cat}</div>
-                    {items.map((item) => (
-                      <button key={item.key} onClick={() => navigateTo(item.to)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') navigateTo(item.to); }}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors"
-                      >
-                        <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm text-primary font-medium truncate">{item.label}</div>
-                          <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
-                        </div>
-                      </button>
-                    ))}
+                    {items.map((item) => {
+                      const ii = idx++;
+                      return (
+                        <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
+                          className={`flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
+                        >
+                          <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-primary font-medium truncate">{item.label}</div>
+                            <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                ))}
+                )); })()}
                 <div className="px-4 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
               </div>
             ) : (
