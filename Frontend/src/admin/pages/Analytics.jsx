@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useRobots } from '../../context/RobotContext';
+import { TrendingUp, CheckCircle, Bot, Sprout } from 'lucide-react';
 
 function useCardGlow() {
   const ref = useRef(null);
@@ -78,10 +79,10 @@ export default function Analytics() {
   ];
 
   const metrics = [
-    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', icon: 'ph-trend-up', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
-    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', icon: 'ph-check-circle', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
-    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', icon: 'ph-robot', iconBg: '#ffebee', iconCls: '#dc2626', glow: 'rgba(239,68,68,0.7)' },
-    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', icon: 'ph-flower', iconBg: '#e8f5e9', iconCls: '#059669', glow: 'rgba(5,150,105,0.7)' },
+    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
+    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
+    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot, iconBg: 'rgba(239,68,68,0.12)', iconColor: '#dc2626', glow: 'rgba(239,68,68,0.7)' },
+    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
   ];
 
   const cx = 60, cy = 60, donutR = 42, donutStroke = 16;
@@ -130,8 +131,8 @@ export default function Analytics() {
                 <div className="text-3xl font-extrabold text-primary mb-1">{item.val}</div>
                 <div className={`text-[10px] leading-relaxed ${item.changeCls}`}>{item.change}</div>
               </div>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: item.iconBg }}>
-                <i className={item.icon} style={{ color: item.iconCls }} />
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: item.iconBg }}>
+                <item.Icon size={18} color={item.iconColor} />
               </div>
             </div>
           </GlowCard>
