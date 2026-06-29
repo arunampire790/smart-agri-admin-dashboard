@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useUsers } from '../../context/UserContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary select-none";
@@ -7,6 +9,7 @@ const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border bord
 
 export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewUser, setViewUser] = useState(null);
@@ -43,6 +46,7 @@ export default function Users() {
     const status = form.status;
     const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : 'bg-danger-bg text-danger-text';
     addUser({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), farms: 0, status, cls, joined: new Date().toISOString().slice(0, 10) });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added User', target: form.name.trim(), details: `Email: ${form.email.trim()}, Status: ${status}` });
     setShowAddModal(false);
   };
 
@@ -51,11 +55,16 @@ export default function Users() {
     if (!validate()) return;
     const status = form.status;
     const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : 'bg-danger-bg text-danger-text';
+    const prevName = editUser.name;
     updateUser(editUser, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), status, cls });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited User', target: form.name.trim(), details: `Name: ${prevName} → ${form.name.trim()}, Status: ${status}` });
     setEditUser(null);
   };
 
-  const handleDelete = () => { removeUser(deleteUser); setDeleteUser(null); };
+  const handleDelete = () => {
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted User', target: deleteUser.name, details: `Email: ${deleteUser.email}` });
+    removeUser(deleteUser); setDeleteUser(null);
+  };
 
   const labelClass = "text-xs font-medium text-primary tracking-wide";
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";

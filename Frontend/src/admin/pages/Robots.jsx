@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
 
@@ -93,6 +95,7 @@ export default function Robots() {
   const { robots, addRobot, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
   const { farms, addFarm, updateFarm } = useFarms();
+  const { currentUser } = useAuth();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [showAddModal, setShowAddModal] = useState(false);
@@ -121,6 +124,7 @@ export default function Robots() {
     const targetFarm = farms.find((f) => f.name === form.farm);
     if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
     else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Model: ${form.model}, Farm: ${form.farm}` });
     setShowAddModal(false);
   };
 
@@ -131,10 +135,14 @@ export default function Robots() {
     const targetFarm = farms.find((f) => f.name === form.farm);
     if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
     else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Status: ${form.status}` });
     setEditRobot(null);
   };
 
-  const handleDelete = () => { removeRobot(deleteRobot); setDeleteRobot(null); };
+  const handleDelete = () => {
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Robot', target: deleteRobot.name, details: `ID: ${deleteRobot.id}` });
+    removeRobot(deleteRobot); setDeleteRobot(null);
+  };
 
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;

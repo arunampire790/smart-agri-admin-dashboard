@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
   { to: '/admin/employees', icon: 'ph-user-list', label: 'Employees' },
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
+  { to: '/admin/activity-log', icon: 'ph-clock-counter-clockwise', label: 'Audit Log' },
 ];
 
 const beforeIdx = 2; // insert Robots dropdown after Analytics (index 1 → before index 2)

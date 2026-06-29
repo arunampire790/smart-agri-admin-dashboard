@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
+import { useAuth } from '../../context/AuthContext';
+import { logActivity } from '../../utils/activityLogger';
 import DatePicker from '../components/DatePicker';
 import UserProfileModal from '../components/UserProfileModal';
 
@@ -23,6 +25,7 @@ export default function Tasks() {
   const addTask = useTaskStore((s) => s.addTask);
   const { users } = useUsers();
   const { farms } = useFarms();
+  const { currentUser } = useAuth();
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [formErrors, setFormErrors] = useState({});
@@ -54,7 +57,18 @@ export default function Tasks() {
       dueDate: form.dueDate,
       status: 'Pending',
     });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Assigned Task', target: form.title.trim(), details: `Assigned to: ${form.assignedTo}, Farm: ${form.farm}, Priority: ${form.priority}` });
     setShowAssignModal(false);
+  };
+
+  const handleStartTask = (task) => {
+    updateTaskStatus(task.id, 'In Progress');
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Started Task', target: task.title, details: `Assigned to: ${task.assignedTo}, Farm: ${task.farm}` });
+  };
+
+  const handleCompleteTask = (task) => {
+    updateTaskStatus(task.id, 'Completed');
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Completed Task', target: task.title, details: `Assigned to: ${task.assignedTo}, Farm: ${task.farm}` });
   };
 
   const totalTasks = tasks.length;
@@ -183,10 +197,10 @@ export default function Tasks() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{task.dueDate}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     {task.status === 'Pending' && (
-                      <button onClick={() => updateTaskStatus(task.id, 'In Progress')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
+                      <button onClick={() => handleStartTask(task)} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
                     )}
                     {task.status === 'In Progress' && (
-                      <button onClick={() => updateTaskStatus(task.id, 'Completed')} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
+                      <button onClick={() => handleCompleteTask(task)} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
                     )}
                     {task.status === 'Completed' && (
                       <span className="text-xs font-medium text-text-secondary">Done</span>
