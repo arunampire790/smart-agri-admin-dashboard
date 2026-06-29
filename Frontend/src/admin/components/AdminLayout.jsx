@@ -61,13 +61,12 @@ export default function AdminLayout() {
           <div>
             <div
               onClick={() => { navigate('/admin/robots'); setRobotsOpen((o) => !o); }}
-              className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+              className={`flex items-center gap-2.5 pl-11 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                 inRobotsSection
                   ? 'glass-active text-primary nav-active-indicator'
                   : 'hover:bg-white/30 hover-text-primary'
               }`}
             >
-              <i className="ph ph-robot text-lg" />
               <span className="flex-1">Robots</span>
               <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
                 className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
