@@ -43,6 +43,9 @@ export default function Analytics() {
   const radialR1 = 90, radialR2 = 68, radialStroke = 14;
   const radialCirc1 = 2 * Math.PI * radialR1;
   const radialCirc2 = 2 * Math.PI * radialR2;
+  const r70 = 70;
+  const circ70 = 2 * Math.PI * r70;
+  const gapDeg = 16;
 
   const handleCropHover = (crop, idx, e) => {
     setHoveredCrop(idx);
@@ -156,48 +159,62 @@ export default function Analytics() {
         {/* Robot Status — Concentric Radial Bar Chart */}
         <div className="radial-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ minHeight: '380px', padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600, color: '#111827' }}>Robot status</div>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '32px', marginBottom: '32px', fontSize: '14px', fontWeight: 500 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6B7280' }}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#10B981' }} /> Active: {active}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6B7280' }}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#F59E0B' }} /> Idle: {idle}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6B7280' }}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#EF4444' }} /> Offline: {offline}
-            </span>
-          </div>
-          <div className="relative" style={{ display: 'flex', justifyContent: 'center' }}>
-            <svg viewBox="0 0 240 240" style={{ width: '240px', height: '240px', margin: '0 auto', display: 'block' }}>
-              <g style={{ transform: 'rotate(-90deg)', transformOrigin: '120px 120px' }}>
-                {radialData.map((d) => (
-                  <g key={d.key}>
-                    <circle cx={rcx} cy={rcy} r={d.r} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
-                    <circle cx={rcx} cy={rcy} r={d.r} fill="none"
-                      stroke={d.color}
-                      strokeDasharray={d.pct > 0 ? `${d.pct * d.circ} ${d.circ}` : `0 ${d.circ}`}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'center', gap: '32px', width: '100%', minHeight: '320px', padding: '24px' }}>
+            <div className="relative" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <svg viewBox="0 0 200 200" style={{ width: '200px', height: '200px', display: 'block' }}>
+                <circle cx={100} cy={100} r={r70} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
+                <g style={{ transform: 'rotate(-90deg)', transformOrigin: '100px 100px' }}>
+                  {activePct > 0 && (
+                    <circle cx={100} cy={100} r={r70} fill="none"
+                      stroke="#10B981" strokeWidth={radialStroke} strokeLinecap="round"
+                      strokeDasharray={`${activePct * circ70} ${circ70}`}
                       strokeDashoffset={0}
-                      strokeLinecap="round"
-                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === d.key ? 18 : radialStroke }}
-                      opacity={hoveredRadial === null || hoveredRadial === d.key ? 1 : 0.25}
-                      onMouseEnter={(e) => handleRadialHover(d.key, e)}
+                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 18 : radialStroke }}
+                      opacity={hoveredRadial === null || hoveredRadial === 'active' ? 1 : 0.25}
+                      onMouseEnter={(e) => handleRadialHover('active', e)}
                       onMouseMove={handleRadialMove}
                       onMouseLeave={() => setHoveredRadial(null)}
                     />
-                  </g>
-                ))}
-              </g>
-              <circle cx={rcx} cy={rcy} r={10} fill="#EF4444"
-                style={{ cursor: 'pointer', transition: 'opacity 0.2s ease, transform 0.2s ease', transform: hoveredRadial === 'offline' ? 'scale(1.25)' : 'scale(1)', transformOrigin: 'center' }}
-                opacity={hoveredRadial === null || hoveredRadial === 'offline' ? 1 : 0.25}
-                onMouseEnter={(e) => handleRadialHover('offline', e)}
-                onMouseMove={handleRadialMove}
-                onMouseLeave={() => setHoveredRadial(null)}
-              />
-            </svg>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-              <div style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500 }}>Total Robots</div>
-              <div style={{ color: '#111827', fontSize: '36px', fontWeight: 800, marginTop: '4px' }}>{total}</div>
+                  )}
+                  {idlePct > 0 && (
+                    <g style={{ transform: `rotate(${activePct * 360 + gapDeg}deg, 100px 100px)` }}>
+                      <circle cx={100} cy={100} r={r70} fill="none"
+                        stroke="#F59E0B" strokeWidth={radialStroke} strokeLinecap="round"
+                        strokeDasharray={`${idlePct * circ70} ${circ70}`}
+                        strokeDashoffset={0}
+                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 18 : radialStroke }}
+                        opacity={hoveredRadial === null || hoveredRadial === 'idle' ? 1 : 0.25}
+                        onMouseEnter={(e) => handleRadialHover('idle', e)}
+                        onMouseMove={handleRadialMove}
+                        onMouseLeave={() => setHoveredRadial(null)}
+                      />
+                    </g>
+                  )}
+                </g>
+              </svg>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
+                <div style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Robots</div>
+                <div style={{ color: '#111827', fontSize: '36px', fontWeight: 800, marginTop: '4px' }}>{total}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+              {[
+                { key: 'active', label: 'Active', count: active, color: '#10B981' },
+                { key: 'idle', label: 'Idle', count: idle, color: '#F59E0B' },
+                { key: 'offline', label: 'Offline', count: offline, color: '#EF4444' },
+              ].map((item) => (
+                <div key={item.key}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s ease', opacity: hoveredRadial === null || hoveredRadial === item.key ? 1 : 0.25 }}
+                  onMouseEnter={() => setHoveredRadial(item.key)}
+                  onMouseLeave={() => setHoveredRadial(null)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: item.color }} />
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563' }}>{item.label}</span>
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{item.count}</span>
+                </div>
+              ))}
             </div>
           </div>
           {hoveredRadial !== null && (
