@@ -219,7 +219,7 @@ export default function Robots() {
               <tr key={i}>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
-                <td className="px-4 py-4 border-b">
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <span onClick={() => { const u = users.find((x) => x.name === r.owner); if (u) setProfileUser(u); }}
                     style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
