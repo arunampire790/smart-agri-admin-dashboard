@@ -64,7 +64,7 @@ export default function AdminLayout() {
                     else { navigate(item.to); }
                   }}
                   className={navClass(isActive)}
-                  style={item.isDropdown ? { justifyContent: 'space-between', width: '100%', paddingLeft: '24px', boxSizing: 'border-box' } : {}}
+                  style={item.isDropdown ? { justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' } : {}}
                 >
                   {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
                   {item.label}
