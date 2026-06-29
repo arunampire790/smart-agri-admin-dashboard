@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import GlobalHeader from './GlobalHeader';
 
 const navItems = [
@@ -17,6 +18,8 @@ const beforeIdx = 2; // insert Robots dropdown after Analytics (index 1 → befo
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const isMasterAdmin = currentUser?.role === 'masterAdmin';
   const [robotsOpen, setRobotsOpen] = useState(false);
   const inRobotsSection = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
 
@@ -84,7 +87,10 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          {navItems.slice(beforeIdx).map(({ to, icon, label }) => (
+          {navItems
+            .slice(beforeIdx)
+            .filter((item) => isMasterAdmin || item.label !== 'Employees')
+            .map(({ to, icon, label }) => (
             <div key={to} onClick={() => navigate(to)} className={navClass(location.pathname === to)}>
               <i className={`${icon} text-lg`} />
               {label}
