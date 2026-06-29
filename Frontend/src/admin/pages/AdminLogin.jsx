@@ -91,8 +91,20 @@ export default function AdminLogin() {
 
   const closeFlow = () => setFlowStep('login');
 
-  const inputClasses = "text-sm px-3.5 py-2.5 rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder";
-  const labelClasses = "text-xs font-medium text-primary";
+  const inputClasses = "text-sm outline-none w-full";
+  const inputStyle = {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: '1px solid rgba(255, 255, 255, 0.6)',
+    background: 'rgba(255, 255, 255, 0.5)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    color: '#1C1C1E',
+    fontSize: 14,
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  };
+  const labelClasses = "text-xs font-medium mb-1";
+  const labelStyle = { color: '#6B7280' };
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center relative overflow-hidden">
@@ -137,19 +149,29 @@ export default function AdminLogin() {
 
       {/* Forgot Password Flow Overlay */}
       {flowStep !== 'login' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={closeFlow}>
-          <div className="glass-card rounded-2xl p-8 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
-            style={{ borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.6)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={closeFlow}>
+          <div className="relative z-10 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'rgba(255, 255, 255, 0.5)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.6)',
+              borderRadius: 24,
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
+              maxHeight: 'calc(100vh - 40px)',
+              overflowY: 'auto',
+              padding: 32,
+            }}>
 
             <div className="flex items-center justify-between mb-6">
               <div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-lg font-bold" style={{ color: '#1C1C1E' }}>
                   {flowStep === 'email' && 'Reset Password'}
                   {flowStep === 'code' && 'Check Your Email'}
                   {flowStep === 'reset' && 'Create New Password'}
                   {flowStep === 'success' && 'Password Reset'}
                 </div>
-                <div className="text-xs text-text-secondary mt-0.5">
+                <div className="text-xs mt-0.5" style={{ color: '#8E8E93' }}>
                   {flowStep === 'email' && 'Enter your email to receive a reset code'}
                   {flowStep === 'code' && 'Enter the 6-digit code sent to your email'}
                   {flowStep === 'reset' && 'Your new password must be at least 8 characters'}
@@ -157,9 +179,9 @@ export default function AdminLogin() {
                 </div>
               </div>
               <button type="button" onClick={closeFlow}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+                style={{ background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer', color: '#8E8E93', padding: '6px', display: 'flex', borderRadius: 8, transition: 'all 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#8E8E93'; e.currentTarget.style.transform = 'scale(1)'; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
 
@@ -167,12 +189,19 @@ export default function AdminLogin() {
             {flowStep === 'email' && (
               <div>
                 <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses}>Email Address</label>
+                  <label className={labelClasses} style={labelStyle}>Email Address</label>
                   <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="Enter your email" className={inputClasses} />
+                    placeholder="Enter your email" className={inputClasses}
+                    style={inputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()}
-                  className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
                 >Send Code</button>
               </div>
             )}
@@ -180,29 +209,42 @@ export default function AdminLogin() {
             {/* Step 3 — Enter Code */}
             {flowStep === 'code' && (
               <div>
-                <div className="mb-4 p-3 rounded-xl bg-[#D1FAE5] text-xs text-[#065F46] border border-[#A7F3D0]">
+                <div className="mb-4 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(16,185,129,0.08)', color: '#065F46', border: '1px solid rgba(16,185,129,0.15)' }}>
                   A verification code has been sent to <strong>{resetEmail || 'your email'}</strong>.
                 </div>
-                <div className="mb-5 p-3 rounded-xl bg-[#7676801F] text-xs text-text-secondary text-center">
-                  Demo Code: <strong className="text-primary tracking-wider text-sm">{generatedCode}</strong>
+                <div className="mb-5 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.35)', color: '#8E8E93' }}>
+                  Demo Code: <strong style={{ color: '#1C1C1E' }} className="tracking-wider text-sm">{generatedCode}</strong>
                 </div>
                 <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses}>Verification Code</label>
+                  <label className={labelClasses} style={labelStyle}>Verification Code</label>
                   <div className="flex justify-center gap-2">
                     {codeDigits.map((digit, i) => (
                       <input key={i} type="text" inputMode="numeric" maxLength={1} value={digit}
                         ref={(el) => { codeInputRefs.current[i] = el; }}
                         onChange={(e) => handleDigitChange(i, e.target.value)}
                         onKeyDown={(e) => handleDigitKeyDown(i, e)}
-                        className="w-10 h-12 text-center text-sm font-semibold rounded-xl bg-[#7676801F] outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)]"
-                        style={{ color: '#111827' }}
+                        className="w-10 h-12 text-center text-sm font-semibold outline-none"
+                        style={{
+                          borderRadius: 12,
+                          border: '1px solid rgba(255,255,255,0.6)',
+                          background: 'rgba(255,255,255,0.5)',
+                          backdropFilter: 'blur(8px)',
+                          WebkitBackdropFilter: 'blur(8px)',
+                          color: '#1C1C1E',
+                          transition: 'border-color 0.2s, box-shadow 0.2s',
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
                       />
                     ))}
                   </div>
-                  {codeError && <span className="text-xs text-[#DC2626] text-center mt-1">{codeError}</span>}
+                  {codeError && <span className="text-xs text-center mt-1" style={{ color: '#DC2626' }}>{codeError}</span>}
                 </div>
                 <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)}
-                  className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
                 >Verify Code</button>
               </div>
             )}
@@ -211,18 +253,29 @@ export default function AdminLogin() {
             {flowStep === 'reset' && (
               <div>
                 <div className="flex flex-col gap-1.5 mb-3">
-                  <label className={labelClasses}>New Password</label>
+                  <label className={labelClasses} style={labelStyle}>New Password</label>
                   <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password" className={inputClasses} />
+                    placeholder="Enter new password" className={inputClasses}
+                    style={inputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses}>Confirm New Password</label>
+                  <label className={labelClasses} style={labelStyle}>Confirm New Password</label>
                   <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password" className={inputClasses} />
-                  {passwordError && <span className="text-xs text-[#DC2626] mt-1">{passwordError}</span>}
+                    placeholder="Confirm new password" className={inputClasses}
+                    style={inputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+                  />
+                  {passwordError && <span className="text-xs mt-1" style={{ color: '#DC2626' }}>{passwordError}</span>}
                 </div>
                 <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword}
-                  className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
                 >Reset Password</button>
               </div>
             )}
@@ -231,15 +284,18 @@ export default function AdminLogin() {
             {flowStep === 'success' && (
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-full bg-[#D1FAE5] flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)' }}>
                     <i className="ph ph-check text-2xl" style={{ color: '#10B981' }} />
                   </div>
                 </div>
-                <div className="text-sm text-text-secondary mb-6">
+                <div className="text-sm mb-6" style={{ color: '#8E8E93' }}>
                   Your password has been reset successfully. You can now sign in with your new password.
                 </div>
                 <button type="button" onClick={closeFlow}
-                  className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90"
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer"
+                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
                 >Back to Sign In</button>
               </div>
             )}
@@ -248,7 +304,10 @@ export default function AdminLogin() {
             {flowStep !== 'success' && (
               <div className="text-center mt-4">
                 <button type="button" onClick={closeFlow}
-                  className="bg-none border-none p-0 text-xs text-text-secondary cursor-pointer hover:text-primary transition-colors"
+                  className="bg-none border-none p-0 text-xs cursor-pointer font-medium"
+                  style={{ color: '#8E8E93', transition: 'color 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#1C1C1E'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#8E8E93'; }}
                 >Back to Sign In</button>
               </div>
             )}
