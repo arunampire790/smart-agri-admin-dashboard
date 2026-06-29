@@ -39,14 +39,6 @@ export default function Analytics() {
     return seg;
   });
 
-  const rcx = 120, rcy = 120;
-  const radialR1 = 90, radialR2 = 68, radialStroke = 14;
-  const radialCirc1 = 2 * Math.PI * radialR1;
-  const radialCirc2 = 2 * Math.PI * radialR2;
-  const r70 = 70;
-  const circ70 = 2 * Math.PI * r70;
-  const gapDeg = 16;
-
   const handleCropHover = (crop, idx, e) => {
     setHoveredCrop(idx);
     const rect = e.currentTarget.closest('.crop-card').getBoundingClientRect();
@@ -65,11 +57,6 @@ export default function Analytics() {
       setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
     }
   };
-
-  const radialData = [
-    { key: 'active', label: 'Active', count: active, pct: activePct, color: '#10B981', r: radialR1, circ: radialCirc1 },
-    { key: 'idle', label: 'Idle', count: idle, pct: idlePct, color: '#F59E0B', r: radialR2, circ: radialCirc2 },
-  ];
 
   return (
     <>
@@ -98,11 +85,11 @@ export default function Analytics() {
 
       <div className="grid grid-cols-2 gap-4">
         {/* Crop Distribution — SVG Donut Chart */}
-        <div className="crop-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ minHeight: '380px', padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600, color: '#111827' }}>Crop distribution</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'center', gap: '48px', width: '100%' }}>
+        <div className="crop-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ minHeight: 'auto', height: '240px', padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600, color: '#111827' }}>Crop distribution</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: '20px', width: '100%', flex: 1, minHeight: 0 }}>
             <div className="relative shrink-0" style={{ justifySelf: 'center' }}>
-              <svg viewBox="0 0 120 120" style={{ width: '220px', height: '220px', display: 'block' }}>
+              <svg viewBox="0 0 120 120" style={{ width: '130px', height: '130px', display: 'block' }}>
                 <g style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}>
                   {donutSegments.map((seg, i) => (
                     <g key={seg.label}
@@ -124,22 +111,22 @@ export default function Analytics() {
                 </g>
               </svg>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-                <div style={{ color: '#6B7280', fontSize: '14px', fontWeight: 500, letterSpacing: '0.02em' }}>Total Crops</div>
-                <div style={{ color: '#111827', fontSize: '32px', fontWeight: 800, marginTop: '6px' }}>100%</div>
+                <div style={{ color: '#6B7280', fontSize: '11px', fontWeight: 500 }}>Total Crops</div>
+                <div style={{ color: '#111827', fontSize: '20px', fontWeight: 800, marginTop: '2px' }}>100%</div>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
               {crops.map((crop, i) => (
                 <div key={crop.label}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '6px', transition: 'background 0.15s ease', cursor: 'pointer', opacity: hoveredCrop === null || hoveredCrop === i ? 1 : 0.3 }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', borderRadius: '4px', transition: 'background 0.15s ease', cursor: 'pointer', opacity: hoveredCrop === null || hoveredCrop === i ? 1 : 0.3 }}
                   onMouseEnter={() => setHoveredCrop(i)}
                   onMouseLeave={() => setHoveredCrop(null)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: crop.color }} />
-                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563' }}>{crop.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: crop.color }} />
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: '#4B5563' }}>{crop.label}</span>
                   </div>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{crop.pct}%</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>{crop.pct}%</span>
                 </div>
               ))}
             </div>
@@ -157,19 +144,19 @@ export default function Analytics() {
         </div>
 
         {/* Robot Status — Concentric Radial Bar Chart */}
-        <div className="radial-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ minHeight: '380px', padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600, color: '#111827' }}>Robot status</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', alignItems: 'center', gap: '32px', width: '100%', minHeight: '320px', padding: '24px' }}>
+        <div className="radial-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ minHeight: 'auto', height: '240px', padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600, color: '#111827' }}>Robot status</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: '16px', width: '100%', flex: 1, minHeight: 0 }}>
             <div className="relative" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <svg viewBox="0 0 200 200" style={{ width: '200px', height: '200px', display: 'block' }}>
-                <circle cx={100} cy={100} r={r70} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
+              <svg viewBox="0 0 200 200" style={{ width: '130px', height: '130px', display: 'block' }}>
+                <circle cx={100} cy={100} r={55} fill="none" stroke="#F3F4F6" strokeWidth={12} />
                 <g style={{ transform: 'rotate(-90deg)', transformOrigin: '100px 100px' }}>
                   {activePct > 0 && (
-                    <circle cx={100} cy={100} r={r70} fill="none"
-                      stroke="#10B981" strokeWidth={radialStroke} strokeLinecap="round"
-                      strokeDasharray={`${activePct * circ70} ${circ70}`}
+                    <circle cx={100} cy={100} r={55} fill="none"
+                      stroke="#10B981" strokeWidth={12} strokeLinecap="round"
+                      strokeDasharray={`${activePct * 2 * Math.PI * 55} ${2 * Math.PI * 55}`}
                       strokeDashoffset={0}
-                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 18 : radialStroke }}
+                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 15 : 12 }}
                       opacity={hoveredRadial === null || hoveredRadial === 'active' ? 1 : 0.25}
                       onMouseEnter={(e) => handleRadialHover('active', e)}
                       onMouseMove={handleRadialMove}
@@ -177,12 +164,12 @@ export default function Analytics() {
                     />
                   )}
                   {idlePct > 0 && (
-                    <g style={{ transform: `rotate(${activePct * 360 + gapDeg}deg, 100px 100px)` }}>
-                      <circle cx={100} cy={100} r={r70} fill="none"
-                        stroke="#F59E0B" strokeWidth={radialStroke} strokeLinecap="round"
-                        strokeDasharray={`${idlePct * circ70} ${circ70}`}
+                    <g style={{ transform: `rotate(${activePct * 360 + 16}deg, 100px 100px)` }}>
+                      <circle cx={100} cy={100} r={55} fill="none"
+                        stroke="#F59E0B" strokeWidth={12} strokeLinecap="round"
+                        strokeDasharray={`${idlePct * 2 * Math.PI * 55} ${2 * Math.PI * 55}`}
                         strokeDashoffset={0}
-                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 18 : radialStroke }}
+                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 15 : 12 }}
                         opacity={hoveredRadial === null || hoveredRadial === 'idle' ? 1 : 0.25}
                         onMouseEnter={(e) => handleRadialHover('idle', e)}
                         onMouseMove={handleRadialMove}
@@ -193,26 +180,26 @@ export default function Analytics() {
                 </g>
               </svg>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-                <div style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Robots</div>
-                <div style={{ color: '#111827', fontSize: '36px', fontWeight: 800, marginTop: '4px' }}>{total}</div>
+                <div style={{ color: '#6B7280', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Robots</div>
+                <div style={{ color: '#111827', fontSize: '22px', fontWeight: 800, marginTop: '2px' }}>{total}</div>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
               {[
                 { key: 'active', label: 'Active', count: active, color: '#10B981' },
                 { key: 'idle', label: 'Idle', count: idle, color: '#F59E0B' },
                 { key: 'offline', label: 'Offline', count: offline, color: '#EF4444' },
               ].map((item) => (
                 <div key={item.key}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s ease', opacity: hoveredRadial === null || hoveredRadial === item.key ? 1 : 0.25 }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.15s ease', opacity: hoveredRadial === null || hoveredRadial === item.key ? 1 : 0.25 }}
                   onMouseEnter={() => setHoveredRadial(item.key)}
                   onMouseLeave={() => setHoveredRadial(null)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: item.color }} />
-                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#4B5563' }}>{item.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: item.color }} />
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: '#4B5563' }}>{item.label}</span>
                   </div>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{item.count}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>{item.count}</span>
                 </div>
               ))}
             </div>
