@@ -12,6 +12,8 @@ const navItems = [
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
 
+const beforeIdx = 2; // insert Robots dropdown after Analytics (index 1 → before index 2)
+
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +46,13 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex flex-col gap-0.5">
+          {navItems.slice(0, beforeIdx).map(({ to, icon, label }) => (
+            <div key={to} onClick={() => navigate(to)} className={navClass(location.pathname === to)}>
+              <i className={`${icon} text-lg`} />
+              {label}
+            </div>
+          ))}
+
           {/* Robots dropdown */}
           <div>
             <div
@@ -56,47 +65,40 @@ export default function AdminLayout() {
             >
               <i className="ph ph-robot text-lg" />
               <span className="flex-1">Robots</span>
-              <i className={`ph ph-caret-down text-sm transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+              <i className={`ph ph-caret-down text-xs transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
             </div>
             <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div
                 onClick={() => navigate('/admin/robots')}
-                className={`flex items-center gap-2.5 pl-10 pr-4 py-2.5 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                className={`flex items-center gap-2.5 pl-12 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                   location.pathname === '/admin/robots'
                     ? 'glass-active text-primary nav-active-indicator'
                     : 'hover:bg-white/30 hover-text-primary'
                 }`}
               >
-                <i className="ph ph-robot text-base" />
+                <i className="ph ph-robot text-sm" />
                 Robots
               </div>
               <div
                 onClick={() => navigate('/admin/sensors')}
-                className={`flex items-center gap-2.5 pl-10 pr-4 py-2.5 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+                className={`flex items-center gap-2.5 pl-12 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                   location.pathname === '/admin/sensors'
                     ? 'glass-active text-primary nav-active-indicator'
                     : 'hover:bg-white/30 hover-text-primary'
                 }`}
               >
-                <i className="ph ph-radar text-base" />
+                <i className="ph ph-radar text-sm" />
                 Robot Sensor Details
               </div>
             </div>
           </div>
 
-          {navItems.map(({ to, icon, label }) => {
-            const isActive = location.pathname === to;
-            return (
-              <div
-                key={to}
-                onClick={() => navigate(to)}
-                className={navClass(isActive)}
-              >
-                <i className={`${icon} text-lg`} />
-                {label}
-              </div>
-            );
-          })}
+          {navItems.slice(beforeIdx).map(({ to, icon, label }) => (
+            <div key={to} onClick={() => navigate(to)} className={navClass(location.pathname === to)}>
+              <i className={`${icon} text-lg`} />
+              {label}
+            </div>
+          ))}
         </nav>
 
         <div className="mt-auto px-4 py-4 border-t border-white/30">
