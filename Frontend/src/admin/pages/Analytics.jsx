@@ -16,7 +16,7 @@ export default function Analytics() {
 
   const crops = [
     { label: 'Wheat', pct: 25, color: '#10B981' },
-    { label: 'Others', pct: 22, color: '#34D399' },
+    { label: 'Others', pct: 22, color: '#A7F3D0' },
     { label: 'Corn', pct: 20, color: '#F59E0B' },
     { label: 'Soybeans', pct: 18, color: '#6366F1' },
     { label: 'Rice', pct: 15, color: '#EC4899' },
@@ -39,7 +39,7 @@ export default function Analytics() {
     return seg;
   });
 
-  const radialR1 = 40, radialR2 = 28, radialStroke = 12;
+  const radialR1 = 40, radialR2 = 28, radialStroke = 14;
   const radialCirc1 = 2 * Math.PI * radialR1;
   const radialCirc2 = 2 * Math.PI * radialR2;
 
@@ -89,13 +89,13 @@ export default function Analytics() {
         {/* Crop Distribution — SVG Donut Chart */}
         <div className="crop-card relative rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div className="text-sm font-semibold text-primary mb-4">Crop distribution</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', gap: '28px' }}>
             <div className="relative shrink-0">
               <svg viewBox="0 0 120 120" className="w-32 h-32">
                 <g style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}>
                   {donutSegments.map((seg, i) => (
                     <g key={seg.label}
-                      style={{ transformOrigin: '60px 60px', transition: 'transform 0.15s ease', cursor: 'pointer' }}
+                      style={{ transformOrigin: '60px 60px', transition: 'transform 0.2s ease-out', cursor: 'pointer' }}
                       onMouseEnter={(e) => handleCropHover(seg, i, e)}
                       onMouseLeave={() => setHoveredCrop(null)}
                     >
@@ -106,15 +106,15 @@ export default function Analytics() {
                         strokeDashoffset={seg.offset}
                         strokeLinecap="round"
                         opacity={hoveredCrop === null || hoveredCrop === i ? 1 : 0.4}
-                        style={{ transform: hoveredCrop === i ? 'scale(1.05)' : 'scale(1)', transformOrigin: '60px 60px', transition: 'transform 0.15s ease, opacity 0.15s ease' }}
+                        style={{ transform: hoveredCrop === i ? 'scale(1.03)' : 'scale(1)', transformOrigin: '60px 60px', transition: 'transform 0.2s ease-out, opacity 0.2s ease', filter: hoveredCrop === i ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' : 'none' }}
                       />
                     </g>
                   ))}
                 </g>
               </svg>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-                <div style={{ color: '#6B7280', fontSize: '12px', fontWeight: 500 }}>Total Crops</div>
-                <div style={{ color: '#111827', fontSize: '22px', fontWeight: 700, marginTop: '4px' }}>100%</div>
+                <div style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500 }}>Total Crops</div>
+                <div style={{ color: '#111827', fontSize: '24px', fontWeight: 700, marginTop: '4px' }}>100%</div>
               </div>
             </div>
             <table className="flex-1" style={{ borderCollapse: 'collapse' }}>
@@ -136,10 +136,13 @@ export default function Analytics() {
             </table>
           </div>
           {hoveredCrop !== null && (
-            <div style={{ position: 'absolute', top: `${tooltipPos.y - 40}px`, left: `${tooltipPos.x - 60}px`, background: '#1f2937', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: crops[hoveredCrop].color, marginRight: '8px', verticalAlign: 'middle' }} />
-              {crops[hoveredCrop].label}
-              <span style={{ fontWeight: 700, marginLeft: '6px' }}>{crops[hoveredCrop].pct}%</span>
+            <div style={{ position: 'absolute', top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 70}px`, background: '#FFFFFF', borderRadius: '8px', padding: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #E5E7EB', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: crops[hoveredCrop].color }} />
+                <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{crops[hoveredCrop].label}</span>
+              </div>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', marginLeft: '16px' }}>{crops[hoveredCrop].pct}%</div>
+              <div style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '16px', marginTop: '2px' }}>of total crop area</div>
             </div>
           )}
         </div>
@@ -163,22 +166,20 @@ export default function Analytics() {
               <g style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}>
                 {radialData.map((d) => (
                   <g key={d.key}>
-                    <circle cx={cx} cy={cy} r={d.r} fill="none" stroke="#E5E7EB" strokeWidth={radialStroke} />
+                    <circle cx={cx} cy={cy} r={d.r} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
                     <circle cx={cx} cy={cy} r={d.r} fill="none"
                       stroke={d.color}
-                      strokeWidth={radialStroke}
                       strokeDasharray={d.pct > 0 ? `${d.pct * d.circ} ${d.circ}` : `0 ${d.circ}`}
                       strokeDashoffset={0}
                       strokeLinecap="round"
-                      style={{ cursor: 'pointer', transition: 'stroke-width 0.15s ease, opacity 0.15s ease' }}
+                      style={{ cursor: 'pointer', transition: 'stroke-width 0.15s ease, opacity 0.15s ease', strokeWidth: hoveredRadial === d.key ? radialStroke + 3 : radialStroke }}
                       opacity={hoveredRadial === null || hoveredRadial === d.key ? 1 : 0.4}
-                      strokeWidth={hoveredRadial === d.key ? radialStroke + 2 : radialStroke}
                       onMouseEnter={(e) => handleRadialHover(d.key, e)}
                       onMouseLeave={() => setHoveredRadial(null)}
                     />
                   </g>
                 ))}
-                <circle cx={cx} cy={cy} r={16} fill="none" stroke="#E5E7EB" strokeWidth={10} />
+                <circle cx={cx} cy={cy} r={16} fill="none" stroke="#F3F4F6" strokeWidth={14} />
               </g>
               <circle cx={cx} cy={cy} r={6} fill="#EF4444" style={{ cursor: 'pointer', transition: 'opacity 0.15s ease' }}
                 opacity={hoveredRadial === null || hoveredRadial === 'offline' ? 1 : 0.4}
@@ -187,15 +188,42 @@ export default function Analytics() {
               />
             </svg>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-              <div style={{ color: '#6B7280', fontSize: '11px', fontWeight: 500 }}>Total Robots</div>
-              <div style={{ color: '#111827', fontSize: '24px', fontWeight: 800, marginTop: '2px' }}>{total}</div>
+              <div style={{ color: '#6B7280', fontSize: '12px', fontWeight: 500 }}>Total Robots</div>
+              <div style={{ color: '#111827', fontSize: '28px', fontWeight: 800, marginTop: '2px' }}>{total}</div>
             </div>
           </div>
           {hoveredRadial !== null && (
-            <div style={{ position: 'absolute', top: `${tooltipPos.y - 40}px`, left: `${tooltipPos.x - 80}px`, background: '#1f2937', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-              {hoveredRadial === 'active' && <><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', marginRight: '8px', verticalAlign: 'middle' }} />Active: {active} robot{active !== 1 ? 's' : ''} ({Math.round(activePct * 100)}%)</>}
-              {hoveredRadial === 'idle' && <><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B', marginRight: '8px', verticalAlign: 'middle' }} />Idle: {idle} robot{idle !== 1 ? 's' : ''} ({Math.round(idlePct * 100)}%)</>}
-              {hoveredRadial === 'offline' && <><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444', marginRight: '8px', verticalAlign: 'middle' }} />Offline: {offline} robot{offline !== 1 ? 's' : ''}</>}
+            <div style={{ position: 'absolute', top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 90}px`, background: '#FFFFFF', borderRadius: '8px', padding: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #E5E7EB', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap' }}>
+              {hoveredRadial === 'active' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Active</span>
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', marginLeft: '16px' }}>{active}</div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '16px', marginTop: '2px' }}>{Math.round(activePct * 100)}% of fleet deployed</div>
+                </div>
+              )}
+              {hoveredRadial === 'idle' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} />
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Idle</span>
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', marginLeft: '16px' }}>{idle}</div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '16px', marginTop: '2px' }}>Status: Cooldown</div>
+                </div>
+              )}
+              {hoveredRadial === 'offline' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} />
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Offline</span>
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', marginLeft: '16px' }}>{offline}</div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '16px', marginTop: '2px' }}>No connection</div>
+                </div>
+              )}
             </div>
           )}
         </div>
