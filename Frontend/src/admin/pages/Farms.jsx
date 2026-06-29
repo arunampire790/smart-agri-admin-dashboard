@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
-import { MapPin, Globe, Sprout, Bot } from 'lucide-react';
+import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity } from 'lucide-react';
 
 function useCardGlow() {
   const ref = useRef(null);
@@ -284,9 +285,9 @@ export default function Farms() {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
           <div
-            className="w-[440px] max-w-[calc(100vw-32px)] p-8 max-h-[calc(100vh-40px)] overflow-y-auto"
+            className="w-[560px] max-w-[calc(100vw-32px)] p-8 max-h-[calc(100vh-40px)] overflow-y-auto"
             style={{
               background: 'rgba(255, 255, 255, 0.96)',
               border: '1px solid rgba(229, 231, 235, 0.5)',
@@ -311,71 +312,91 @@ export default function Farms() {
 
             <form onSubmit={handleAdd}>
               <div className="space-y-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Farm Name <span style={{ color: '#DC2626' }}>*</span></label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., Green Valley Farm"
-                    style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                  />
-                  {errors.name && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.name}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Location <span style={{ color: '#DC2626' }}>*</span></label>
-                  <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g., California, USA"
-                    style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                  />
-                  {errors.location && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.location}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Owner <span style={{ color: '#DC2626' }}>*</span></label>
-                  <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select an owner" />
-                  {errors.owner && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.owner}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Crop Types</label>
-                  <input value={form.cropTypes} onChange={(e) => setForm({ ...form, cropTypes: e.target.value })} placeholder="e.g., Wheat, Barley"
-                    style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Total Acreage</label>
-                  <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })} placeholder="e.g., 120"
-                    style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Connected Devices</label>
-                  <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0"
-                    style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={labelStyle}>Status <span style={{ color: '#DC2626' }}>*</span></label>
-                  <div className="flex gap-2">
-                    {statusOpts.map((opt) => (
-                      <button key={opt} type="button"
-                        onClick={() => setForm({ ...form, status: opt })}
-                        style={{
-                          flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer',
-                          border: form.status === opt ? '2px solid #10B981' : '1px solid #D1D5DB',
-                          background: form.status === opt ? 'rgba(16,185,129,0.1)' : '#FFFFFF',
-                          color: form.status === opt ? '#059669' : '#4B5563',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
-                        onMouseLeave={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; } }}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                    <Sprout size={15} style={{ color: '#10B981' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Information</span>
                   </div>
-                  {errors.status && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.status}</span>}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Home size={12} style={{ color: '#9CA3AF' }} /> Farm Name
+                      </div>
+                      <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., Green Valley Farm"
+                        style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                      {errors.name && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.name}</span>}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <MapPin size={12} style={{ color: '#9CA3AF' }} /> Location
+                      </div>
+                      <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g., California, USA"
+                        style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                      {errors.location && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.location}</span>}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <User size={12} style={{ color: '#9CA3AF' }} /> Owner
+                      </div>
+                      <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select an owner" />
+                      {errors.owner && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.owner}</span>}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Sprout size={12} style={{ color: '#9CA3AF' }} /> Crop Types
+                      </div>
+                      <input value={form.cropTypes} onChange={(e) => setForm({ ...form, cropTypes: e.target.value })} placeholder="e.g., Wheat, Barley"
+                        style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
+                      </div>
+                      <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })} placeholder="e.g., 120"
+                        style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Wifi size={12} style={{ color: '#9CA3AF' }} /> Connected Devices
+                      </div>
+                      <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0"
+                        style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Activity size={12} style={{ color: '#9CA3AF' }} /> Status
+                      </div>
+                      <div className="flex gap-2">
+                        {statusOpts.map((opt) => (
+                          <button key={opt} type="button"
+                            onClick={() => setForm({ ...form, status: opt })}
+                            style={{ flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer',
+                              border: form.status === opt ? '2px solid #10B981' : '1px solid #D1D5DB',
+                              background: form.status === opt ? 'rgba(16,185,129,0.1)' : '#FFFFFF',
+                              color: form.status === opt ? '#059669' : '#4B5563',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
+                            onMouseLeave={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; } }}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                      {errors.status && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.status}</span>}
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowAddModal(false)}
-                  style={{
-                    background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563',
+                  style={{ background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563',
                     fontWeight: 500, borderRadius: '8px', cursor: 'pointer',
                     transition: 'all 0.15s ease', padding: '8px 16px', fontSize: '13px',
                   }}
@@ -387,8 +408,7 @@ export default function Farms() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{
-                    background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
+                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
                     padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s ease',
                     border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
                   }}
@@ -397,7 +417,7 @@ export default function Farms() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                 >
-                  <i className="ph ph-plus" /> Add Farm
+                  <i className="ph ph-check" /> Add Farm
                 </button>
               </div>
             </form>
