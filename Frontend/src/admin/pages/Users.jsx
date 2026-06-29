@@ -361,22 +361,17 @@ export default function Users() {
 
       {/* Delete User Modal */}
       {deleteUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setDeleteUser(null)}>
-          <div className="w-[400px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-bold text-primary">Delete User?</div>
-              <button type="button" onClick={() => setDeleteUser(null)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                <i className="ph ph-x" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteUser(null)}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <div className="text-lg font-bold text-primary mb-2">Delete User?</div>
             <div className="text-sm text-text-secondary mb-6">
               Are you sure you want to delete <strong className="text-primary font-medium">{deleteUser.name}</strong>? This action cannot be undone.
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteUser(null)} className="flex-1 text-sm px-4 py-2.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80">
-                Cancel
-              </button>
-              <button onClick={handleDelete} className="flex-1 bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(220,38,38,0.3)]">
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteUser(null)}
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]"
+              >Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
                 <i className="ph ph-trash" /> Delete
               </button>
             </div>
