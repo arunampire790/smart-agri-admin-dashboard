@@ -39,7 +39,8 @@ export default function Analytics() {
     return seg;
   });
 
-  const radialR1 = 40, radialR2 = 28, radialStroke = 16;
+  const rcx = 120, rcy = 120;
+  const radialR1 = 90, radialR2 = 68, radialStroke = 14;
   const radialCirc1 = 2 * Math.PI * radialR1;
   const radialCirc2 = 2 * Math.PI * radialR2;
 
@@ -53,6 +54,13 @@ export default function Analytics() {
     setHoveredRadial(key);
     const rect = e.currentTarget.closest('.radial-card').getBoundingClientRect();
     setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
+  };
+
+  const handleRadialMove = (e) => {
+    if (hoveredRadial !== null) {
+      const rect = e.currentTarget.closest('.radial-card').getBoundingClientRect();
+      setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
+    }
   };
 
   const radialData = [
@@ -160,28 +168,30 @@ export default function Analytics() {
             </span>
           </div>
           <div className="relative" style={{ display: 'flex', justifyContent: 'center' }}>
-            <svg viewBox="0 0 120 120" style={{ width: '220px', height: '220px', margin: '0 auto', display: 'block' }}>
-              <g style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}>
+            <svg viewBox="0 0 240 240" style={{ width: '240px', height: '240px', margin: '0 auto', display: 'block' }}>
+              <g style={{ transform: 'rotate(-90deg)', transformOrigin: '120px 120px' }}>
                 {radialData.map((d) => (
                   <g key={d.key}>
-                    <circle cx={cx} cy={cy} r={d.r} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
-                    <circle cx={cx} cy={cy} r={d.r} fill="none"
+                    <circle cx={rcx} cy={rcy} r={d.r} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
+                    <circle cx={rcx} cy={rcy} r={d.r} fill="none"
                       stroke={d.color}
                       strokeDasharray={d.pct > 0 ? `${d.pct * d.circ} ${d.circ}` : `0 ${d.circ}`}
                       strokeDashoffset={0}
                       strokeLinecap="round"
-                      style={{ cursor: 'pointer', transition: 'stroke-width 0.15s ease, opacity 0.15s ease', strokeWidth: hoveredRadial === d.key ? radialStroke + 3 : radialStroke }}
-                      opacity={hoveredRadial === null || hoveredRadial === d.key ? 1 : 0.3}
+                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === d.key ? 18 : radialStroke }}
+                      opacity={hoveredRadial === null || hoveredRadial === d.key ? 1 : 0.25}
                       onMouseEnter={(e) => handleRadialHover(d.key, e)}
+                      onMouseMove={handleRadialMove}
                       onMouseLeave={() => setHoveredRadial(null)}
                     />
                   </g>
                 ))}
-                <circle cx={cx} cy={cy} r={16} fill="none" stroke="#F3F4F6" strokeWidth={radialStroke} />
               </g>
-              <circle cx={cx} cy={cy} r={6} fill="#EF4444" style={{ cursor: 'pointer', transition: 'opacity 0.15s ease' }}
-                opacity={hoveredRadial === null || hoveredRadial === 'offline' ? 1 : 0.3}
+              <circle cx={rcx} cy={rcy} r={10} fill="#EF4444"
+                style={{ cursor: 'pointer', transition: 'opacity 0.2s ease, transform 0.2s ease', transform: hoveredRadial === 'offline' ? 'scale(1.25)' : 'scale(1)', transformOrigin: 'center' }}
+                opacity={hoveredRadial === null || hoveredRadial === 'offline' ? 1 : 0.25}
                 onMouseEnter={(e) => handleRadialHover('offline', e)}
+                onMouseMove={handleRadialMove}
                 onMouseLeave={() => setHoveredRadial(null)}
               />
             </svg>
@@ -191,7 +201,7 @@ export default function Analytics() {
             </div>
           </div>
           {hoveredRadial !== null && (
-            <div style={{ position: 'absolute', top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 90}px`, background: '#FFFFFF', borderRadius: '8px', padding: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #E5E7EB', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap' }}>
+            <div style={{ position: 'absolute', zIndex: 100, top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 90}px`, background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '10px 14px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
               {hoveredRadial === 'active' && (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
