@@ -24,7 +24,7 @@ export default function AdminLayout() {
   const inRobotsSection = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
 
   const navClass = (isActive) =>
-    `flex items-center gap-2.5 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
+    `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
       isActive
         ? 'glass-active text-primary nav-active-indicator'
         : 'hover:bg-white/30 hover-text-primary'
@@ -64,7 +64,7 @@ export default function AdminLayout() {
                     else { navigate(item.to); }
                   }}
                   className={navClass(isActive)}
-                  style={{ padding: '10px 16px 10px 24px', justifyContent: item.isDropdown ? 'space-between' : 'flex-start', width: '100%', boxSizing: 'border-box' }}
+                  style={item.isDropdown ? { justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' } : {}}
                 >
                   {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
                   <span style={{ marginLeft: 0, paddingLeft: 0, fontSize: '14px', fontWeight: 500 }}>{item.label}</span>
