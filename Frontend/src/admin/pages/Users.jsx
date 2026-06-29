@@ -114,7 +114,7 @@ export default function Users() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{u.joined}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     <div className="flex gap-3 items-center">
-                      <button title="View" onClick={() => openView(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                      <button title="View" onClick={() => setProfileUser(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-eye" />
                       </button>
                       <button title="Edit" onClick={() => openEdit(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
