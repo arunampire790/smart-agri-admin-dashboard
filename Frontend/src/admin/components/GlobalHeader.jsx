@@ -19,6 +19,7 @@ export default function GlobalHeader() {
   };
 
   const handleLogout = () => { localStorage.clear(); navigate('/login'); };
+  const initials = 'Admin User'.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   return (
     <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0">
@@ -44,8 +45,8 @@ export default function GlobalHeader() {
         </button>
         <div className="relative shrink-0" ref={dropdownRef} onKeyDown={handleKeyDown}>
           <button onClick={() => setProfileOpen((o) => !o)} aria-label="Profile" aria-expanded={profileOpen} aria-haspopup="true"
-            className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary">
-            <i className="ph ph-user" />
+            className="bg-none border-none cursor-pointer text-lg hover:opacity-80">
+            <div className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">{initials}</div>
           </button>
           {profileOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
