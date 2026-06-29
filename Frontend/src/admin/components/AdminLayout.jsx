@@ -64,12 +64,14 @@ export default function AdminLayout() {
                     else { navigate(item.to); }
                   }}
                   className={navClass(isActive)}
+                  style={item.isDropdown ? { justifyContent: 'space-between', width: '100%', paddingLeft: '24px', boxSizing: 'border-box' } : {}}
                 >
                   {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
                   {item.label}
                   {item.isDropdown && (
                     <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
-                       className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+                       className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
+                       style={{ marginLeft: 'auto', paddingLeft: '8px' }} />
                   )}
                 </div>
               );
