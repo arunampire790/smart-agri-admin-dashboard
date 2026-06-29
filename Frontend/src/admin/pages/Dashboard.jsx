@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
@@ -6,6 +6,64 @@ import { useRobots } from '../../context/RobotContext';
 import { useTaskStore } from '../../stores/taskStore';
 import UserProfileModal from '../components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Users, MapPin } from 'lucide-react';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, onClick, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: onClick ? 'pointer' : undefined,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
 
 const userGrowth = [
   { label: 'Jan', pct: 50, val: 40 },
@@ -89,34 +147,44 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-4">
-        <div
+        <GlowCard
           onClick={() => navigate('/admin/users')}
-          className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
+          className="glass-card rounded-2xl p-5"
           style={{ contentVisibility: 'auto' }}
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
-          <div className="relative z-10">
-            <div className="text-xs font-semibold text-secondary mb-2">Total Users</div>
-            <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{users.length}</div>
-            <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-secondary mb-2">Total Users</div>
+              <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{users.length}</div>
+              <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(46,158,107,0.12)' }}>
+              <Users size={18} color="#059669" />
+            </div>
           </div>
-        </div>
-        <div
+        </GlowCard>
+        <GlowCard
           onClick={() => navigate('/admin/farms')}
-          className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden"
+          className="glass-card rounded-2xl p-5"
           style={{ contentVisibility: 'auto' }}
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
-          <div className="relative z-10">
-            <div className="text-xs font-semibold text-secondary mb-2">Total Farms</div>
-            <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{farms.length}</div>
-            <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-secondary mb-2">Total Farms</div>
+              <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{farms.length}</div>
+              <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
+            </div>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(46,158,107,0.12)' }}>
+              <MapPin size={18} color="#059669" />
+            </div>
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div onClick={() => navigate('/admin/tasks')} className="dashboard-card-link glass-card rounded-2xl p-5">
+        <GlowCard onClick={() => navigate('/admin/tasks')} className="glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-primary mb-3">Task Lifecycle</div>
           <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
           <div className="flex justify-center gap-5 text-xs mt-1">
@@ -128,8 +196,8 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
-        <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5">
+        </GlowCard>
+        <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-primary mb-3">Robot Status</div>
           <RobotDonut onlineCount={activeRobots} idleCount={idleRobots} offlineCount={offlineRobots} totalRobots={robots.length} />
           <div className="flex justify-center gap-4 text-xs mt-1">
@@ -141,7 +209,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
