@@ -56,7 +56,7 @@ export default function AdminLayout() {
           {/* Robots dropdown */}
           <div>
             <div
-              onClick={() => setRobotsOpen((o) => !o)}
+              onClick={() => navigate('/admin/robots')}
               className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                 inRobotsSection
                   ? 'glass-active text-primary nav-active-indicator'
@@ -65,20 +65,11 @@ export default function AdminLayout() {
             >
               <i className="ph ph-robot text-lg" />
               <span className="flex-1">Robots</span>
-              <i className={`ph ph-caret-down text-xs transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+              <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
+                className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
+              />
             </div>
-            <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div
-                onClick={() => navigate('/admin/robots')}
-                className={`flex items-center gap-2.5 pl-12 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
-                  location.pathname === '/admin/robots'
-                    ? 'glass-active text-primary nav-active-indicator'
-                    : 'hover:bg-white/30 hover-text-primary'
-                }`}
-              >
-                <i className="ph ph-robot text-sm" />
-                Robots
-              </div>
+            <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div
                 onClick={() => navigate('/admin/sensors')}
                 className={`flex items-center gap-2.5 pl-12 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
