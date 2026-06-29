@@ -1,5 +1,60 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRobots } from '../../context/RobotContext';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
 
 export default function Analytics() {
   const { robots } = useRobots();
@@ -67,7 +122,7 @@ export default function Analytics() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         {metrics.map((item, i) => (
-          <div key={i} className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+          <GlowCard key={i} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: `radial-gradient(circle, ${item.glow} 0%, transparent 70%)`, filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10 flex items-center justify-between">
               <div>
@@ -79,13 +134,13 @@ export default function Analytics() {
                 <i className={item.icon} style={{ color: item.iconCls }} />
               </div>
             </div>
-          </div>
+          </GlowCard>
         ))}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Crop Distribution — SVG Donut Chart */}
-        <div className="crop-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ height: '260px', minHeight: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <GlowCard className="crop-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ height: '260px', minHeight: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600, color: '#111827' }}>Crop distribution</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '28px', width: '100%', flex: 1, minHeight: 0 }}>
             <div className="relative shrink-0">
@@ -141,10 +196,10 @@ export default function Analytics() {
               <div style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '16px', marginTop: '2px' }}>of total crop area</div>
             </div>
           )}
-        </div>
+        </GlowCard>
 
         {/* Robot Status — Concentric Radial Bar Chart */}
-        <div className="radial-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ height: '260px', minHeight: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <GlowCard className="radial-card relative rounded-[20px] shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ height: '260px', minHeight: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', boxSizing: 'border-box', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 600, color: '#111827' }}>Robot status</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '28px', width: '100%', flex: 1, minHeight: 0 }}>
             <div className="relative shrink-0">
@@ -238,7 +293,7 @@ export default function Analytics() {
               )}
             </div>
           )}
-        </div>
+        </GlowCard>
       </div>
     </>
   );
