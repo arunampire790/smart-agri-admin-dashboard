@@ -1,9 +1,24 @@
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function GlobalHeader() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setProfileOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') setProfileOpen(false);
+  };
+
+  const handleLogout = () => { localStorage.clear(); navigate('/login'); };
 
   return (
     <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0">
@@ -27,10 +42,28 @@ export default function GlobalHeader() {
           <i className="ph ph-bell" />
           <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">3</span>
         </button>
-        <button aria-label="Profile" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
-          <i className="ph ph-user" />
-        </button>
-        <button onClick={() => { localStorage.clear(); navigate('/login'); }} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
+        <div className="relative shrink-0" ref={dropdownRef} onKeyDown={handleKeyDown}>
+          <button onClick={() => setProfileOpen((o) => !o)} aria-label="Profile" aria-expanded={profileOpen} aria-haspopup="true"
+            className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary">
+            <i className="ph ph-user" />
+          </button>
+          {profileOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
+              style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+              <button onClick={() => { setProfileOpen(false); navigate('/admin/users'); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); navigate('/admin/users'); } }}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-primary font-medium bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors text-left"
+              ><i className="ph ph-user-circle text-base" /> Profile</button>
+              <button onClick={() => { setProfileOpen(false); navigate('/admin/settings'); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); navigate('/admin/settings'); } }}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-primary font-medium bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors text-left"
+              ><i className="ph ph-gear-six text-base" /> Settings</button>
+              <div className="h-px bg-[rgba(0,0,0,0.06)] mx-3" />
+              <button onClick={() => { setProfileOpen(false); handleLogout(); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); handleLogout(); } }}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-danger-text font-medium bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors text-left"
+              ><i className="ph ph-sign-out text-base" /> Logout</button>
+            </div>
+          )}
+        </div>
+        <button onClick={handleLogout} aria-label="Logout" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
           <i className="ph ph-sign-out" />
         </button>
       </div>
