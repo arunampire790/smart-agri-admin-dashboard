@@ -123,32 +123,42 @@ export default function SensorsDetails() {
 
       {/* Soil Nutrition Breakdown */}
       <div className="text-base font-semibold text-[#1C1C1E] mb-4">Soil Nutrition Breakdown</div>
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {sectorData.map((sector) => (
           <div key={sector.name} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
-            <div className="text-sm font-semibold text-[#1C1C1E] mb-4">{sector.name}</div>
-            <div className="flex items-center justify-around">
-              {['nitrogen', 'phosphorus', 'potassium'].map((key) => {
-                const nutrient = sector.nutrients[key];
-                const fullLabel = key === 'nitrogen' ? 'Nitrogen' : key === 'phosphorus' ? 'Phosphorus' : 'Potassium';
-                const colors = nutrientColor(nutrient.status);
-                const circumference = 2 * Math.PI * 22;
-                const offset = circumference - (nutrient.value / 100) * circumference;
-                return (
-                  <div key={key} className="flex flex-col items-center gap-1">
-                    <svg width="54" height="54" viewBox="0 0 54 54">
-                      <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="5" />
-                      <circle cx="27" cy="27" r="22" fill="none" stroke={colors.bar} strokeWidth="5" strokeLinecap="round"
-                        strokeDasharray={circumference} strokeDashoffset={offset} transform="rotate(-90 27 27)"
-                        style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-                      />
-                      <text x="27" y="27" textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="700" fill="#1C1C1E">{nutrient.value}%</text>
-                    </svg>
-                    <span className="text-[10px] font-semibold text-text-secondary">{fullLabel}</span>
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: colors.bg, color: colors.text }}>{nutrient.status}</span>
-                  </div>
-                );
-              })}
+            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.5) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.25 }} />
+            <div className="relative z-10">
+              <div className="text-sm font-semibold text-[#1C1C1E] mb-4">{sector.name}</div>
+              <div className="grid grid-cols-3 gap-3">
+                {['nitrogen', 'phosphorus', 'potassium'].map((key) => {
+                  const nutrient = sector.nutrients[key];
+                  const shortLabel = key === 'nitrogen' ? 'N' : key === 'phosphorus' ? 'P' : 'K';
+                  const fullLabel = key === 'nitrogen' ? 'Nitrogen' : key === 'phosphorus' ? 'Phosphorus' : 'Potassium';
+                  const colors = nutrientColor(nutrient.status);
+                  const r = 28;
+                  const circumference = 2 * Math.PI * r;
+                  const offset = circumference - (nutrient.value / 100) * circumference;
+                  const size = 76;
+                  const cxcy = size / 2;
+                  return (
+                    <div key={key} className="flex flex-col items-center gap-1.5">
+                      <div className="relative" style={{ width: size, height: size }}>
+                        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ filter: `drop-shadow(0 0 4px ${colors.bar}40)` }}>
+                          <circle cx={cxcy} cy={cxcy} r={r} fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="6" />
+                          <circle cx={cxcy} cy={cxcy} r={r} fill="none" stroke={colors.bar} strokeWidth="6" strokeLinecap="round"
+                            strokeDasharray={circumference} strokeDashoffset={offset} transform={`rotate(-90 ${cxcy} ${cxcy})`}
+                            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+                          />
+                          <text x={cxcy} y={cxcy - 3} textAnchor="middle" dominantBaseline="central" fontSize="15" fontWeight="800" fill="#1C1C1E">{nutrient.value}%</text>
+                          <text x={cxcy} y={cxcy + 14} textAnchor="middle" dominantBaseline="central" fontSize="9" fontWeight="600" fill={colors.bar}>{shortLabel}</text>
+                        </svg>
+                      </div>
+                      <span className="text-[9px] font-medium text-text-secondary leading-tight">{fullLabel}</span>
+                      <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: colors.bg, color: colors.text }}>{nutrient.status}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ))}
