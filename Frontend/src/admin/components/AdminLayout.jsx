@@ -3,29 +3,63 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import GlobalHeader from './GlobalHeader';
 
-const navItems = [
-  { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
-  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
-  { to: '/admin/robots', icon: null, label: 'Robots', isDropdown: true },
-  { to: '/admin/users', icon: 'ph-users', label: 'Users' },
-  { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
-  { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
-  { to: '/admin/employees', icon: 'ph-user-list', label: 'Employees' },
-  { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
-  { to: '/admin/activity-log', icon: 'ph-clock-counter-clockwise', label: 'Audit Log' },
-];
-
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
   const [robotsOpen, setRobotsOpen] = useState(false);
-  const inRobotsSection = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
+
+  const isActive = (path) => location.pathname === path;
+  const isRobotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
+
+  const navItemBase = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '11px 10px',
+    borderRadius: 10,
+    fontSize: 15,
+    cursor: 'pointer',
+    userSelect: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    border: 'none',
+    background: 'none',
+    textAlign: 'left',
+  };
+
+  const navItemInactive = {
+    ...navItemBase,
+    color: '#5a6a60',
+    fontWeight: 400,
+    background: 'none',
+  };
+
+  const navItemActive = {
+    ...navItemBase,
+    color: '#1a2e20',
+    fontWeight: 700,
+    background: 'rgba(255,255,255,0.45)',
+  };
+
+  const childItemInactive = {
+    padding: '11px 10px 11px 24px',
+    borderRadius: 10,
+    fontSize: 14,
+    color: '#5a6a60',
+    fontWeight: 400,
+    cursor: 'pointer',
+    userSelect: 'none',
+    background: 'none',
+    border: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    textAlign: 'left',
+  };
 
   return (
     <div className="relative bg-surface text-primary h-screen overflow-hidden flex">
-      {/* Glass orbs */}
       <div className="fixed pointer-events-none z-0" style={{ width: 400, height: 400, background: '#10B981', filter: 'blur(120px)', opacity: 0.35, top: '-10%', left: '-10%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
@@ -34,7 +68,7 @@ export default function AdminLayout() {
         width: 220,
         minWidth: 220,
         minHeight: '100%',
-        background: 'linear-gradient(160deg, #c8e8d8 0%, #e8d8f0 100%)',
+        background: 'linear-gradient(170deg, #b8dece 0%, #ccd4e8 55%, #ddc8e4 100%)',
         borderRadius: 16,
         display: 'flex',
         flexDirection: 'column',
@@ -42,107 +76,126 @@ export default function AdminLayout() {
         fontFamily: 'var(--font-sans)',
       }}>
         <div style={{ padding: '18px 18px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, background: '#1e6e43', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <i className="ph ph-plant" style={{ color: '#fff', fontSize: 18 }} />
+          <div style={{ width: 36, height: 36, background: '#1e6e43', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <i className="ph ph-leaf" style={{ color: '#fff', fontSize: 18 }} />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#111' }}>Smart Agriculture</div>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>Admin Panel</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#1a2e20' }}>Smart Agriculture</div>
+            <div style={{ fontSize: 11, color: '#5a6a60' }}>Admin Panel</div>
           </div>
         </div>
 
-        <nav style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 0 }}>
-          {navItems
-            .filter((item) => isMasterAdmin || item.label !== 'Employees')
-            .map((item) => {
-              const isActive = item.isDropdown
-                ? inRobotsSection
-                : location.pathname === item.to;
+        <nav style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div
+            onClick={() => navigate('/admin/dashboard')}
+            style={isActive('/admin/dashboard') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/dashboard')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/dashboard')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Dashboard</span>
+          </div>
 
-              const itemStyle = {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '9px 12px',
-                borderRadius: 8,
-                fontSize: 14,
-                color: isActive ? '#111' : '#6b7280',
-                fontWeight: isActive ? 500 : 400,
-                background: isActive ? 'rgba(255,255,255,0.75)' : 'none',
-                cursor: 'pointer',
-                userSelect: 'none',
-                width: '100%',
-                boxSizing: 'border-box',
-                border: 'none',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              };
+          <div
+            onClick={() => navigate('/admin/analytics')}
+            style={isActive('/admin/analytics') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/analytics')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/analytics')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Analytics</span>
+          </div>
 
-              const handleClick = () => {
-                if (item.isDropdown) {
-                  navigate('/admin/robots');
-                  setRobotsOpen((o) => !o);
-                } else {
-                  navigate(item.to);
-                }
-              };
+          <div>
+            <div
+              onClick={() => { navigate('/admin/robots'); setRobotsOpen((o) => !o); }}
+              style={isRobotsActive ? navItemActive : navItemInactive}
+              onMouseEnter={(e) => { if (!isRobotsActive) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+              onMouseLeave={(e) => { if (!isRobotsActive) e.currentTarget.style.background = isRobotsActive ? 'rgba(255,255,255,0.45)' : 'none'; }}
+            >
+              <span>Robots</span>
+              <i
+                className="ph ph-caret-down"
+                style={{
+                  fontSize: 13,
+                  color: '#5a6a60',
+                  transition: 'transform 0.2s',
+                  transform: robotsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </div>
+            {robotsOpen && (
+              <div
+                onClick={() => navigate('/admin/sensors')}
+                style={isActive('/admin/sensors') ? { ...childItemInactive, color: '#1a2e20', fontWeight: 700, background: 'rgba(255,255,255,0.45)' } : childItemInactive}
+                onMouseEnter={(e) => { if (!isActive('/admin/sensors')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                onMouseLeave={(e) => { if (!isActive('/admin/sensors')) e.currentTarget.style.background = 'none'; }}
+              >
+                Robot Sensor Details
+              </div>
+            )}
+          </div>
 
-              const row = (
-                <div
-                  key={item.to}
-                  onClick={handleClick}
-                  style={itemStyle}
-                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.4)'; }}
-                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'none'; }}
-                >
-                  <span>{item.label}</span>
-                  {item.isDropdown && (
-                    <i
-                      onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
-                      className="ph ph-caret-down"
-                      style={{
-                        fontSize: 13,
-                        color: '#9ca3af',
-                        transition: 'transform 0.2s',
-                        transform: robotsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                        cursor: 'pointer',
-                      }}
-                    />
-                  )}
-                </div>
-              );
+          <div
+            onClick={() => navigate('/admin/users')}
+            style={isActive('/admin/users') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/users')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/users')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Users</span>
+          </div>
 
-              if (item.isDropdown) {
-                return (
-                  <div key={item.to}>
-                    {row}
-                    <div style={{
-                      display: robotsOpen ? 'block' : 'none',
-                      padding: '6px 12px 6px 24px',
-                      fontSize: 13,
-                      color: '#9ca3af',
-                      cursor: 'pointer',
-                      borderRadius: 8,
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.4)'; e.currentTarget.style.color = '#6b7280'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#9ca3af'; }}
-                      onClick={() => navigate('/admin/sensors')}
-                    >
-                      Robot Sensor Details
-                    </div>
-                  </div>
-                );
-              }
+          <div
+            onClick={() => navigate('/admin/farms')}
+            style={isActive('/admin/farms') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/farms')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/farms')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Farms</span>
+          </div>
 
-              return row;
-            })}
+          <div
+            onClick={() => navigate('/admin/tasks')}
+            style={isActive('/admin/tasks') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/tasks')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/tasks')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Tasks</span>
+          </div>
+
+          {isMasterAdmin && (
+            <div
+              onClick={() => navigate('/admin/employees')}
+              style={isActive('/admin/employees') ? navItemActive : navItemInactive}
+              onMouseEnter={(e) => { if (!isActive('/admin/employees')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+              onMouseLeave={(e) => { if (!isActive('/admin/employees')) e.currentTarget.style.background = 'none'; }}
+            >
+              <span>Employees</span>
+            </div>
+          )}
+
+          <div
+            onClick={() => navigate('/admin/settings')}
+            style={isActive('/admin/settings') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/settings')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/settings')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Settings</span>
+          </div>
+
+          <div
+            onClick={() => navigate('/admin/activity-log')}
+            style={isActive('/admin/activity-log') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+            onMouseLeave={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'none'; }}
+          >
+            <span>Audit Log</span>
+          </div>
         </nav>
 
         <div style={{ padding: '14px 18px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1e6e43', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 500, color: '#fff', flexShrink: 0 }}>AD</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#111' }}>Admin User</div>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>admin@smartagri.com</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#1a2e20' }}>Admin User</div>
+            <div style={{ fontSize: 11, color: '#5a6a60' }}>admin@smartagri.com</div>
           </div>
         </div>
       </aside>
