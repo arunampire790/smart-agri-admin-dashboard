@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
@@ -142,127 +143,91 @@ export default function Users() {
       </div>
 
       {/* Add New User Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)}>
-          <div
-            className="w-[440px] max-w-[calc(100vw-32px)] p-8"
-            style={{
-              background: 'rgba(255, 255, 255, 0.96)',
-              border: '1px solid rgba(229, 231, 235, 0.5)',
-              borderRadius: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="text-lg font-bold" style={{ color: '#111827' }}>Add New User</div>
-                <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>Enter details to register a new user.</div>
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <i className="ph ph-user-plus text-white text-lg" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New User</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Enter details to register a new user.</div>
+                </div>
               </div>
-              <button type="button" onClick={() => setShowAddModal(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: '20px', padding: 0, lineHeight: 1, transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
-              >
-                <i className="ph ph-x" />
-              </button>
+              <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+              ><i className="ph ph-x text-lg" /></button>
             </div>
 
             <form onSubmit={handleAdd}>
-              <div className="space-y-4 mb-6">
-                <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Name</label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
-                    style={{
-                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
-                  />
-                  {errors.name && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.name}</span>}
+              <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                  <i className="ph ph-user text-[15px]" style={{ color: '#10B981' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
-                    style={{
-                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
-                  />
-                  {errors.email && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.email}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Phone</label>
-                  <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
-                    style={{
-                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
-                  />
-                  {errors.phone && <span className="text-[10px]" style={{ color: '#DC2626' }}>{errors.phone}</span>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label style={{ color: '#374151', fontWeight: 600, fontSize: '13px' }}>Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    style={{
-                      background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-                      color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
-                      width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-                      transition: 'all 0.2s ease', appearance: 'none',
-                      backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
-                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9CA3AF'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; }}
-                  >
-                    {statusOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Name
+                    </div>
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                      className={glassInput}
+                    />
+                    {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> Email
+                    </div>
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                      className={glassInput}
+                    />
+                    {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> Phone
+                    </div>
+                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
+                      className={glassInput}
+                    />
+                    {errors.phone && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.phone}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
+                    </div>
+                    <select
+                      value={form.status}
+                      onChange={(e) => setForm({ ...form, status: e.target.value })}
+                      className={glassInput}
+                      style={{ appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px', paddingRight: '36px' }}
+                    >
+                      {statusOptions.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setShowAddModal(false)}
-                  style={{
-                    background: '#FFFFFF', border: '1px solid #D1D5DB', color: '#4B5563',
-                    fontWeight: 500, borderRadius: '8px', cursor: 'pointer',
-                    transition: 'all 0.15s ease', padding: '8px 16px', fontSize: '13px',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#111827'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#4B5563'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
+                  style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{
-                    background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '8px',
-                    padding: '10px 20px', cursor: 'pointer', transition: 'all 0.2s ease',
-                    border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
-                  }}
+                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
@@ -273,7 +238,8 @@ export default function Users() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* View User Modal */}
