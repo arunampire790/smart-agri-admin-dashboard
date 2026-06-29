@@ -1,34 +1,43 @@
 import { useMemo } from 'react';
-import { User, Mail, Phone, CheckCircle2, MapPin, Layers, Bot, Clock, Users as UsersIcon, Map, X } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle2, MapPin, Layers, Bot, Clock, Users as UsersIcon, Map } from 'lucide-react';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 
-const cardStyle = {
-  background: 'var(--bg-glass)',
-  borderRadius: '16px',
-  padding: '20px',
-  border: '1px solid var(--border-glass-med)',
-  boxShadow: 'var(--shadow-sm)',
-  marginBottom: '16px',
-};
-
-const labelIconStyle = {
+const fieldStyle = {
+  background: '#F9FAFB',
+  border: '1px solid #E5E7EB',
+  borderRadius: '8px',
+  color: '#111827',
+  fontWeight: 500,
+  height: '40px',
+  padding: '0 14px',
   display: 'flex',
   alignItems: 'center',
-  gap: '6px',
-  fontSize: '11px',
-  fontWeight: 600,
-  color: 'var(--text-muted)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  marginBottom: '4px',
+  fontSize: '14px',
+  lineHeight: '1.5',
 };
 
-const valStyle = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: 'var(--text-primary)',
-  lineHeight: '1.5',
+const labelStyle = {
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#4B5563',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '6px',
+};
+
+const sectionHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  marginBottom: '16px',
+  paddingBottom: '12px',
+  borderBottom: '1px solid #E5E7EB',
+  fontSize: '12px',
+  fontWeight: 700,
+  color: '#374151',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
 };
 
 export default function UserProfileModal({ user, onClose }) {
@@ -55,93 +64,95 @@ export default function UserProfileModal({ user, onClose }) {
   const initials = user.name.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
       <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-        style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+        style={{ background: '#FFFFFF', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}>{initials}</span>
             </div>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.3' }}>{user.name}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{user.email}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{user.name}</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{user.email}</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: user.status === 'Active' ? 'var(--green-pill-bg)' : 'var(--clr-danger-bg)', color: user.status === 'Active' ? 'var(--green-pill-text)' : 'var(--clr-danger-text)' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: user.status === 'Active' ? 'var(--clr-brand)' : 'var(--clr-danger-text)' }} />
-              {user.status}
-            </span>
-            <button type="button" onClick={onClose} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--clr-text-placeholder)', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
-            ><X size={18} /></button>
-          </div>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: user.status === 'Active' ? '#D1FAE5' : '#FEE2E2', color: user.status === 'Active' ? '#065F46' : '#991B1B' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
+            {user.status}
+          </span>
         </div>
 
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div style={sectionHeaderStyle}>
             <UsersIcon size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Core Identity Matrix</span>
+            <span>Core Identity Matrix</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
             <div>
-              <div style={labelIconStyle}><User size={13} color="#9CA3AF" /> Name</div>
-              <div style={valStyle}>{user.name}</div>
+              <div style={labelStyle}><User size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Name</div>
+              <div style={fieldStyle}>{user.name}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Mail size={13} color="#9CA3AF" /> Email</div>
-              <div style={valStyle}>{user.email}</div>
+              <div style={labelStyle}><Mail size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Email</div>
+              <div style={fieldStyle}>{user.email}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Phone size={13} color="#9CA3AF" /> Phone</div>
-              <div style={valStyle}>{user.phone}</div>
+              <div style={labelStyle}><Phone size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Phone</div>
+              <div style={fieldStyle}>{user.phone}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><CheckCircle2 size={13} color="#10B981" /> System Status</div>
-              <div style={valStyle}>{user.status}</div>
+              <div style={labelStyle}><CheckCircle2 size={13} color="#10B981" style={{ marginRight: '4px' }} />System Status</div>
+              <div style={fieldStyle}>{user.status}</div>
             </div>
           </div>
         </div>
 
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div style={sectionHeaderStyle}>
             <Map size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Details Infrastructure</span>
+            <span>Farm Details Infrastructure</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
             <div>
-              <div style={labelIconStyle}><MapPin size={13} color="#9CA3AF" /> Primary Farm Anchor</div>
-              <div style={valStyle}>{primaryFarm}</div>
+              <div style={labelStyle}><MapPin size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Primary Farm Anchor</div>
+              <div style={fieldStyle}>{primaryFarm}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Layers size={13} color="#9CA3AF" /> Crop Types</div>
-              <div style={valStyle}>{sectors}</div>
+              <div style={labelStyle}><Layers size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Sectors</div>
+              <div style={fieldStyle}>{sectors}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Map size={13} color="#9CA3AF" /> Total Acreage</div>
-              <div style={valStyle}>{totalAcreage}</div>
+              <div style={labelStyle}><Map size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Total Acreage</div>
+              <div style={fieldStyle}>{totalAcreage}</div>
             </div>
           </div>
         </div>
 
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
+        <div style={{ marginBottom: '28px' }}>
+          <div style={sectionHeaderStyle}>
             <Bot size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assigned Robots Dynamic Data</span>
+            <span>Assigned Robots Dynamic Data</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
             <div>
-              <div style={labelIconStyle}><Bot size={13} color="#9CA3AF" /> Robot Fleet</div>
-              <div style={{ ...valStyle, wordBreak: 'break-word' }}>{robotFleet}</div>
+              <div style={labelStyle}><Bot size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Robot Fleet</div>
+              <div style={{ ...fieldStyle, height: 'auto', minHeight: '40px', padding: '8px 14px', flexWrap: 'wrap', wordBreak: 'break-word' }}>{robotFleet}</div>
             </div>
             <div>
-              <div style={labelIconStyle}><Clock size={13} color="#9CA3AF" /> Last Sync Timestamp</div>
-              <div style={valStyle}>{lastSync}</div>
+              <div style={labelStyle}><Clock size={13} color="#9CA3AF" style={{ marginRight: '4px' }} />Last Sync Timestamp</div>
+              <div style={fieldStyle}>{lastSync}</div>
             </div>
           </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+          <button type="button" onClick={onClose}
+            style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >Close Statement</button>
         </div>
       </div>
     </div>
