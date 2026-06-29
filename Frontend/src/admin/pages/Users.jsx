@@ -441,9 +441,9 @@ export default function Users() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)}
-                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[rgba(16,185,129,0.3)]"
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
               >Cancel</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 hover:opacity-90 cursor-pointer transition-all duration-150 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[rgba(220,38,38,0.3)]">
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
                 <i className="ph ph-trash" /> Delete
               </button>
             </div>
@@ -452,6 +452,22 @@ export default function Users() {
         document.body
       )}
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      <style>{`
+        .cancel-btn:hover, .cancel-btn:focus-visible {
+          animation: pulseGlowGray 1.5s ease-in-out infinite;
+        }
+        .delete-btn:hover, .delete-btn:focus-visible {
+          animation: pulseGlowRed 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseGlowGray {
+          0%, 100% { box-shadow: 0 0 4px rgba(0,0,0,0.06); }
+          50% { box-shadow: 0 0 12px rgba(0,0,0,0.12); }
+        }
+        @keyframes pulseGlowRed {
+          0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.12); }
+          50% { box-shadow: 0 0 14px rgba(220,38,38,0.25); }
+        }
+      `}</style>
     </>
   );
 }
