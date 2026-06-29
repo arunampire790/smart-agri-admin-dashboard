@@ -441,9 +441,9 @@ export default function Users() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)}
-                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white text-text-secondary font-medium hover:bg-[#E5E5EA]"
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[rgba(16,185,129,0.3)]"
               >Cancel</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 hover:opacity-90 cursor-pointer transition-all duration-150 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[rgba(220,38,38,0.3)]">
                 <i className="ph ph-trash" /> Delete
               </button>
             </div>
