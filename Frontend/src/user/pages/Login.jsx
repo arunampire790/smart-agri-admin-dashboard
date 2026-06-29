@@ -17,6 +17,31 @@ export default function Login() {
     setGlowPos({ x: 50, y: 50 });
   }, []);
 
+  const inputStyle = {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: '1px solid rgba(255, 255, 255, 0.6)',
+    background: 'rgba(255, 255, 255, 0.5)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    color: '#1C1C1E',
+    fontSize: 14,
+    width: '100%',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  };
+
+  const handleInputFocus = (e) => {
+    e.target.style.borderColor = '#059669';
+    e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)';
+  };
+
+  const handleInputBlur = (e) => {
+    e.target.style.borderColor = 'rgba(255,255,255,0.6)';
+    e.target.style.boxShadow = 'none';
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center overflow-hidden"
@@ -27,20 +52,20 @@ export default function Login() {
       <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
 
-      {/* Glass card with cursor-tracking glow */}
+      {/* Glass card — matching Forgot Password modal style */}
       <div
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative z-10 w-[400px] text-center overflow-hidden"
+        className="relative z-10 w-[400px] max-w-[calc(100vw-32px)] overflow-hidden"
         style={{
-          background: 'rgba(255, 255, 255, 0.4)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.5)',
-          borderRadius: 20,
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.06)',
-          padding: '40px 40px 36px',
+          background: 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          borderRadius: 24,
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
+          padding: 32,
           transition: 'box-shadow 0.3s ease',
         }}
       >
@@ -54,83 +79,88 @@ export default function Login() {
         />
 
         <div className="relative z-10">
-          <div className="text-2xl font-bold mb-2" style={{ color: '#1C1C1E' }}>User Login</div>
-          <div className="text-sm mb-8" style={{ color: '#8E8E93' }}>Sign in to your account</div>
-
-          <div className="flex flex-col gap-1.5 mb-5 text-left">
-            <label className="text-xs font-medium mb-1" style={{ color: '#6B7280' }}>Email</label>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="text-sm outline-none w-full"
-              style={{
-                padding: '10px 14px',
-                borderRadius: 12,
-                border: '1px solid rgba(255, 255, 255, 0.6)',
-                background: 'rgba(255, 255, 255, 0.5)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                color: '#1C1C1E',
-                fontSize: 14,
-                transition: 'border-color 0.2s, box-shadow 0.2s',
-              }}
-              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
-            />
+          {/* Header — centered */}
+          <div className="text-center mb-7">
+            <div className="flex justify-center mb-4">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#059669' }}>
+                <i className="ph ph-leaf" style={{ color: '#fff', fontSize: 18 }} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold" style={{ color: '#1C1C1E' }}>Smart Agriculture</div>
+            <div className="text-sm mt-1" style={{ color: '#8E8E93' }}>Admin Panel · Sign in to continue</div>
           </div>
 
-          <div className="flex flex-col gap-1.5 mb-7 text-left">
-            <label className="text-xs font-medium mb-1" style={{ color: '#6B7280' }}>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="text-sm outline-none w-full"
+          {/* Form */}
+          <div>
+            {/* Email */}
+            <div className="mb-4">
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#6B7280' }}>Email</label>
+              <input
+                type="email"
+                placeholder="your@email.com"
+                style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+              />
+            </div>
+
+            {/* Password */}
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-medium" style={{ color: '#6B7280' }}>Password</label>
+                <button
+                  type="button"
+                  className="bg-none border-none p-0 text-xs font-medium cursor-pointer"
+                  style={{ color: '#059669', transition: 'opacity 0.15s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                  onClick={() => {}}
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <input
+                type="password"
+                placeholder="••••••••"
+                style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+              />
+            </div>
+
+            {/* Sign In */}
+            <button
+              className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer mt-5"
               style={{
-                padding: '10px 14px',
-                borderRadius: 12,
-                border: '1px solid rgba(255, 255, 255, 0.6)',
-                background: 'rgba(255, 255, 255, 0.5)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                color: '#1C1C1E',
-                fontSize: 14,
-                transition: 'border-color 0.2s, box-shadow 0.2s',
+                background: '#059669',
+                color: '#fff',
+                transition: 'all 0.2s ease-in-out',
+                boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)',
               }}
-              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
-            />
-          </div>
-
-          <button
-            className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer"
-            style={{
-              background: '#059669',
-              color: '#fff',
-              transition: 'all 0.2s ease-in-out',
-              boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
-          >
-            Sign in
-          </button>
-
-          <p className="text-xs mt-5" style={{ color: '#8E8E93' }}>
-            Don't have an account?{' '}
-            <a
-              href="/register"
-              className="no-underline font-medium"
-              style={{ color: '#059669', transition: 'opacity 0.15s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
             >
-              Register
-            </a>
-          </p>
+              Sign in
+            </button>
+
+            {/* Register link */}
+            <p className="text-xs text-center mt-4" style={{ color: '#8E8E93' }}>
+              Don't have an account?{' '}
+              <a
+                href="/register"
+                className="no-underline font-medium"
+                style={{ color: '#059669', transition: 'opacity 0.15s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+              >
+                Register
+              </a>
+            </p>
+          </div>
 
           {/* Demo credentials — glass info box */}
           <div
-            className="mt-6 text-left"
+            className="mt-5"
             style={{
               padding: '12px 14px',
               borderRadius: 12,
