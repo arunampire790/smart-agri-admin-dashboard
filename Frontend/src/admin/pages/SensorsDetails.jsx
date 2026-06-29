@@ -1,4 +1,60 @@
+import { useState, useRef, useCallback } from 'react';
 import { AlertTriangle, FlaskRoundIcon as Flask, Camera, TestTube, Leaf, Radar } from 'lucide-react';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
 
 // TODO: Replace mock sensor data with real backend/IoT integration once available.
 const sectorData = [
@@ -48,7 +104,7 @@ export default function SensorsDetails() {
       <div className="text-base font-semibold text-[#1C1C1E] mb-4">Sensor Connection Checklist</div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         {/* NPK Soil Probes */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -60,10 +116,10 @@ export default function SensorsDetails() {
               <Flask size={18} color="#059669" />
             </div>
           </div>
-        </div>
+        </GlowCard>
 
         {/* Field Camera */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(217,119,6,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -75,10 +131,10 @@ export default function SensorsDetails() {
               <Camera size={18} color="#D97706" />
             </div>
           </div>
-        </div>
+        </GlowCard>
 
         {/* Fertilizer Tester */}
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
@@ -90,7 +146,7 @@ export default function SensorsDetails() {
               <TestTube size={18} color="#059669" />
             </div>
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       {/* AI Field Camera Feed */}
