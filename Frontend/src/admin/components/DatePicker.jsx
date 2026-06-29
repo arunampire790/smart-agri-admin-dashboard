@@ -24,10 +24,13 @@ function formatDate(year, month, day) {
 }
 
 const POPOVER_WIDTH = 290;
+const POPOVER_HEIGHT = 326;
+const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState('day');
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
   const containerRef = useRef(null);
   const popoverRef = useRef(null);
   const today = new Date();
@@ -55,6 +58,23 @@ export default function DatePicker({ value, onChange }) {
       const d = value ? new Date(value + 'T00:00:00') : today;
       setViewYear(d.getFullYear());
       setViewMonth(d.getMonth());
+      const btn = containerRef.current;
+      if (btn) {
+        const rect = btn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const halfW = POPOVER_WIDTH / 2;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const fitsBelow = spaceBelow >= POPOVER_HEIGHT + GAP;
+        const fitsAbove = spaceAbove >= POPOVER_HEIGHT + GAP;
+        const below = fitsBelow || (!fitsAbove && spaceBelow >= spaceAbove);
+        const left = Math.max(halfW, Math.min(centerX, window.innerWidth - halfW));
+        setPopoverPos({
+          top: below ? rect.bottom + GAP : rect.top - POPOVER_HEIGHT - GAP,
+          left,
+          below,
+        });
+      }
     }
     setIsCalendarOpen(opening);
   };
@@ -100,14 +120,15 @@ export default function DatePicker({ value, onChange }) {
         </button>
       </div>
       {isCalendarOpen && createPortal(
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
         <div
           ref={popoverRef}
           style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 250,
+            pointerEvents: 'auto',
+            position: 'absolute',
+            top: popoverPos.top + 'px',
+            left: popoverPos.left + 'px',
+            transform: 'translateX(-50%)',
             width: '100%',
             maxWidth: POPOVER_WIDTH + 'px',
             background: '#FFFFFF',
@@ -238,6 +259,7 @@ export default function DatePicker({ value, onChange }) {
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >Today</button>
           </div>
+        </div>,
         </div>,
         document.body
       )}
