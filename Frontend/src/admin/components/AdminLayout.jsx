@@ -23,13 +23,6 @@ export default function AdminLayout() {
   const [robotsOpen, setRobotsOpen] = useState(false);
   const inRobotsSection = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
 
-  const navClass = (isActive) =>
-    `flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
-      isActive
-        ? 'glass-active text-primary nav-active-indicator'
-        : 'hover:bg-white/30 hover-text-primary'
-    }`;
-
   return (
     <div className="relative bg-surface text-primary h-screen overflow-hidden flex">
       {/* Glass orbs */}
@@ -37,18 +30,28 @@ export default function AdminLayout() {
       <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#6366F1', filter: 'blur(150px)', opacity: 0.25, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#EC4899', filter: 'blur(100px)', opacity: 0.2, bottom: '-5%', left: '15%' }} />
 
-      <aside className="relative z-10 w-60 min-w-[240px] glass border-r border-white/40 flex flex-col py-4">
-        <div className="flex items-center gap-2.5 px-4 pb-4 border-b border-white/30 mb-4">
-          <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
-            <i className="ph ph-plant" />
+      <aside style={{
+        width: 220,
+        minWidth: 220,
+        minHeight: '100%',
+        background: 'linear-gradient(160deg, #c8e8d8 0%, #e8d8f0 100%)',
+        borderRadius: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        fontFamily: 'var(--font-sans)',
+      }}>
+        <div style={{ padding: '18px 18px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, background: '#1e6e43', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <i className="ph ph-plant" style={{ color: '#fff', fontSize: 18 }} />
           </div>
           <div>
-            <div className="text-base font-bold text-primary">Smart Agriculture</div>
-            <div className="text-xs text-text-secondary">Admin Panel</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#111' }}>Smart Agriculture</div>
+            <div style={{ fontSize: 11, color: '#9ca3af' }}>Admin Panel</div>
           </div>
         </div>
 
-        <nav className="flex flex-col gap-0.5">
+        <nav style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 0 }}>
           {navItems
             .filter((item) => isMasterAdmin || item.label !== 'Employees')
             .map((item) => {
@@ -56,20 +59,55 @@ export default function AdminLayout() {
                 ? inRobotsSection
                 : location.pathname === item.to;
 
+              const itemStyle = {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '9px 12px',
+                borderRadius: 8,
+                fontSize: 14,
+                color: isActive ? '#111' : '#6b7280',
+                fontWeight: isActive ? 500 : 400,
+                background: isActive ? 'rgba(255,255,255,0.75)' : 'none',
+                cursor: 'pointer',
+                userSelect: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
+                border: 'none',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+              };
+
+              const handleClick = () => {
+                if (item.isDropdown) {
+                  navigate('/admin/robots');
+                  setRobotsOpen((o) => !o);
+                } else {
+                  navigate(item.to);
+                }
+              };
+
               const row = (
                 <div
                   key={item.to}
-                  onClick={() => {
-                    if (item.isDropdown) { navigate('/admin/robots'); setRobotsOpen((o) => !o); }
-                    else { navigate(item.to); }
-                  }}
-                  className={navClass(isActive)}
+                  onClick={handleClick}
+                  style={itemStyle}
+                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.4)'; }}
+                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'none'; }}
                 >
-                  {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
-                  {item.label}
+                  <span>{item.label}</span>
                   {item.isDropdown && (
-                    <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
-                       className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
+                    <i
+                      onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
+                      className="ph ph-caret-down"
+                      style={{
+                        fontSize: 13,
+                        color: '#9ca3af',
+                        transition: 'transform 0.2s',
+                        transform: robotsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        cursor: 'pointer',
+                      }}
+                    />
                   )}
                 </div>
               );
@@ -78,18 +116,19 @@ export default function AdminLayout() {
                 return (
                   <div key={item.to}>
                     {row}
-                    <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
-                      <div
-                        onClick={() => navigate('/admin/sensors')}
-                        className={`flex items-center gap-2.5 pl-12 pr-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
-                          location.pathname === '/admin/sensors'
-                            ? 'glass-active text-primary nav-active-indicator'
-                            : 'hover:bg-white/30 hover-text-primary'
-                        }`}
-                      >
-                        <i className="ph ph-radar text-sm" />
-                        Robot Sensor Details
-                      </div>
+                    <div style={{
+                      display: robotsOpen ? 'block' : 'none',
+                      padding: '6px 12px 6px 24px',
+                      fontSize: 13,
+                      color: '#9ca3af',
+                      cursor: 'pointer',
+                      borderRadius: 8,
+                    }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.4)'; e.currentTarget.style.color = '#6b7280'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#9ca3af'; }}
+                      onClick={() => navigate('/admin/sensors')}
+                    >
+                      Robot Sensor Details
                     </div>
                   </div>
                 );
@@ -99,13 +138,11 @@ export default function AdminLayout() {
             })}
         </nav>
 
-        <div className="mt-auto px-4 py-4 border-t border-white/30">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">AD</div>
-            <div>
-              <div className="text-sm font-medium text-primary">Admin User</div>
-              <div className="text-xs text-text-placeholder">admin@smartagri.com</div>
-            </div>
+        <div style={{ padding: '14px 18px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1e6e43', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 500, color: '#fff', flexShrink: 0 }}>AD</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#111' }}>Admin User</div>
+            <div style={{ fontSize: 11, color: '#9ca3af' }}>admin@smartagri.com</div>
           </div>
         </div>
       </aside>
