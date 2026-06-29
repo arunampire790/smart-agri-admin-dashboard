@@ -112,6 +112,8 @@ export default function GlobalHeader() {
   };
 
   return (
+    <>
+    <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
     <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0" onKeyDown={searchShortcut}>
       <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
@@ -160,7 +162,7 @@ export default function GlobalHeader() {
       <div className="flex items-center gap-4 shrink-0">
         <div className="flex items-center px-3 py-1.5 rounded-full text-xs text-text-secondary font-medium whitespace-nowrap" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>EN / 日本語</div>
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-text-secondary font-medium whitespace-nowrap" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
-          <span className="w-2 h-2 rounded-full bg-brand inline-block" />
+          <span className="w-2 h-2 rounded-full bg-brand inline-block" style={{ animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
           System Online
         </div>
         <button onClick={toggleTheme} aria-label="Toggle theme" className="bg-none border-none cursor-pointer text-lg text-text-placeholder hover:text-text-secondary shrink-0">
@@ -236,5 +238,6 @@ export default function GlobalHeader() {
         </button>
       </div>
     </header>
+    </>
   );
 }
