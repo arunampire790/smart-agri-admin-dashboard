@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
@@ -7,6 +7,63 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, onClick, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: onClick ? 'pointer' : undefined,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farmNames = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
@@ -160,7 +217,7 @@ export default function Robots() {
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div onClick={() => navigate('/admin/robots')} className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -172,8 +229,8 @@ export default function Robots() {
               <i className="ph ph-activity" style={{ color: '#059669' }} />
             </div>
           </div>
-        </div>
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -185,8 +242,8 @@ export default function Robots() {
               <i className="ph ph-clock" style={{ color: '#d97706' }} />
             </div>
           </div>
-        </div>
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -198,8 +255,8 @@ export default function Robots() {
               <i className="ph ph-toolbox" style={{ color: '#0284c7' }} />
             </div>
           </div>
-        </div>
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -211,7 +268,7 @@ export default function Robots() {
               <i className="ph ph-wifi-slash" style={{ color: '#dc2626' }} />
             </div>
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
