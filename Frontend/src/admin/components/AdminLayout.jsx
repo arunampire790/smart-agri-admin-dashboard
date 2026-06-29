@@ -64,21 +64,19 @@ export default function AdminLayout() {
                     else { navigate(item.to); }
                   }}
                   className={navClass(isActive)}
-                  style={{ justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box' }}
                 >
                   {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
-                  <span style={{ marginLeft: 0, paddingLeft: 0, fontSize: '14px', fontWeight: 500 }}>{item.label}</span>
+                  {item.label}
                   {item.isDropdown && (
                     <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
-                       className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
-                       style={{ marginLeft: 'auto', paddingLeft: '8px' }} />
+                       className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`} />
                   )}
                 </div>
               );
 
               if (item.isDropdown) {
                 return (
-                  <div key={item.to} className={navClass(isActive)} style={{ justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
+                  <div key={item.to}>
                     {row}
                     <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                       <div
