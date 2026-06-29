@@ -46,7 +46,7 @@ export default function GlobalHeader() {
         <div className="relative shrink-0" ref={dropdownRef} onKeyDown={handleKeyDown}>
           <button onClick={() => setProfileOpen((o) => !o)} aria-label="Profile" aria-expanded={profileOpen} aria-haspopup="true"
             className="bg-none border-none cursor-pointer text-lg hover:opacity-80">
-            <div className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs font-semibold">{initials}</div>
+            <div className="w-6 h-6 rounded-full bg-brand-dark text-white flex items-center justify-center text-[10px] font-semibold">{initials}</div>
           </button>
           {profileOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
