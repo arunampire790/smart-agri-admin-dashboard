@@ -1,10 +1,68 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
+import { MapPin, Globe, Sprout, Bot } from 'lucide-react';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, onClick, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: onClick ? 'pointer' : undefined,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary";
 
@@ -26,11 +84,11 @@ function getGlowColor(label) {
 
 function getIconConfig(label) {
   switch (label) {
-    case 'Total Farms': return { icon: 'ph-warehouse', bg: '#e8f5e9', color: '#059669' };
-    case 'Regions': return { icon: 'ph-map-pin', bg: '#e0f2fe', color: '#0284c7' };
-    case 'Crop Types': return { icon: 'ph-flower', bg: '#f3e5f5', color: '#7c3aed' };
-    case 'Active Robots': return { icon: 'ph-robot', bg: '#e8f5e9', color: '#059669' };
-    default: return { icon: 'ph-info', bg: '#f5f5f5', color: '#757575' };
+    case 'Total Farms': return { Icon: MapPin, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
+    case 'Regions': return { Icon: Globe, bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' };
+    case 'Crop Types': return { Icon: Sprout, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
+    case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
+    default: return { Icon: MapPin, bg: 'rgba(107,114,128,0.12)', color: '#6B7280' };
   }
 }
 
@@ -165,12 +223,12 @@ export default function Farms() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         {statCards.map((card) => {
-          const iconCfg = getIconConfig(card.label);
+          const { Icon, bg, color } = getIconConfig(card.label);
           return (
-            <div
+            <GlowCard
               key={card.label}
               onClick={card.route ? () => navigate(card.route) : undefined}
-              className={card.route ? "dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" : "glass-card rounded-2xl p-5 overflow-hidden"}
+              className="glass-card rounded-2xl p-5"
               style={{ contentVisibility: 'auto' }}
             >
               <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
@@ -179,11 +237,11 @@ export default function Farms() {
                   <div className="text-xs font-semibold text-secondary mb-2">{card.label}</div>
                   <div className="text-3xl font-extrabold text-primary">{card.val}</div>
                 </div>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: iconCfg.bg }}>
-                  <i className={`${iconCfg.icon}`} style={{ color: iconCfg.color }} />
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
+                  <Icon size={18} color={color} />
                 </div>
               </div>
-            </div>
+            </GlowCard>
           );
         })}
       </div>
