@@ -1,6 +1,6 @@
 const Toggle = ({ defaultChecked }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
-    <input type="checkbox" defaultChecked={defaultChecked} className="opacity-0 w-0 h-0 peer" />
+    <input type="checkbox" defaultChecked={defaultChecked} className="absolute inset-0 opacity-0 cursor-pointer peer" />
     <span className="absolute inset-0 bg-[#E9E9EA] rounded-full transition-colors duration-200 peer-checked:bg-brand" />
     <span className="absolute top-[1px] left-[1px] w-[29px] h-[29px] bg-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.15),0_1px_2px_rgba(0,0,0,0.08)] transition-transform duration-200 peer-checked:translate-x-[20px]" />
   </label>
