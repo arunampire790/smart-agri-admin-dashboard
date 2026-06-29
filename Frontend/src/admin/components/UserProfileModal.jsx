@@ -53,7 +53,7 @@ const gridStyle = {
   gap: '16px 32px',
 };
 
-export default function UserProfileModal({ user, onClose }) {
+export default function UserProfileModal({ user, onClose, onEdit }) {
   const { farms } = useFarms();
   const { robots } = useRobots();
 
@@ -76,7 +76,18 @@ export default function UserProfileModal({ user, onClose }) {
 
   const initials = user.name.split(' ').map((n) => n[0]).join('').toUpperCase();
 
-  return createPortal(
+  return (
+    <>
+      <style>{`
+        .profile-edit-btn:hover, .profile-edit-btn:focus-visible {
+          animation: pulseGlowPencil 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseGlowPencil {
+          0%, 100% { box-shadow: 0 0 4px rgba(0,0,0,0.06); }
+          50% { box-shadow: 0 0 12px rgba(0,0,0,0.12); }
+        }
+      `}</style>
+      {createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
       <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
         style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
@@ -96,7 +107,8 @@ export default function UserProfileModal({ user, onClose }) {
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
               {user.status}
             </span>
-            <button type="button" style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+            <button type="button" onClick={() => onEdit?.(user)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+              className="profile-edit-btn"
               onMouseEnter={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.transform = 'scale(1.1)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
             ><Pencil size={16} /></button>
@@ -179,5 +191,7 @@ export default function UserProfileModal({ user, onClose }) {
       </div>
     </div>,
     document.body
+  )}
+    </>
   );
 }

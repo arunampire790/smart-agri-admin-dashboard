@@ -451,7 +451,7 @@ export default function Users() {
         </div>,
         document.body
       )}
-      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} onEdit={(user) => { setProfileUser(null); openEdit(user); }} />}
       <style>{`
         .cancel-btn:hover, .cancel-btn:focus-visible {
           animation: pulseGlowGray 1.5s ease-in-out infinite;
