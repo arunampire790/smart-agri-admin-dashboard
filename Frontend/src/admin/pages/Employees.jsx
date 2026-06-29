@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Check, Clock } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -297,7 +298,7 @@ export default function Employees() {
       </div>
 
       {/* Add Employee Modal */}
-      {showAddModal && (
+      {showAddModal && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
           <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowAddModal(false)} className="add-close-btn absolute top-4 right-4"><i className="ph ph-x" /></button>
@@ -336,11 +337,12 @@ export default function Employees() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Employee Modal */}
-      {editEmployee && (
+      {editEmployee && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setEditEmployee(null)}>
           <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setEditEmployee(null)} className="add-close-btn absolute top-4 right-4"><i className="ph ph-x" /></button>
@@ -379,11 +381,12 @@ export default function Employees() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Activity History Modal (Master Admin only) */}
-      {viewActivity && (
+      {viewActivity && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setViewActivity(null)}>
           <div className="rounded-[20px] p-6 w-[520px] max-h-[80vh] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <button onClick={() => setViewActivity(null)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
@@ -395,11 +398,12 @@ export default function Employees() {
             <div className="text-xs text-text-secondary mb-5">All actions performed by this employee.</div>
             <ActivityLog employeeName={viewActivity.name} />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Employee Modal */}
-      {deleteEmployee && (
+      {deleteEmployee && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-[#1C1C1E] mb-2">Delete Employee?</div>
@@ -423,7 +427,8 @@ export default function Employees() {
               ><i className="ph ph-trash" /> Delete</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
