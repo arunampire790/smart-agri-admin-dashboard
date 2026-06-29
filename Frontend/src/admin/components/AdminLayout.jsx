@@ -56,7 +56,7 @@ export default function AdminLayout() {
           {/* Robots dropdown */}
           <div>
             <div
-              onClick={() => navigate('/admin/robots')}
+              onClick={() => { navigate('/admin/robots'); setRobotsOpen((o) => !o); }}
               className={`flex items-center gap-2.5 px-4 py-3 mx-2 rounded-xl text-sm text-text-secondary no-underline cursor-pointer transition-all duration-150 ${
                 inRobotsSection
                   ? 'glass-active text-primary nav-active-indicator'
