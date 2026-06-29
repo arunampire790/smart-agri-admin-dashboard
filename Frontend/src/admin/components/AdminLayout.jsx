@@ -67,6 +67,7 @@ export default function AdminLayout() {
                   : 'hover:bg-white/30 hover-text-primary'
               }`}
             >
+              <i className="text-lg inline-block w-[1.125rem]" />
               <span className="flex-1">Robots</span>
               <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
                 className={`ph ph-caret-down text-xs cursor-pointer transition-transform duration-200 ${robotsOpen ? 'rotate-180' : ''}`}
