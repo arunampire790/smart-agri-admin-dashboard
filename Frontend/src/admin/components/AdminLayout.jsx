@@ -65,7 +65,7 @@ export default function AdminLayout() {
                   }}
                   className={navClass(isActive)}
                 >
-                  <i className={`${item.icon || 'ph ph-square'} text-lg ${!item.icon ? 'invisible' : ''}`} />
+                  {item.icon ? <i className={`${item.icon} text-lg`} /> : <span className="inline-block w-[1.125rem] shrink-0" />}
                   {item.label}
                   {item.isDropdown && (
                     <i onClick={(e) => { e.stopPropagation(); setRobotsOpen((o) => !o); }}
