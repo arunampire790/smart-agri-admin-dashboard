@@ -61,9 +61,6 @@ export default function AdminLayout() {
               <div className="text-sm font-medium text-primary">Admin User</div>
               <div className="text-xs text-text-placeholder">admin@smartagri.com</div>
             </div>
-            <button onClick={() => { localStorage.clear(); navigate('/login'); }} title="Sign out" className="ml-auto bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg p-0">
-              <i className="ph ph-sign-out" />
-            </button>
           </div>
         </div>
       </aside>
