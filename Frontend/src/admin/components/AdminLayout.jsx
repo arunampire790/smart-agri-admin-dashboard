@@ -78,7 +78,7 @@ export default function AdminLayout() {
 
               if (item.isDropdown) {
                 return (
-                  <div key={item.to}>
+                  <div key={item.to} className={navClass(isActive)} style={{ justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
                     {row}
                     <div className={`overflow-hidden transition-all duration-200 ease-in-out ${robotsOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                       <div
