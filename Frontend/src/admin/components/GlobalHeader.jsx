@@ -1,6 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
+import { useRobots } from '../../context/RobotContext';
+import { useTasks } from '../../context/TaskContext';
 
 // TODO: Replace placeholder notifications with real backend/notification service integration once available
 const initialNotifications = [
@@ -12,16 +16,40 @@ const initialNotifications = [
 export default function GlobalHeader() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { users } = useUsers();
+  const { farms } = useFarms();
+  const { robots } = useRobots();
+  const { tasks } = useTasks();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const profileRef = useRef(null);
   const notifRef = useRef(null);
+  const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const filteredResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.toLowerCase();
+
+    const matchedUsers = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).map((u) => ({ category: 'Users', label: u.name, sub: u.email, icon: 'ph-users', to: '/admin/users', key: `user-${u.name}` }));
+    const matchedFarms = farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q)).map((f) => ({ category: 'Farms', label: f.name, sub: f.location, icon: 'ph-warehouse', to: '/admin/farms', key: `farm-${f.name}` }));
+    const matchedRobots = robots.filter((r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q)).map((r) => ({ category: 'Robots', label: r.name, sub: r.id, icon: 'ph-robot', to: '/admin/robots', key: `robot-${r.id}` }));
+    const matchedTasks = tasks.filter((t) => t.title.toLowerCase().includes(q)).map((t) => ({ category: 'Tasks', label: t.title, sub: t.farm, icon: 'ph-clipboard-text', to: '/admin/tasks', key: `task-${t.id}` }));
+
+    return { users: matchedUsers, farms: matchedFarms, robots: matchedRobots, tasks: matchedTasks };
+  }, [searchQuery, users, farms, robots, tasks]);
+
+  const hasAnyResults = filteredResults && Object.values(filteredResults).some((arr) => arr.length > 0);
+  const totalCount = filteredResults ? Object.values(filteredResults).reduce((sum, arr) => sum + arr.length, 0) : 0;
+
   useEffect(() => {
     const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
@@ -30,7 +58,7 @@ export default function GlobalHeader() {
   }, []);
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Escape') { setProfileOpen(false); setNotifOpen(false); }
+    if (e.key === 'Escape') { setProfileOpen(false); setNotifOpen(false); setSearchOpen(false); }
   };
 
   const handleLogout = () => { localStorage.clear(); navigate('/login'); };
@@ -44,13 +72,54 @@ export default function GlobalHeader() {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
+  const navigateTo = (path) => { setSearchOpen(false); setSearchQuery(''); navigate(path); };
+
+  const searchShortcut = (e) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); searchInputRef.current?.focus(); setSearchOpen(true); }
+  };
+
   return (
-    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0">
-      <div className="flex items-center">
+    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0" onKeyDown={searchShortcut}>
+      <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
           <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />
-          <input placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
+          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
         </div>
+
+        {searchOpen && (
+          <div className="absolute left-0 top-full mt-2 w-[480px] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
+            style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            {!searchQuery.trim() ? (
+              <div className="px-4 py-8 text-center text-sm text-text-secondary">
+                <div className="text-lg mb-1">⌘K</div>
+                Start typing to search across users, farms, robots, and tasks
+              </div>
+            ) : hasAnyResults ? (
+              <div className="max-h-80 overflow-y-auto">
+                {Object.entries(filteredResults).map(([cat, items]) => items.length > 0 && (
+                  <div key={cat}>
+                    <div className="px-4 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{cat}</div>
+                    {items.map((item) => (
+                      <button key={item.key} onClick={() => navigateTo(item.to)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') navigateTo(item.to); }}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors"
+                      >
+                        <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm text-primary font-medium truncate">{item.label}</div>
+                          <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                <div className="px-4 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
+              </div>
+            ) : (
+              <div className="px-4 py-8 text-center text-sm text-text-secondary">No results found</div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-4 shrink-0">
