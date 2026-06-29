@@ -3,11 +3,12 @@ import GlobalHeader from './GlobalHeader';
 
 const navItems = [
   { to: '/admin/dashboard', icon: 'ph-layout', label: 'Dashboard' },
+  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/users', icon: 'ph-users', label: 'Users' },
   { to: '/admin/farms', icon: 'ph-warehouse', label: 'Farms' },
-  { to: '/admin/robots', icon: 'ph-robot', label: 'Robots' },
   { to: '/admin/tasks', icon: 'ph-clipboard-text', label: 'Tasks' },
-  { to: '/admin/analytics', icon: 'ph-chart-bar', label: 'Analytics' },
+  { to: '/admin/employees', icon: 'ph-user-list', label: 'Employees' },
   { to: '/admin/settings', icon: 'ph-gear', label: 'Settings' },
 ];
 
