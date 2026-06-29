@@ -134,6 +134,7 @@ export default function SensorsDetails() {
                   const nutrient = sector.nutrients[key];
                   const shortLabel = key === 'nitrogen' ? 'N' : key === 'phosphorus' ? 'P' : 'K';
                   const fullLabel = key === 'nitrogen' ? 'Nitrogen' : key === 'phosphorus' ? 'Phosphorus' : 'Potassium';
+                  const compactLabel = `${fullLabel} (${shortLabel})`;
                   const colors = nutrientColor(nutrient.status);
                   const r = 28;
                   const circumference = 2 * Math.PI * r;
@@ -149,11 +150,10 @@ export default function SensorsDetails() {
                             strokeDasharray={circumference} strokeDashoffset={offset} transform={`rotate(-90 ${cxcy} ${cxcy})`}
                             style={{ transition: 'stroke-dashoffset 0.8s ease' }}
                           />
-                          <text x={cxcy} y={cxcy - 3} textAnchor="middle" dominantBaseline="central" fontSize="15" fontWeight="800" fill="#1C1C1E">{nutrient.value}%</text>
-                          <text x={cxcy} y={cxcy + 14} textAnchor="middle" dominantBaseline="central" fontSize="9" fontWeight="600" fill={colors.bar}>{shortLabel}</text>
+                          <text x={cxcy} y={cxcy} textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="800" fill="#1C1C1E">{nutrient.value}%</text>
                         </svg>
                       </div>
-                      <span className="text-[9px] font-medium text-text-secondary leading-tight">{fullLabel}</span>
+                      <span className="text-[10px] font-semibold text-primary leading-tight">{compactLabel}</span>
                       <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: colors.bg, color: colors.text }}>{nutrient.status}</span>
                     </div>
                   );
