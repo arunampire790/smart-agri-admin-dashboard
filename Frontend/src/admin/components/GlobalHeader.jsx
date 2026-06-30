@@ -7,6 +7,7 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import AdminProfileModal from './AdminProfileModal';
 
 // TODO: Replace placeholder notifications with real backend/notification service integration once available
 const initialNotifications = [
@@ -31,6 +32,9 @@ export default function GlobalHeader() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [notifPos, setNotifPos] = useState(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [adminName, setAdminName] = useState('Admin User');
+  const [adminEmail, setAdminEmail] = useState('admin@smartagri.com');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
@@ -150,7 +154,7 @@ export default function GlobalHeader() {
   };
 
   const handleLogout = () => { localStorage.clear(); navigate('/login'); };
-  const initials = 'Admin User'.split(' ').map((n) => n[0]).join('').toUpperCase();
+  const initials = adminName.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -350,7 +354,7 @@ export default function GlobalHeader() {
           {profileOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
               style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-              <button onClick={() => { setProfileOpen(false); navigate('/admin/users'); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); navigate('/admin/users'); } }}
+              <button onClick={() => { setProfileOpen(false); setProfileModalOpen(true); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); setProfileModalOpen(true); } }}
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-primary font-medium bg-none border-none cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors text-left"
               ><i className="ph ph-user-circle text-base" /> Profile</button>
               <button onClick={() => { setProfileOpen(false); navigate('/admin/settings'); }} onKeyDown={(e) => { if (e.key === 'Enter') { setProfileOpen(false); navigate('/admin/settings'); } }}
@@ -368,6 +372,14 @@ export default function GlobalHeader() {
         </button>
       </div>
     </header>
+      {profileModalOpen && (
+        <AdminProfileModal
+          currentName={adminName}
+          currentEmail={adminEmail}
+          onClose={() => setProfileModalOpen(false)}
+          onSave={(newName, newEmail) => { setAdminName(newName); setAdminEmail(newEmail); }}
+        />
+      )}
     </>
   );
 }

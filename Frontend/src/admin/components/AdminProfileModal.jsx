@@ -1,64 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, Mail, Phone, Shield, X, Check } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { createPortal } from 'react-dom';
+import { User, Mail, Lock, Eye, EyeOff, Check, X } from 'lucide-react';
 import { logActivity } from '../../utils/activityLogger';
 
-const cardStyle = {
-  background: 'var(--bg-glass)',
-  borderRadius: '16px',
-  padding: '20px',
-  border: '1px solid var(--border-glass-med)',
-  boxShadow: 'var(--shadow-sm)',
-  marginBottom: '16px',
-};
+const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 
-const labelIconStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  fontSize: '11px',
-  fontWeight: 600,
-  color: 'var(--text-muted)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  marginBottom: '4px',
-};
+export default function AdminProfileModal({ currentName, currentEmail, onClose, onSave }) {
+  const [name, setName] = useState(currentName || 'Admin User');
+  const [email, setEmail] = useState(currentEmail || 'admin@smartagri.com');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
-const valStyle = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: 'var(--text-primary)',
-  lineHeight: '1.5',
-};
-
-const inputStyle = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: 'var(--text-primary)',
-  lineHeight: '1.5',
-  background: 'var(--bg-white)',
-  border: '1px solid var(--border-input)',
-  borderRadius: '8px',
-  padding: '6px 10px',
-  width: '100%',
-  outline: 'none',
-  boxSizing: 'border-box',
-};
-
-export default function AdminProfileModal({ onClose }) {
-  const { currentUser, login } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '' });
+  const initials = (name || 'Admin User').split(' ').map((n) => n[0]).join('').toUpperCase();
 
   useEffect(() => {
-    if (currentUser) {
-      setForm({
-        name: currentUser.name || '',
-        email: currentUser.email || '',
-        phone: currentUser.phone || '',
-      });
-    }
-  }, [currentUser]);
+    setName(currentName || 'Admin User');
+    setEmail(currentEmail || 'admin@smartagri.com');
+  }, [currentName, currentEmail]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') onClose();
@@ -70,107 +33,168 @@ export default function AdminProfileModal({ onClose }) {
   }, [handleKeyDown]);
 
   const handleSave = () => {
-    // TODO: Replace with real backend API call once backend is added
-    const updated = { ...currentUser, name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() };
-    login(updated);
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Profile', target: 'Self', details: `Name: ${currentUser?.name} → ${form.name.trim()}, Email: ${currentUser?.email} → ${form.email.trim()}` });
-    setEditing(false);
+    setPasswordError('');
+
+    const anyPasswordFilled = currentPassword || newPassword || confirmPassword;
+    if (anyPasswordFilled) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        setPasswordError('All three password fields must be filled to change your password.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setPasswordError('New Password and Confirm New Password must match.');
+        return;
+      }
+      if (newPassword.length < 8) {
+        setPasswordError('Password must be at least 8 characters.');
+        return;
+      }
+    }
+
+    logActivity({
+      userId: currentEmail || 'admin@smartagri.com',
+      userName: currentName || 'Admin User',
+      action: 'Edited Profile',
+      target: 'Self',
+      details: `Name: ${currentName || 'Admin User'} → ${name.trim()}, Email: ${currentEmail || 'admin@smartagri.com'} → ${email.trim()}`,
+    });
+
+    onSave?.(name.trim(), email.trim());
+    onClose();
   };
 
-  const handleCancel = () => {
-    setForm({ name: currentUser?.name || '', email: currentUser?.email || '', phone: currentUser?.phone || '' });
-    setEditing(false);
-  };
-
-  const initials = currentUser?.name
-    ? currentUser.name.split(' ').map((n) => n[0]).join('').toUpperCase()
-    : 'AD';
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-        style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      onClick={onClose}>
+      <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}>{initials}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#fff', fontSize: '16px', fontWeight: 700 }}>{initials}</span>
             </div>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.3' }}>{currentUser?.name || 'Admin User'}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{currentUser?.email || 'admin@smartagri.com'}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Admin Profile</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Manage your profile and password.</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: 'var(--green-pill-bg)', color: 'var(--green-pill-text)' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981' }} />
-              Active
-            </span>
-            {!editing && (
-              <button type="button" onClick={() => setEditing(true)} title="Edit profile" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--clr-text-placeholder)', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
-              ><i className="ph ph-pencil" style={{ fontSize: '18px' }} /></button>
-            )}
-            <button type="button" onClick={onClose} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--clr-text-placeholder)', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
-            ><X size={18} /></button>
+          <button type="button" onClick={onClose}
+            style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+          ><X size={18} /></button>
+        </div>
+
+        <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+            <User size={15} color="#10B981" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Profile Information</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                <User size={12} color="#9CA3AF" /> Name
+              </div>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter full name"
+                className={glassInput}
+              />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                <Mail size={12} color="#9CA3AF" /> Email
+              </div>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address"
+                className={glassInput}
+              />
+            </div>
           </div>
         </div>
 
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-divider)' }}>
-            <User size={16} color="#10B981" />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-label)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Profile Details</span>
+        <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+            <Lock size={15} color="#10B981" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Change Password</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
             <div>
-              <div style={labelIconStyle}><User size={13} color="#9CA3AF" /> Name</div>
-              {editing ? (
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} />
-              ) : (
-                <div style={valStyle}>{currentUser?.name || 'Admin User'}</div>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                <Lock size={12} color="#9CA3AF" /> Current Password
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input type={showCurrent ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password"
+                  className={glassInput} style={{ paddingRight: '32px' }}
+                />
+                <button type="button" onClick={() => setShowCurrent((o) => !o)} tabIndex={-1}
+                  style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+                >
+                  {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
             </div>
             <div>
-              <div style={labelIconStyle}><Mail size={13} color="#9CA3AF" /> Email</div>
-              {editing ? (
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={inputStyle} />
-              ) : (
-                <div style={valStyle}>{currentUser?.email || 'admin@smartagri.com'}</div>
-              )}
-            </div>
-            <div>
-              <div style={labelIconStyle}><Phone size={13} color="#9CA3AF" /> Phone</div>
-              {editing ? (
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" style={inputStyle} />
-              ) : (
-                <div style={valStyle}>{currentUser?.phone || '+1-555-0199'}</div>
-              )}
-            </div>
-            <div>
-              <div style={labelIconStyle}><Shield size={13} color="#9CA3AF" /> Role</div>
-              <div style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(16,185,129,0.12)', color: 'var(--clr-brand)' }}>masterAdmin</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                <Lock size={12} color="#9CA3AF" /> New Password
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input type={showNew ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password"
+                  className={glassInput} style={{ paddingRight: '32px' }}
+                />
+                <button type="button" onClick={() => setShowNew((o) => !o)} tabIndex={-1}
+                  style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+                >
+                  {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
               </div>
             </div>
           </div>
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+              <Lock size={12} color="#9CA3AF" /> Confirm New Password
+            </div>
+            <div style={{ position: 'relative' }}>
+              <input type={showConfirm ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password"
+                className={glassInput} style={{ paddingRight: '32px' }}
+              />
+              <button type="button" onClick={() => setShowConfirm((o) => !o)} tabIndex={-1}
+                style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+              >
+                {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+          <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '8px' }}>Minimum 8 characters. Leave empty to keep current password.</div>
+          {passwordError && (
+            <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>&#9888;&#65039;</span> {passwordError}
+            </div>
+          )}
         </div>
 
-        {editing && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '4px' }}>
-            <button type="button" onClick={handleCancel} style={{ cursor: 'pointer', fontSize: '13px', padding: '6px 14px', border: '1px solid var(--clr-border)', borderRadius: '12px', background: 'var(--bg-white)', color: 'var(--text-muted)', fontWeight: 500, transition: 'all 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = ''; }}
-            >Cancel</button>
-            <button type="button" onClick={handleSave} style={{ cursor: 'pointer', fontSize: '13px', padding: '6px 14px', border: 'none', borderRadius: '12px', background: '#10B981', color: 'var(--bg-white)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.3)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = ''; }}
-            ><Check size={14} color="#FFFFFF" /> Save</button>
-          </div>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <button type="button" onClick={onClose}
+            style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            Cancel
+          </button>
+          <button type="button" onClick={handleSave}
+            style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+          >
+            <Check size={16} /> Save Changes
+          </button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
