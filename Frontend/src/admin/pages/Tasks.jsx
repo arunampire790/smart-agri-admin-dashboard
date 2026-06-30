@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
@@ -17,8 +16,64 @@ const priorityStyles = {
 const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
 const priorityOptions = ['High', 'Medium', 'Low'];
 
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
+
+function GlowCard({ className, style: outerStyle, onClick, children }) {
+  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      className={className}
+      style={{
+        ...outerStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: onClick ? 'pointer' : undefined,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        opacity: isHovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      {children}
+    </div>
+  );
+}
+
 export default function Tasks() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const tasks = useTaskStore((s) => s.tasks);
   const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
@@ -104,7 +159,7 @@ export default function Tasks() {
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        <GlowCard onClick={() => setActiveTab('all')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -115,8 +170,8 @@ export default function Tasks() {
               <i className="ph ph-list" style={{ color: '#0284c7' }} />
             </div>
           </div>
-        </div>
-        <div onClick={() => navigate('/admin/tasks')} className="dashboard-card-link glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard onClick={() => setActiveTab('pending')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -127,8 +182,8 @@ export default function Tasks() {
               <i className="ph ph-clock" style={{ color: '#d97706' }} />
             </div>
           </div>
-        </div>
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard onClick={() => setActiveTab('inprog')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -139,8 +194,8 @@ export default function Tasks() {
               <i className="ph ph-play" style={{ color: '#1565c0' }} />
             </div>
           </div>
-        </div>
-        <div className="glass-card rounded-2xl p-5 overflow-hidden" style={{ contentVisibility: 'auto' }}>
+        </GlowCard>
+        <GlowCard onClick={() => setActiveTab('done')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -151,7 +206,7 @@ export default function Tasks() {
               <i className="ph ph-check-circle" style={{ color: '#059669' }} />
             </div>
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
