@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Mail, Phone, CheckCircle2, MapPin, Layers, Bot, Clock, Users as UsersIcon, Map, X, Pencil } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle2, MapPin, Layers, Bot, Clock, Users as UsersIcon, Map, X, Pencil, Check } from 'lucide-react';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
+import { useUsers } from '../../context/UserContext';
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.75)',
@@ -54,8 +55,12 @@ const gridStyle = {
 };
 
 export default function UserProfileModal({ user, onClose, onEdit }) {
-  const { farms } = useFarms();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+
+  const { farms, updateFarm } = useFarms();
   const { robots } = useRobots();
+  const { updateUser } = useUsers();
 
   const userFarms = useMemo(() => farms.filter((f) => f.owner === user.name), [farms, user.name]);
   const userRobots = useMemo(() => robots.filter((r) => userFarms.some((f) => f.name === r.farm)), [robots, userFarms]);
@@ -73,6 +78,64 @@ export default function UserProfileModal({ user, onClose, onEdit }) {
     ? userRobots.map((r) => `${r.name} (${r.model || r.id})`).join(', ') : '\u2014';
   const now = new Date();
   const lastSync = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  useEffect(() => {
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      status: user.status,
+      primaryFarm,
+      cropTypes: sectors,
+      totalAcreage,
+    });
+  }, [user]);
+
+  const handleSave = () => {
+    updateUser(user, {
+      name: editForm.name,
+      email: editForm.email,
+      phone: editForm.phone,
+      status: editForm.status,
+    });
+    if (userFarms.length > 0) {
+      updateFarm(userFarms[0], { cropTypes: editForm.cropTypes, size: editForm.totalAcreage });
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      status: user.status,
+      primaryFarm,
+      cropTypes: sectors,
+      totalAcreage,
+    });
+    setIsEditing(false);
+  };
+
+  const inputStyle = {
+    background: '#ffffff',
+    border: '1px solid rgba(0,0,0,0.12)',
+    borderRadius: '12px',
+    padding: '8px 12px',
+    fontSize: '14px',
+    fontWeight: 500,
+    color: '#111827',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  };
+
+  const selectStyle = {
+    ...inputStyle,
+    cursor: 'pointer',
+    appearance: 'auto',
+  };
 
   const initials = user.name.split(' ').map((n) => n[0]).join('').toUpperCase();
 
@@ -107,7 +170,7 @@ export default function UserProfileModal({ user, onClose, onEdit }) {
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
               {user.status}
             </span>
-            <button type="button" onClick={() => onEdit?.(user)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+            <button type="button" onClick={() => { if (onEdit) { onEdit(user); } else { setIsEditing(true); } }} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
               className="profile-edit-btn"
               onMouseEnter={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.transform = 'scale(1.1)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
@@ -128,22 +191,41 @@ export default function UserProfileModal({ user, onClose, onEdit }) {
           <div style={gridStyle}>
             <div>
               <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> Name</div>
-              <div style={valStyle}>{user.name}</div>
+              {isEditing ? (
+                <input value={editForm.name || ''} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{user.name}</div>
+              )}
             </div>
             <div>
               <div style={labelRowStyle}><Mail size={12} color="#9CA3AF" /> Email</div>
-              <div style={valStyle}>{user.email}</div>
+              {isEditing ? (
+                <input value={editForm.email || ''} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{user.email}</div>
+              )}
             </div>
             <div>
               <div style={labelRowStyle}><Phone size={12} color="#9CA3AF" /> Phone</div>
-              <div style={valStyle}>{user.phone}</div>
+              {isEditing ? (
+                <input value={editForm.phone || ''} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{user.phone}</div>
+              )}
             </div>
             <div>
               <div style={labelRowStyle}><CheckCircle2 size={12} color="#9CA3AF" /> System Status</div>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: user.status === 'Active' ? '#D1FAE5' : '#FEE2E2', color: user.status === 'Active' ? '#065F46' : '#991B1B' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
-                {user.status}
-              </span>
+              {isEditing ? (
+                <select value={editForm.status || 'Active'} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} style={selectStyle}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: user.status === 'Active' ? '#D1FAE5' : '#FEE2E2', color: user.status === 'Active' ? '#065F46' : '#991B1B' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
+                  {user.status}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -157,15 +239,27 @@ export default function UserProfileModal({ user, onClose, onEdit }) {
           <div style={gridStyle}>
             <div>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Primary Farm Anchor</div>
-              <div style={valStyle}>{primaryFarm}</div>
+              {isEditing ? (
+                <input value={editForm.primaryFarm || ''} onChange={(e) => setEditForm({ ...editForm, primaryFarm: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{primaryFarm}</div>
+              )}
             </div>
             <div>
               <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> Crop Types</div>
-              <div style={valStyle}>{sectors}</div>
+              {isEditing ? (
+                <input value={editForm.cropTypes || ''} onChange={(e) => setEditForm({ ...editForm, cropTypes: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{sectors}</div>
+              )}
             </div>
             <div>
               <div style={labelRowStyle}><Map size={12} color="#9CA3AF" /> Total Acreage</div>
-              <div style={valStyle}>{totalAcreage}</div>
+              {isEditing ? (
+                <input value={editForm.totalAcreage || ''} onChange={(e) => setEditForm({ ...editForm, totalAcreage: e.target.value })} style={inputStyle} />
+              ) : (
+                <div style={valStyle}>{totalAcreage}</div>
+              )}
             </div>
           </div>
         </div>
@@ -187,6 +281,29 @@ export default function UserProfileModal({ user, onClose, onEdit }) {
             </div>
           </div>
         </div>
+
+        {isEditing && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+            <button type="button" onClick={handleCancel}
+              style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+              onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+              onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              Cancel
+            </button>
+            <button type="button" onClick={handleSave}
+              style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+            >
+              <Check size={16} /> Save Changes
+            </button>
+          </div>
+        )}
 
       </div>
     </div>,
