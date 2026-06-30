@@ -252,7 +252,11 @@ export default function Robots() {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return robots;
     return robots.filter((r) =>
-      r.id.toLowerCase().includes(term) || r.model.toLowerCase().includes(term)
+      (r.name || '').toLowerCase().includes(term) ||
+      (r.id || '').toLowerCase().includes(term) ||
+      (r.owner || '').toLowerCase().includes(term) ||
+      (r.farm || '').toLowerCase().includes(term) ||
+      (r.model || '').toLowerCase().includes(term)
     );
   }, [robots, searchTerm]);
 
@@ -324,7 +328,7 @@ export default function Robots() {
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by name, ID, owner, farm, or model..." aria-label="Search robots" className={inputClass} />
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
           <colgroup>
