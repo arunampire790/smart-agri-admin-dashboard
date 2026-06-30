@@ -104,30 +104,31 @@ export default function AdminLogin() {
   };
   const loginInputStyle = {
     ...inputStyle,
-    background: 'rgba(255,255,255,0.45)',
-    border: '1px solid rgba(255,255,255,0.6)',
+    background: 'rgba(255, 255, 255, 0.25)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
   };
   const labelClasses = "text-xs font-medium mb-1";
   const labelStyle = { color: '#374151' };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #f3e8ff 50%, #e0f2fe 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #d4edda 0%, #e8d5f5 50%, #cce5ff 100%)' }}
     >
       <style>{`.admin-login-modal input::placeholder { color: #9CA3AF; }`}</style>
-      <div className="absolute -top-40 -left-40 w-[550px] h-[550px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.4) 0%, transparent 70%)', filter: 'blur(120px)', opacity: 0.6 }} />
-      <div className="absolute -bottom-48 -right-32 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(4,120,87,0.35) 0%, transparent 70%)', filter: 'blur(140px)', opacity: 0.5 }} />
-      <div className="absolute top-1/4 right-1/4 w-[350px] h-[350px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.4 }} />
-      <div className="absolute bottom-1/3 left-1/4 w-[280px] h-[280px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(52,199,89,0.25) 0%, transparent 70%)', filter: 'blur(80px)', opacity: 0.35 }} />
+      <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full" style={{ background: '#059669', filter: 'blur(150px)', opacity: 0.4 }} />
+      <div className="absolute -bottom-48 -right-32 w-[550px] h-[550px] rounded-full" style={{ background: '#7C3AED', filter: 'blur(140px)', opacity: 0.3 }} />
+      <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full" style={{ background: '#0D9488', filter: 'blur(120px)', opacity: 0.35 }} />
+      <div className="absolute bottom-1/3 left-1/4 w-[320px] h-[320px] rounded-full" style={{ background: '#10B981', filter: 'blur(100px)', opacity: 0.3 }} />
 
       {/* Login Card */}
-      <div className="glass-card rounded-2xl p-10 w-[400px]" style={{
-        background: 'rgba(255,255,255,0.5)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.6)',
+      <div className="rounded-2xl p-10 w-[400px]" style={{
+        background: 'rgba(255, 255, 255, 0.2)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
         borderRadius: 24,
-        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        position: 'relative',
       }}>
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
@@ -144,14 +145,14 @@ export default function AdminLogin() {
             <label className={labelClasses} style={labelStyle}>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} style={loginInputStyle}
               onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; }}
             />
           </div>
           <div className="flex flex-col gap-1.5 mb-4">
             <label className={labelClasses} style={labelStyle}>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClasses} style={loginInputStyle}
               onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = 'none'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; }}
             />
           </div>
           <div className="mb-4 text-right">
