@@ -30,6 +30,7 @@ export default function GlobalHeader() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [notifPos, setNotifPos] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
@@ -42,6 +43,7 @@ export default function GlobalHeader() {
   const searchInputRef = useRef(null);
   const overlayInputRef = useRef(null);
   const resultsRef = useRef(null);
+  const notifButtonRef = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -107,11 +109,11 @@ export default function GlobalHeader() {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target) && !searchOpen) setSearchOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target) && !notifOpen) setNotifOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [searchOpen]);
+  }, [searchOpen, notifOpen]);
 
   const handleSearchKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
@@ -161,8 +163,29 @@ export default function GlobalHeader() {
   const navigateTo = (path) => { setSearchOpen(false); setSearchQuery(''); navigate(path); };
   const seeAllNavigate = (path) => { sessionStorage.setItem('globalSearchPrefill', searchQuery); setSearchOpen(false); setSearchQuery(''); navigate(path); };
 
+  const handleNotifToggle = () => {
+    if (!notifOpen) {
+      setSearchOpen(false);
+      setProfileOpen(false);
+      if (notifButtonRef.current) {
+        const rect = notifButtonRef.current.getBoundingClientRect();
+        setNotifPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+      }
+    }
+    setNotifOpen((o) => !o);
+  };
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e) => {
+      if (e.key === 'Escape') { setNotifOpen(false); setNotifPos(null); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [notifOpen]);
+
   const searchShortcut = (e) => {
-    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); searchInputRef.current?.focus(); setSearchOpen(true); }
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setNotifOpen(false); setProfileOpen(false); searchInputRef.current?.focus(); setSearchOpen(true); }
   };
 
   return (
@@ -172,7 +195,7 @@ export default function GlobalHeader() {
       <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
           <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />
-          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
+          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
         </div>
 
         {searchOpen && createPortal(
@@ -264,41 +287,55 @@ export default function GlobalHeader() {
 
         {/* Notification Bell */}
         <div className="relative shrink-0" ref={notifRef} onKeyDown={handleKeyDown}>
-          <button onClick={() => setNotifOpen((o) => !o)} aria-label="Notifications" aria-expanded={notifOpen} aria-haspopup="true"
+          <button ref={notifButtonRef} onClick={handleNotifToggle} aria-label="Notifications" aria-expanded={notifOpen} aria-haspopup="true"
             className="relative cursor-pointer bg-none border-none text-xl text-text-secondary hover:text-text-placeholder transition-colors duration-150 leading-none">
             <i className="ph ph-bell" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">{unreadCount}</span>
             )}
           </button>
-          {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
-              style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
-                <span className="text-sm font-semibold text-primary">Notifications</span>
-                {unreadCount > 0 && (
-                  <button onClick={markAllRead}
-                    className="bg-none border-none text-xs text-brand cursor-pointer hover:underline font-medium"
-                  >Mark all as read</button>
+          {notifOpen && notifPos && createPortal(
+            <div className="fixed inset-0 z-[100]" onClick={() => { setNotifOpen(false); setNotifPos(null); }}>
+              <div onClick={(e) => e.stopPropagation()} style={{
+                position: 'fixed',
+                top: notifPos.top,
+                right: notifPos.right,
+                width: 320,
+                background: 'rgba(255,255,255,0.85)',
+                backdropFilter: 'blur(25px)',
+                WebkitBackdropFilter: 'blur(25px)',
+                border: '1px solid rgba(255,255,255,0.5)',
+                borderRadius: 12,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                overflow: 'hidden',
+              }}>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
+                  <span className="text-sm font-semibold text-primary">Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead}
+                      className="bg-none border-none text-xs text-brand cursor-pointer hover:underline font-medium"
+                    >Mark all as read</button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.map((n) => (
+                    <button key={n.id} onClick={() => markOneRead(n.id)}
+                      className={`flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(0,0,0,0.04)] ${n.read ? '' : 'bg-[rgba(16,185,129,0.04)]'}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? 'bg-transparent' : 'bg-brand'}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-sm ${n.read ? 'text-text-secondary' : 'text-primary font-medium'}`}>{n.text}</div>
+                        <div className="text-[10px] text-text-placeholder mt-0.5">{n.time}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {notifications.length === 0 && (
+                  <div className="px-4 py-8 text-center text-sm text-text-secondary">No notifications</div>
                 )}
               </div>
-              <div className="max-h-64 overflow-y-auto">
-                {notifications.map((n) => (
-                  <button key={n.id} onClick={() => markOneRead(n.id)}
-                    className={`flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(0,0,0,0.04)] ${n.read ? '' : 'bg-[rgba(16,185,129,0.04)]'}`}
-                  >
-                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? 'bg-transparent' : 'bg-brand'}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-sm ${n.read ? 'text-text-secondary' : 'text-primary font-medium'}`}>{n.text}</div>
-                      <div className="text-[10px] text-text-placeholder mt-0.5">{n.time}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {notifications.length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-text-secondary">No notifications</div>
-              )}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 
