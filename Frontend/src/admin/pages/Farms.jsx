@@ -308,7 +308,7 @@ export default function Farms() {
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{farm.owner}</span>
                   </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600, textAlign: 'center' }}>{connectedCount}</td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600 }}><span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>{connectedCount}</span></td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
