@@ -154,7 +154,7 @@ export default function AdminLogin() {
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
             <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
-              <i className="ph ph-plant" />
+              <i className="ph ph-sprout" />
             </div>
           </div>
           <div className="text-2xl font-bold text-primary">Smart Agriculture</div>

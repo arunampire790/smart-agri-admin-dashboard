@@ -60,7 +60,7 @@ export default function Login() {
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
               <div style={{ width: 40, height: 40, background: '#059669', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="ph ph-leaf" style={{ color: '#fff', fontSize: 20 }} />
+                <i className="ph ph-sprout" style={{ color: '#fff', fontSize: 20 }} />
               </div>
             </div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.2 }}>Smart Agriculture</div>
