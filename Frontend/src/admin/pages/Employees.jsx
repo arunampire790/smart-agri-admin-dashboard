@@ -141,22 +141,22 @@ function ActivityLog({ employeeName }) {
         const icon = actionIcons[actionType] || 'ph-dot';
 
         return (
-          <div key={entry.id} className="flex items-start gap-3 px-3 py-3 transition-colors hover:bg-white/30 rounded-xl" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+          <div key={entry.id} className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/20" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${entityColor}`}>
               <i className={`ph ${icon} text-sm`} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-[#1C1C1E]">{entry.userName}</span>
+                <span className="text-sm font-semibold text-primary">{entry.userName}</span>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
               </div>
               <p className="text-sm text-text-secondary mt-0.5">
-                <span className="font-medium text-[#1C1C1E]">{entry.target}</span>
+                <span className="font-medium text-primary">{entry.target}</span>
                 {entry.details && <span className="text-text-placeholder"> — {entry.details}</span>}
               </p>
             </div>
-            <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0 pt-1">
+            <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0 pt-1.5">
               {formatTime(entry.timestamp)}
             </div>
           </div>
@@ -568,8 +568,8 @@ export default function Employees() {
                 onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '16px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+            <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                 <Activity size={15} color="#10B981" />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activity History</span>
               </div>
