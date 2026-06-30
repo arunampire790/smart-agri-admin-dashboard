@@ -3,7 +3,7 @@ import { Check, Clock, UserPlus, User, Mail, Phone, Shield, Activity, UserPen, T
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
-import { logActivity, getActivityLogByUser } from '../../utils/activityLogger';
+import { logActivity, getActivityLog } from '../../utils/activityLogger';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const inputClass = "add-input-field";
@@ -82,34 +82,86 @@ const StatusDropdown = ({ value, onChange, options }) => {
 };
 
 function ActivityLog({ employeeName }) {
-  const entries = useMemo(() => getActivityLogByUser(employeeName), [employeeName]);
+  const entries = useMemo(() => {
+    const log = getActivityLog();
+    return log.filter((entry) => entry.target === employeeName);
+  }, [employeeName]);
+
+  const extractEntity = (action) => {
+    if (action.includes('User')) return 'User';
+    if (action.includes('Farm')) return 'Farm';
+    if (action.includes('Robot')) return 'Robot';
+    if (action.includes('Task')) return 'Task';
+    return '';
+  };
+
+  const extractAction = (action) => action.split(' ')[0];
+
+  const entityColors = {
+    User: 'bg-blue-100 text-blue-800',
+    Farm: 'bg-emerald-100 text-emerald-800',
+    Robot: 'bg-violet-100 text-violet-800',
+    Task: 'bg-amber-100 text-amber-800',
+  };
+
+  const actionIcons = {
+    'Added': 'ph-plus-circle',
+    'Edited': 'ph-pencil',
+    'Deleted': 'ph-trash',
+    'Assigned': 'ph-user-plus',
+    'Started': 'ph-play',
+    'Completed': 'ph-check-circle',
+  };
+
+  const formatTime = (ts) => {
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
   if (entries.length === 0) {
     return (
-      <div className="py-10 text-center">
-        <i className="ph ph-clock text-4xl text-text-placeholder mb-3" />
-        <p className="text-sm text-text-secondary">No activity recorded yet for this employee.</p>
+      <div className="flex flex-col items-center py-12 text-text-placeholder">
+        <i className="ph ph-clock-counter-clockwise text-4xl mb-3 opacity-50" />
+        <p className="text-sm font-medium">No activity recorded yet for this employee.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-1">
-      {entries.map((entry) => (
-        <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--clr-card)', border: '1px solid rgba(255,255,255,0.3)' }}>
-          <div className="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center shrink-0 mt-0.5">
-            <Clock size={14} color="#059669" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-[#1C1C1E]">{entry.action}</span>
-              <span className="text-[10px] text-text-placeholder whitespace-nowrap">{new Date(entry.timestamp).toLocaleString()}</span>
+    <div className="flex flex-col max-h-[50vh] overflow-y-auto">
+      {entries.map((entry) => {
+        const entity = extractEntity(entry.action);
+        const actionType = extractAction(entry.action);
+        const entityColor = entityColors[entity] || 'bg-gray-100 text-gray-800';
+        const icon = actionIcons[actionType] || 'ph-dot';
+
+        return (
+          <div key={entry.id} className="flex items-start gap-3 px-3 py-3 transition-colors hover:bg-white/30 rounded-xl" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${entityColor}`}>
+              <i className={`ph ${icon} text-sm`} />
             </div>
-            {entry.target && <div className="text-xs text-text-secondary mt-0.5">Target: <span className="font-medium text-[#1C1C1E]">{entry.target}</span></div>}
-            {entry.details && <div className="text-xs text-text-secondary mt-0.5">{entry.details}</div>}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-[#1C1C1E]">{entry.userName}</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
+              </div>
+              <p className="text-sm text-text-secondary mt-0.5">
+                <span className="font-medium text-[#1C1C1E]">{entry.target}</span>
+                {entry.details && <span className="text-text-placeholder"> — {entry.details}</span>}
+              </p>
+            </div>
+            <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0 pt-1">
+              {formatTime(entry.timestamp)}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -498,16 +550,31 @@ export default function Employees() {
 
       {/* Activity History Modal (Master Admin only) */}
       {viewActivity && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setViewActivity(null)}>
-          <div className="rounded-[20px] p-6 w-[520px] max-h-[80vh] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <button onClick={() => setViewActivity(null)} className="absolute top-4 right-4 bg-none border-none text-text-placeholder text-lg transition-all duration-150"
-              style={{ cursor: 'pointer', transition: 'color 0.15s ease, transform 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
-            ><i className="ph ph-x" /></button>
-            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Activity Log — {viewActivity.name}</div>
-            <div className="text-xs text-text-secondary mb-5">All actions performed by this employee.</div>
-            <ActivityLog employeeName={viewActivity.name} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setViewActivity(null)}>
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Clock size={20} color="#fff" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Activity Log — {viewActivity.name}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>All actions performed by this employee.</div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setViewActivity(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+              ><i className="ph ph-x text-lg" /></button>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '16px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                <Activity size={15} color="#10B981" />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activity History</span>
+              </div>
+              <ActivityLog employeeName={viewActivity.name} />
+            </div>
           </div>
         </div>,
         document.body
