@@ -148,7 +148,7 @@ function ActivityLog({ employeeName }) {
         const icon = actionIcons[actionType] || 'ph-dot';
 
         return (
-          <div key={entry.id} className="flex items-start gap-3.5 px-5 py-4 transition-colors hover:bg-white/20" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', borderLeft: `3px solid ${entityBorderColors[entity] || 'transparent'}`, paddingLeft: 'calc(1.25rem - 3px)' }}>
+          <div key={entry.id} className="flex items-start gap-3.5 px-5 py-5 transition-colors hover:bg-white/20" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', borderLeft: `3px solid ${entityBorderColors[entity] || 'transparent'}`, paddingLeft: 'calc(1.25rem - 3px)' }}>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${entityColor}`}>
               <i className={`ph ${icon} text-sm`} />
             </div>
@@ -158,16 +158,33 @@ function ActivityLog({ employeeName }) {
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
               </div>
-              <div style={{ marginTop: '8px' }}>
+              <div style={{ marginTop: '10px' }}>
                 <div className="text-sm font-medium text-primary">{entry.target}</div>
                 {entry.details && (
-                  <div className="flex items-center gap-1 flex-wrap" style={{ marginTop: '4px' }}>
-                    {entry.details.split(', ').map((seg, i) => (
-                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        {i > 0 && <span className="text-text-placeholder" style={{ fontSize: '10px' }}>·</span>}
-                        <span className="text-xs" style={{ color: '#6B7280' }}>{seg}</span>
-                      </span>
-                    ))}
+                  <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: '6px' }}>
+                    {entry.details.split(', ').map((seg, i) => {
+                      const colonIdx = seg.indexOf(':');
+                      const label = colonIdx > -1 ? seg.slice(0, colonIdx).trim() : '';
+                      const value = colonIdx > -1 ? seg.slice(colonIdx + 1).trim() : seg;
+                      const hasChange = value.includes('→');
+                      const parts = hasChange ? value.split('→').map(s => s.trim()) : [value];
+                      const actuallyChanged = hasChange && parts[0] !== parts[1];
+                      return (
+                        <span key={i} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          background: actuallyChanged ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.04)',
+                          border: `1px solid ${actuallyChanged ? 'rgba(16,185,129,0.2)' : 'rgba(0,0,0,0.06)'}`,
+                          borderRadius: '6px', padding: '4px 8px', fontSize: '12px',
+                        }}>
+                          <span style={{ color: '#6B7280', fontWeight: 500 }}>{label}:</span>
+                          <span style={{ color: actuallyChanged ? '#059669' : '#374151', fontWeight: 500 }}>
+                            {hasChange ? (
+                              <>{parts[0]} <span style={{ color: '#9CA3AF' }}>→</span> {parts[1]}</>
+                            ) : value}
+                          </span>
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
               </div>
