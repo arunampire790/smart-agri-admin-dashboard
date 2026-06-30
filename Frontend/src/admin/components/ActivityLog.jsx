@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useActivityLog } from '../../context/ActivityLogContext';
 
 const entityColors = {
@@ -35,7 +35,34 @@ export default function ActivityLog() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [activeEntries, setActiveEntries] = useState(0);
-  const [view, setView] = useState('realtime');
+  const [timeRange, setTimeRange] = useState('Today');
+  const [refreshing, setRefreshing] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const btnRef = useRef(null);
+  const [btnPos, setBtnPos] = useState({ x: 50, y: 50 });
+  const [btnHovered, setBtnHovered] = useState(false);
+  const timeOptions = ['Today', 'Last 7 Days', 'Last Month', 'Last Year'];
+
+  const onBtnMove = useCallback((e) => {
+    const el = btnRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setBtnPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onBtnEnter = useCallback(() => setBtnHovered(true), []);
+  const onBtnLeave = useCallback(() => { setBtnHovered(false); setBtnPos({ x: 50, y: 50 }); }, []);
+
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    refresh();
+    setTimeout(() => setRefreshing(false), 500);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,6 +71,12 @@ export default function ActivityLog() {
     }, 5000);
     return () => clearInterval(interval);
   }, [entries]);
+
+  useEffect(() => {
+    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const filtered = useMemo(() => {
     let result = entries;
@@ -57,12 +90,19 @@ export default function ActivityLog() {
         e.details.toLowerCase().includes(q)
       );
     }
-    if (view === 'today') {
+    const now = Date.now();
+    if (timeRange === 'Today') {
       const today = new Date().toISOString().slice(0, 10);
       result = result.filter((e) => e.timestamp.slice(0, 10) === today);
+    } else if (timeRange === 'Last 7 Days') {
+      result = result.filter((e) => now - new Date(e.timestamp).getTime() < 7 * 24 * 60 * 60 * 1000);
+    } else if (timeRange === 'Last Month') {
+      result = result.filter((e) => now - new Date(e.timestamp).getTime() < 30 * 24 * 60 * 60 * 1000);
+    } else if (timeRange === 'Last Year') {
+      result = result.filter((e) => now - new Date(e.timestamp).getTime() < 365 * 24 * 60 * 60 * 1000);
     }
     return result;
-  }, [entries, filter, search, view]);
+  }, [entries, filter, search, timeRange]);
 
   const formatTime = (ts) => {
     const d = new Date(ts);
@@ -84,11 +124,33 @@ export default function ActivityLog() {
           <p className="text-sm text-text-secondary mt-1">Real-time audit trail of all system actions</p>
         </div>
         <button
-          onClick={refresh}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand rounded-xl hover:bg-brand-dark transition-colors cursor-pointer"
+          ref={btnRef}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          onMouseMove={onBtnMove}
+          onMouseEnter={onBtnEnter}
+          onMouseLeave={onBtnLeave}
+          style={{
+            position: 'relative', overflow: 'hidden',
+            background: 'linear-gradient(135deg, #059669, #10B981)',
+            border: 'none', borderRadius: '12px', color: '#fff',
+            fontSize: '14px', fontWeight: 500, padding: '10px 20px',
+            cursor: refreshing ? 'not-allowed' : 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transform: btnHovered && !refreshing ? 'scale(1.02)' : 'scale(1)',
+            boxShadow: btnHovered && !refreshing ? '0 8px 25px rgba(5,150,105,0.3)' : 'none',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}
         >
-          <i className="ph ph-arrows-clockwise text-base" />
-          Refresh
+          {btnHovered && !refreshing && (
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: 'inherit',
+              background: `radial-gradient(circle 120px at ${btnPos.x}% ${btnPos.y}%, rgba(255,255,255,0.25), transparent)`,
+              pointerEvents: 'none', zIndex: 0,
+            }} />
+          )}
+          <i className="ph ph-arrows-clockwise text-base" style={{ position: 'relative', zIndex: 1, animation: refreshing ? 'spin 0.6s linear infinite' : 'none' }} />
+          <span style={{ position: 'relative', zIndex: 1 }}>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
         </button>
       </div>
 
@@ -117,23 +179,58 @@ export default function ActivityLog() {
               className="bg-transparent border-none outline-none text-sm text-primary w-40 placeholder:text-text-placeholder"
             />
           </div>
-          <div className="flex bg-white/50 border border-white/40 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setView('realtime')}
-              className={`px-3 py-1.5 text-sm font-medium transition-all cursor-pointer ${
-                view === 'realtime' ? 'bg-brand text-white' : 'text-text-secondary hover:bg-white/30'
-              }`}
+          <div className="relative" ref={dropdownRef} style={{ minWidth: '156px' }}>
+            <button type="button" onClick={() => setDropdownOpen((o) => !o)}
+              style={{
+                background: 'rgba(255,255,255,0.5)', border: `1px solid ${dropdownOpen ? '#10B981' : '#D1D5DB'}`,
+                borderRadius: '12px', color: '#111827', fontSize: '14px',
+                height: '38px', padding: '0 36px 0 12px', width: '100%',
+                outline: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
+                textAlign: 'left', position: 'relative',
+                boxShadow: dropdownOpen ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
+              }}
+              onMouseEnter={(e) => { if (!dropdownOpen) e.currentTarget.style.borderColor = '#9CA3AF'; }}
+              onMouseLeave={(e) => { if (!dropdownOpen) e.currentTarget.style.borderColor = '#D1D5DB'; }}
             >
-              Real-time
+              <span>{timeRange}</span>
+              <i className="ph ph-caret-down" style={{
+                position: 'absolute', right: '12px', top: '50%',
+                transform: `translateY(-50%) rotate(${dropdownOpen ? '180deg' : '0deg'})`,
+                color: '#6B7280', fontSize: '12px', transition: 'transform 0.2s ease',
+              }} />
             </button>
-            <button
-              onClick={() => setView('today')}
-              className={`px-3 py-1.5 text-sm font-medium transition-all cursor-pointer ${
-                view === 'today' ? 'bg-brand text-white' : 'text-text-secondary hover:bg-white/30'
-              }`}
-            >
-              Today
-            </button>
+            {dropdownOpen && (
+              <div style={{
+                position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+                background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)',
+                border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+              }}>
+                {timeOptions.map((opt) => {
+                  const selected = opt === timeRange;
+                  return (
+                    <div key={opt} onClick={() => { setTimeRange(opt); setDropdownOpen(false); }}
+                      style={{
+                        padding: '12px 16px', fontSize: '14px',
+                        color: selected ? '#10B981' : '#1d1d1f',
+                        background: selected ? 'rgba(16,185,129,0.12)' : 'transparent',
+                        cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!selected) { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10B981'; }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                      }}
+                    >
+                      <span>{opt}</span>
+                      {selected && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -185,6 +282,7 @@ export default function ActivityLog() {
           </div>
         )}
       </div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
