@@ -95,14 +95,14 @@ export default function Tasks() {
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
   };
   const selectBase = {
-    background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+    background: 'rgba(255,255,255,0.5)', border: '1px solid #D1D5DB', borderRadius: '12px',
     color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
     width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
     transition: 'all 0.2s ease', appearance: 'none',
     backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
     backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
   };
-  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; };
+  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; };
   const inputBlur = (e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; };
   const inputHoverEnter = (e) => e.currentTarget.style.borderColor = '#9CA3AF';
   const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
@@ -174,7 +174,7 @@ export default function Tasks() {
           <div className="text-2xl font-bold text-primary">Task Management</div>
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">
+        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]">
           <i className="ph ph-plus" /> Assign Task
         </button>
       </div>
