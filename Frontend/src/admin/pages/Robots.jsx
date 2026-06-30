@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
@@ -197,6 +197,7 @@ export default function Robots() {
   const { currentUser } = useAuth();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
+  const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
@@ -246,6 +247,14 @@ export default function Robots() {
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;
   const offline = robots.filter((r) => r.status === 'Offline').length;
+
+  const filteredRobots = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return robots;
+    return robots.filter((r) =>
+      r.id.toLowerCase().includes(term) || r.model.toLowerCase().includes(term)
+    );
+  }, [robots, searchTerm]);
 
   return (
     <>
@@ -314,8 +323,8 @@ export default function Robots() {
 
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold text-primary mb-3">All Robots ({robots.length})</div>
-          <input placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
+          <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by ID or model..." aria-label="Search robots" className={inputClass} />
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
           <colgroup>
@@ -332,7 +341,9 @@ export default function Robots() {
             <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Actions</th></tr>
           </thead>
           <tbody>
-            {robots.map((r, i) => (
+            {filteredRobots.length === 0 ? (
+              <tr><td colSpan="8" className="text-center py-12 text-text-secondary text-sm">No robots match your search.</td></tr>
+            ) : filteredRobots.map((r, i) => (
               <tr key={i}>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
