@@ -131,7 +131,7 @@ export default function Employees() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);
   const [deleteEmployee, setDeleteEmployee] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' });
   const [errors, setErrors] = useState({});
   const [viewActivity, setViewActivity] = useState(null);
 
@@ -144,8 +144,8 @@ export default function Employees() {
     return employees.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
   }, [employees, searchTerm]);
 
-  const openAdd = () => { setForm({ name: '', email: '', phone: '', status: 'Active' }); setErrors({}); setShowAddModal(true); };
-  const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, status: emp.status }); setErrors({}); setEditEmployee(emp); };
+  const openAdd = () => { setForm({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' }); setErrors({}); setShowAddModal(true); };
+  const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, role: emp.role || 'Admin', status: emp.status }); setErrors({}); setEditEmployee(emp); };
   const openDelete = (emp) => setDeleteEmployee(emp);
 
   const validate = () => {
@@ -167,10 +167,11 @@ export default function Employees() {
       name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
+      role: form.role,
       status,
       joined: new Date().toISOString().slice(0, 10),
     });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Employee', target: form.name.trim(), details: `Email: ${form.email.trim()}, Role: admin` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Employee', target: form.name.trim(), details: `Email: ${form.email.trim()}, Role: ${form.role}` });
     setShowAddModal(false);
   };
 
@@ -179,8 +180,8 @@ export default function Employees() {
     e.preventDefault();
     if (!validate()) return;
     const status = form.status;
-    updateEmployee(editEmployee, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), status });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Employee', target: editEmployee.name, details: `Status: ${editEmployee.status} → ${status}` });
+    updateEmployee(editEmployee, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), role: form.role, status });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Employee', target: editEmployee.name, details: `Role: ${form.role}, Status: ${editEmployee.status} → ${status}` });
     setEditEmployee(null);
   };
 
@@ -357,7 +358,7 @@ export default function Employees() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Shield size={12} color="#9CA3AF" /> Role
                     </div>
-                    <div className={glassInput} style={{ cursor: 'default', opacity: 0.65, display: 'flex', alignItems: 'center', userSelect: 'none' }}>admin</div>
+                    <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
