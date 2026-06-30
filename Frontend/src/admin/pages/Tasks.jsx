@@ -23,6 +23,14 @@ const typeIconMap = {
   Harvest: Wheat,
 };
 
+const typeStyles = {
+  Irrigation: { bg: 'rgba(59,130,246,0.1)', color: '#3b82f6' },
+  Fertilizer: { bg: 'rgba(161,98,7,0.1)', color: '#a16207' },
+  Inspection: { bg: 'rgba(139,92,246,0.1)', color: '#8b5cf6' },
+  Maintenance: { bg: 'rgba(249,115,22,0.1)', color: '#f97316' },
+  Harvest: { bg: 'rgba(46,158,107,0.1)', color: '#2e9e6b' },
+};
+
 const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
 const priorityOptions = ['High', 'Medium', 'Low'];
 
@@ -153,6 +161,7 @@ export default function Tasks() {
   const tasks = useTaskStore((s) => s.tasks);
   const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
   const addTask = useTaskStore((s) => s.addTask);
+  const removeTask = useTaskStore((s) => s.removeTask);
   const { users } = useUsers();
   const { farms } = useFarms();
   const { currentUser } = useAuth();
@@ -338,7 +347,7 @@ export default function Tasks() {
                     >{task.assignedTo}</span>
                   </td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.farm}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary" style={{ gap: '5px' }}>{(() => { const Icon = typeIconMap[task.type]; return Icon ? <Icon size={14} /> : null; })()}{task.type}</span></td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span></td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.dueDate}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
