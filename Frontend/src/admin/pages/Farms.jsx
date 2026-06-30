@@ -6,6 +6,7 @@ import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
+import UserProfileModal from '../components/UserProfileModal';
 import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity } from 'lucide-react';
 
 function useCardGlow() {
@@ -134,6 +135,7 @@ export default function Farms() {
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
   const [errors, setErrors] = useState({});
 
@@ -247,8 +249,8 @@ export default function Farms() {
         })}
       </div>
 
-      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
-        <div className="flex flex-col items-stretch mb-4">
+      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+        <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">All Farms ({farms.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name, location, or owner..." aria-label="Search farms" className={inputClass} />
         </div>
@@ -258,24 +260,30 @@ export default function Farms() {
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
             <thead>
               <tr>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', width: '25%' }}>Farm Name</th>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', width: '25%' }}>Location</th>
-                <th className="text-left px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', width: '20%' }}>Owner</th>
-                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', width: '15%' }}>Connected Devices</th>
-                <th className="text-center px-5 py-4 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', width: '15%' }}>Status</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farm Name</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Location</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Owner</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Connected Devices</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {farmRows.map(({ farm, connectedCount, status }, i) => (
                 <tr key={i}>
-                  <td className="px-5 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{farm.name}</strong></td>
-                  <td className="px-5 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{farm.location}</td>
-                  <td className="px-5 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{farm.owner}</td>
-                  <td className="px-5 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className="pill inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-full bg-white/40 text-text-secondary text-xs font-semibold">{connectedCount}</span>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{farm.name}</strong></td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.location}</td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    >{farm.owner}</span>
                   </td>
-                  <td className="px-5 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.cls}`}>{status.label}</span>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', fontWeight: 500, color: status.label === 'Active' ? '#059669' : status.label === 'Idle' ? '#D97706' : '#DC2626' }}>{status.label}</span>
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -412,6 +420,7 @@ export default function Farms() {
         </div>,
         document.body
       )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }
