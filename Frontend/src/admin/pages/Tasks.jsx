@@ -75,6 +75,71 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
   );
 }
 
+function SelectDropdown({ options, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const base = {
+    background: 'rgba(255,255,255,0.5)', border: '1px solid #D1D5DB', borderRadius: '12px',
+    color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
+    width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+    transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ ...base, boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none' }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; }}
+        onBlur={(e) => { if (!open) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; } }}
+      >
+        <span style={{ color: value ? '#111827' : '#9CA3AF' }}>{value || placeholder}</span>
+        <i className={`ph ph-caret-down`} style={{ position: 'absolute', right: '12px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', fontSize: '12px', transition: 'transform 0.2s ease' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+        }}>
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '12px 16px', fontSize: '14px',
+                  color: selected ? '#10B981' : '#1d1d1f',
+                  background: selected ? 'rgba(16,185,129,0.12)' : 'transparent',
+                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10B981'; }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                }}
+              >
+                <span>{opt}</span>
+                {selected && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('all');
   const tasks = useTaskStore((s) => s.tasks);
@@ -93,14 +158,6 @@ export default function Tasks() {
     color: '#111827', fontSize: '14px', height: '40px', padding: '0 12px',
     width: '100%', outline: 'none', boxSizing: 'border-box',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
-  };
-  const selectBase = {
-    background: 'rgba(255,255,255,0.5)', border: '1px solid #D1D5DB', borderRadius: '12px',
-    color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
-    width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-    transition: 'all 0.2s ease', appearance: 'none',
-    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 fill=%27%236B7280%27 viewBox=%270 0 256 256%27%3E%3Cpath d=%27M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80a8,8,0,0,1,11.32-11.32L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z%27%3E%3C/path%3E%3C/svg%3E")',
-    backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '14px',
   };
   const inputFocus = (e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; };
   const inputBlur = (e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; };
@@ -335,16 +392,12 @@ export default function Tasks() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} color="#9CA3AF" /> Assigned To
                     </div>
-                    <select value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })}
-                      style={{ ...selectBase, color: form.assignedTo ? '#111827' : '#9CA3AF' }}
-                      onFocus={inputFocus}
-                      onBlur={inputBlur}
-                      onMouseEnter={inputHoverEnter}
-                      onMouseLeave={inputHoverLeave}
-                    >
-                      <option value="" disabled>Select a user</option>
-                      {users.map((u) => <option key={u.email} value={u.name}>{u.name}</option>)}
-                    </select>
+                    <SelectDropdown
+                      options={users.map((u) => u.name)}
+                      value={form.assignedTo}
+                      onChange={(v) => setForm({ ...form, assignedTo: v })}
+                      placeholder="Select a user"
+                    />
                     {formErrors.assignedTo && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{formErrors.assignedTo}</span>}
                   </div>
 
@@ -352,16 +405,12 @@ export default function Tasks() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <MapPin size={12} color="#9CA3AF" /> Farm Sector
                     </div>
-                    <select value={form.farm} onChange={(e) => setForm({ ...form, farm: e.target.value })}
-                      style={{ ...selectBase, color: form.farm ? '#111827' : '#9CA3AF' }}
-                      onFocus={inputFocus}
-                      onBlur={inputBlur}
-                      onMouseEnter={inputHoverEnter}
-                      onMouseLeave={inputHoverLeave}
-                    >
-                      <option value="" disabled>Select a farm</option>
-                      {farms.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
-                    </select>
+                    <SelectDropdown
+                      options={farms.map((f) => f.name)}
+                      value={form.farm}
+                      onChange={(v) => setForm({ ...form, farm: v })}
+                      placeholder="Select a farm"
+                    />
                     {formErrors.farm && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{formErrors.farm}</span>}
                   </div>
 
@@ -369,15 +418,12 @@ export default function Tasks() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Tag size={12} color="#9CA3AF" /> Type
                     </div>
-                    <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                      style={selectBase}
-                      onFocus={inputFocus}
-                      onBlur={inputBlur}
-                      onMouseEnter={inputHoverEnter}
-                      onMouseLeave={inputHoverLeave}
-                    >
-                      {typeOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-                    </select>
+                    <SelectDropdown
+                      options={typeOptions}
+                      value={form.type}
+                      onChange={(v) => setForm({ ...form, type: v })}
+                      placeholder="Select type"
+                    />
                   </div>
 
                   <div>
