@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { Check, Clock, UserPlus, User, Mail, Phone, Shield, Activity, UserPen, AlertTriangle, Trash2 } from 'lucide-react';
+import { Check, Clock, UserPlus, User, Mail, Phone, Shield, Activity, UserPen, Trash2 } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
@@ -230,6 +230,10 @@ export default function Employees() {
 .add-submit-btn { cursor: pointer; transition: all 0.2s ease; background: #10B981; color: #FFFFFF; font-weight: 600; border: none; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
 .add-submit-btn:hover { background: #059669; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transform: translateY(-1px); }
 .add-submit-btn:active { transform: translateY(1px) scale(0.96); opacity: 0.95; }
+.cancel-btn:hover, .cancel-btn:focus-visible { animation: pulseGlowGray 1.5s ease-in-out infinite; }
+.delete-btn:hover, .delete-btn:focus-visible { animation: pulseGlowRed 1.5s ease-in-out infinite; }
+@keyframes pulseGlowGray { 0%, 100% { box-shadow: 0 0 4px rgba(0,0,0,0.06); } 50% { box-shadow: 0 0 12px rgba(0,0,0,0.12); } }
+@keyframes pulseGlowRed { 0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.12); } 50% { box-shadow: 0 0 14px rgba(220,38,38,0.25); } }
       `}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -511,42 +515,18 @@ export default function Employees() {
 
       {/* Delete Employee Modal */}
       {deleteEmployee && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setDeleteEmployee(null)}>
-          <div className="w-[420px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <AlertTriangle size={20} color="#DC2626" />
-              </div>
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Delete Employee?</div>
-                <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>This action cannot be undone.</div>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+            <div className="text-lg font-bold text-primary mb-2">Delete Employee?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              Are you sure you want to delete <strong className="text-primary font-medium">{deleteEmployee.name}</strong>? This action cannot be undone.
             </div>
-
-            <div style={{ fontSize: '14px', color: '#4B5563', lineHeight: '1.6', marginBottom: '24px', paddingLeft: '0' }}>
-              Are you sure you want to delete <strong style={{ color: '#111827', fontWeight: 600 }}>{deleteEmployee.name}</strong>? This will permanently remove their account and activity log.
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteEmployee(null)}
-                style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
-                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                Cancel
-              </button>
-              <button onClick={handleDelete}
-                style={{ background: '#FEE2E2', color: '#DC2626', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#FCA5A5'; e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(220,38,38,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
-                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-              >
-                <Trash2 size={16} /> Delete
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
+              >Cancel</button>
+              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
+                <Trash2 size={14} /> Delete
               </button>
             </div>
           </div>
