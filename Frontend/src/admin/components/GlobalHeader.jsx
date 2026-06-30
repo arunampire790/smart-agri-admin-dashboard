@@ -5,6 +5,7 @@ import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
+import { useEmployees } from '../../context/EmployeeContext';
 
 // TODO: Replace placeholder notifications with real backend/notification service integration once available
 const initialNotifications = [
@@ -20,12 +21,20 @@ export default function GlobalHeader() {
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { tasks } = useTasks();
+  const { employees } = useEmployees();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const profileRef = useRef(null);
   const notifRef = useRef(null);
   const searchRef = useRef(null);
@@ -34,24 +43,39 @@ export default function GlobalHeader() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const filteredResults = useMemo(() => {
-    if (!searchQuery.trim()) return null;
-    const q = searchQuery.toLowerCase();
+    if (!debouncedQuery.trim()) return null;
+    const q = debouncedQuery.toLowerCase();
+    const LIMIT = 3;
 
-    const matchedUsers = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).map((u) => ({ category: 'Users', label: u.name, sub: u.email, icon: 'ph-users', to: '/admin/users', key: `user-${u.name}` }));
-    const matchedFarms = farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q)).map((f) => ({ category: 'Farms', label: f.name, sub: f.location, icon: 'ph-warehouse', to: '/admin/farms', key: `farm-${f.name}` }));
-    const matchedRobots = robots.filter((r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q)).map((r) => ({ category: 'Robots', label: r.name, sub: r.id, icon: 'ph-robot', to: '/admin/robots', key: `robot-${r.id}` }));
-    const matchedTasks = tasks.filter((t) => t.title.toLowerCase().includes(q)).map((t) => ({ category: 'Tasks', label: t.title, sub: t.farm, icon: 'ph-clipboard-text', to: '/admin/tasks', key: `task-${t.id}` }));
+    const build = (all, mapper, path) => {
+      const sliced = all.slice(0, LIMIT).map(mapper);
+      return { items: sliced, hasMore: all.length > LIMIT, path };
+    };
 
-    return { users: matchedUsers, farms: matchedFarms, robots: matchedRobots, tasks: matchedTasks };
-  }, [searchQuery, users, farms, robots, tasks]);
+    const usersAll = users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    const farmsAll = farms.filter((f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q));
+    const robotsAll = robots.filter((r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || (r.owner && r.owner.toLowerCase().includes(q)) || r.model.toLowerCase().includes(q));
+    const tasksAll = tasks.filter((t) => t.title.toLowerCase().includes(q) || (t.assignedTo && t.assignedTo.toLowerCase().includes(q)) || (t.farm && t.farm.toLowerCase().includes(q)));
+    const employeesAll = employees.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.role && e.role.toLowerCase().includes(q)));
+
+    return {
+      users: build(usersAll, (u) => ({ category: 'Users', label: u.name, sub: u.email, icon: 'ph-users', to: '/admin/users', key: `user-${u.name}` }), '/admin/users'),
+      farms: build(farmsAll, (f) => ({ category: 'Farms', label: f.name, sub: f.location, icon: 'ph-warehouse', to: '/admin/farms', key: `farm-${f.name}` }), '/admin/farms'),
+      robots: build(robotsAll, (r) => ({ category: 'Robots', label: r.name, sub: r.id, icon: 'ph-robot', to: '/admin/robots', key: `robot-${r.id}` }), '/admin/robots'),
+      tasks: build(tasksAll, (t) => ({ category: 'Tasks', label: t.title, sub: t.farm, icon: 'ph-clipboard-text', to: '/admin/tasks', key: `task-${t.id}` }), '/admin/tasks'),
+      employees: build(employeesAll, (e) => ({ category: 'Employees', label: e.name, sub: e.email, icon: 'ph-user', to: '/admin/employees', key: `emp-${e.name}` }), '/admin/employees'),
+    };
+  }, [debouncedQuery, users, farms, robots, tasks, employees]);
 
   const flatItems = useMemo(() => {
     if (!filteredResults) return [];
-    return [...filteredResults.users, ...filteredResults.farms, ...filteredResults.robots, ...filteredResults.tasks];
+    const all = [];
+    Object.values(filteredResults).forEach((s) => all.push(...s.items));
+    return all;
   }, [filteredResults]);
 
-  const hasAnyResults = filteredResults && Object.values(filteredResults).some((arr) => arr.length > 0);
-  const totalCount = filteredResults ? Object.values(filteredResults).reduce((sum, arr) => sum + arr.length, 0) : 0;
+  const hasAnyResults = filteredResults && Object.values(filteredResults).some((s) => s.items.length > 0);
+  const totalCount = filteredResults ? Object.values(filteredResults).reduce((sum, s) => sum + s.items.length, 0) : 0;
 
   useEffect(() => { setFocusedIndex(-1); }, [searchQuery]);
 
@@ -78,9 +102,20 @@ export default function GlobalHeader() {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setFocusedIndex((prev) => (prev > 0 ? prev - 1 : flatItems.length - 1));
-    } else if (e.key === 'Enter' && focusedIndex >= 0 && focusedIndex < flatItems.length) {
-      e.preventDefault();
-      navigateTo(flatItems[focusedIndex].to);
+    } else if (e.key === 'Enter') {
+      if (focusedIndex >= 0 && focusedIndex < flatItems.length) {
+        e.preventDefault();
+        navigateTo(flatItems[focusedIndex].to);
+      } else if (flatItems.length > 0) {
+        e.preventDefault();
+        const firstSection = Object.values(filteredResults).find((s) => s.items.length > 0);
+        if (firstSection) {
+          sessionStorage.setItem('globalSearchPrefill', searchQuery);
+          setSearchOpen(false);
+          setSearchQuery('');
+          navigate(firstSection.path);
+        }
+      }
     } else if (e.key === 'Escape') {
       setSearchOpen(false);
       setSearchQuery('');
@@ -106,6 +141,7 @@ export default function GlobalHeader() {
   };
 
   const navigateTo = (path) => { setSearchOpen(false); setSearchQuery(''); navigate(path); };
+  const seeAllNavigate = (path) => { sessionStorage.setItem('globalSearchPrefill', searchQuery); setSearchOpen(false); setSearchQuery(''); navigate(path); };
 
   const searchShortcut = (e) => {
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); searchInputRef.current?.focus(); setSearchOpen(true); }
@@ -127,33 +163,51 @@ export default function GlobalHeader() {
             {!searchQuery.trim() ? (
               <div className="px-4 py-8 text-center text-sm text-text-secondary">
                 <div className="text-lg mb-1">⌘K</div>
-                Start typing to search across users, farms, robots, and tasks
+                Start typing to search across users, farms, robots, tasks, and employees
+              </div>
+            ) : searchQuery !== debouncedQuery ? (
+              <div className="px-4 py-8 text-center text-sm text-text-secondary">
+                <div className="text-lg mb-1">Searching...</div>
               </div>
             ) : hasAnyResults ? (
               <div className="max-h-80 overflow-y-auto" onMouseMove={handleDropdownMouseMove}>
-                {(() => { let idx = 0; return Object.entries(filteredResults).map(([cat, items]) => items.length > 0 && (
-                  <div key={cat}>
-                    <div className="px-4 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{cat}</div>
-                    {items.map((item) => {
-                      const ii = idx++;
-                      return (
-                        <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
-                          className={`flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
-                        >
-                          <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
-                          <div className="min-w-0 flex-1">
-                            <div className="text-sm text-primary font-medium truncate">{item.label}</div>
-                            <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )); })()}
+                {(() => {
+                  let idx = 0;
+                  const labelMap = { users: 'Users', farms: 'Farms', robots: 'Robots', tasks: 'Tasks', employees: 'Employees' };
+                  return Object.entries(filteredResults).map(([key, section]) =>
+                    section.items.length > 0 && (
+                      <div key={key}>
+                        <div className="px-4 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{labelMap[key] || key}</div>
+                        {section.items.map((item) => {
+                          const ii = idx++;
+                          return (
+                            <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
+                              className={`flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
+                            >
+                              <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-sm text-primary font-medium truncate">{item.label}</div>
+                                <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {section.hasMore && (
+                          <button onClick={() => seeAllNavigate(section.path)}
+                            className="flex items-center gap-2 w-full px-4 py-2 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(16,185,129,0.06)] text-xs text-brand font-medium"
+                          >
+                            See all results in {labelMap[key] || key}
+                            <i className="ph ph-arrow-right text-xs" />
+                          </button>
+                        )}
+                      </div>
+                    )
+                  );
+                })()}
                 <div className="px-4 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
               </div>
             ) : (
-              <div className="px-4 py-8 text-center text-sm text-text-secondary">No results found</div>
+              <div className="px-4 py-8 text-center text-sm text-text-secondary">No results found for '<span className="font-medium text-primary">{(searchQuery || '').length > 30 ? searchQuery.slice(0, 30) + '...' : searchQuery}</span>'</div>
             )}
           </div>
         )}

@@ -74,6 +74,7 @@ export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewUser, setViewUser] = useState(null);
   const [editUser, setEditUser] = useState(null);

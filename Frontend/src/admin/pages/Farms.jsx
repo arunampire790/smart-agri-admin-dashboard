@@ -135,6 +135,7 @@ export default function Farms() {
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });

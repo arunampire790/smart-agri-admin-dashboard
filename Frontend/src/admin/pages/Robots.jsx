@@ -198,6 +198,7 @@ export default function Robots() {
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);

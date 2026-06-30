@@ -213,6 +213,7 @@ export default function Employees() {
   const { currentUser } = useAuth();
   const { employees, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);
   const [deleteEmployee, setDeleteEmployee] = useState(null);
