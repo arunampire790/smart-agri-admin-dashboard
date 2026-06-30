@@ -9,9 +9,11 @@ export default function AdminLayout() {
   const { currentUser } = useAuth();
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
   const [robotsOpen, setRobotsOpen] = useState(false);
+  const [employeesOpen, setEmployeesOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
   const isRobotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
+  const isEmployeesActive = location.pathname === '/admin/employees' || location.pathname === '/admin/activity-log';
 
   const navItemBase = {
     display: 'flex',
@@ -172,14 +174,36 @@ export default function AdminLayout() {
           </div>
 
           {isMasterAdmin && (
-            <div
-              onClick={() => navigate('/admin/employees')}
-              className={isActive('/admin/employees') ? 'nav-active-indicator' : undefined}
-              style={isActive('/admin/employees') ? navItemActive : navItemInactive}
-              onMouseEnter={(e) => { if (!isActive('/admin/employees')) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-              onMouseLeave={(e) => { if (!isActive('/admin/employees')) e.currentTarget.style.background = 'none'; }}
-            >
-              <span>Employees</span>
+            <div>
+              <div
+                onClick={() => { navigate('/admin/employees'); setEmployeesOpen((o) => !o); }}
+                className={isEmployeesActive ? 'nav-active-indicator' : undefined}
+                style={isEmployeesActive ? navItemActive : navItemInactive}
+                onMouseEnter={(e) => { if (!isEmployeesActive) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+                onMouseLeave={(e) => { if (!isEmployeesActive) e.currentTarget.style.background = isEmployeesActive ? 'rgba(5,150,105,0.08)' : 'none'; }}
+              >
+                <span>Employees</span>
+                <i
+                  className="ph ph-caret-down"
+                  style={{
+                    fontSize: 12,
+                    color: '#8E8E93',
+                    transition: 'transform 0.2s',
+                    transform: employeesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </div>
+              {employeesOpen && (
+                <div
+                  onClick={() => navigate('/admin/activity-log')}
+                  className={isActive('/admin/activity-log') ? 'nav-active-indicator' : undefined}
+                  style={isActive('/admin/activity-log') ? { ...childItemInactive, color: '#1C1C1E', fontWeight: 600, background: 'rgba(5,150,105,0.08)' } : childItemInactive}
+                  onMouseEnter={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+                  onMouseLeave={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'none'; }}
+                >
+                  Audit Log
+                </div>
+              )}
             </div>
           )}
 
@@ -191,16 +215,6 @@ export default function AdminLayout() {
             onMouseLeave={(e) => { if (!isActive('/admin/settings')) e.currentTarget.style.background = 'none'; }}
           >
             <span>Settings</span>
-          </div>
-
-          <div
-            onClick={() => navigate('/admin/activity-log')}
-            className={isActive('/admin/activity-log') ? 'nav-active-indicator' : undefined}
-            style={isActive('/admin/activity-log') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-            onMouseLeave={(e) => { if (!isActive('/admin/activity-log')) e.currentTarget.style.background = 'none'; }}
-          >
-            <span>Audit Log</span>
           </div>
         </nav>
 
