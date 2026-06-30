@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
@@ -18,7 +17,6 @@ const initialNotifications = [
 
 export default function GlobalHeader() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const { users } = useUsers();
   const { farms } = useFarms();
   const { robots } = useRobots();
@@ -282,10 +280,6 @@ export default function GlobalHeader() {
           <span className="w-2 h-2 rounded-full bg-brand inline-block" style={{ animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
           System Online
         </div>
-        <button onClick={toggleTheme} aria-label="Toggle theme" className="bg-none border-none cursor-pointer text-xl text-text-placeholder hover:text-text-secondary shrink-0 leading-none">
-          <i className={`ph ${theme === 'dark' ? 'ph-sun' : 'ph-moon'}`} />
-        </button>
-
         {/* Notification Bell */}
         <div className="relative shrink-0" ref={notifRef} onKeyDown={handleKeyDown}>
           <button ref={notifButtonRef} onClick={handleNotifToggle} aria-label="Notifications" aria-expanded={notifOpen} aria-haspopup="true"
