@@ -113,6 +113,13 @@ function ActivityLog({ employeeName }) {
     'Completed': 'ph-check-circle',
   };
 
+  const entityBorderColors = {
+    User: 'rgba(59,130,246,0.35)',
+    Farm: 'rgba(16,185,129,0.35)',
+    Robot: 'rgba(139,92,246,0.35)',
+    Task: 'rgba(245,158,11,0.35)',
+  };
+
   const formatTime = (ts) => {
     const d = new Date(ts);
     const now = new Date();
@@ -141,22 +148,31 @@ function ActivityLog({ employeeName }) {
         const icon = actionIcons[actionType] || 'ph-dot';
 
         return (
-          <div key={entry.id} className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/20" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={entry.id} className="flex items-start gap-3.5 px-5 py-4 transition-colors hover:bg-white/20" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', borderLeft: `3px solid ${entityBorderColors[entity] || 'transparent'}`, paddingLeft: 'calc(1.25rem - 3px)' }}>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${entityColor}`}>
               <i className={`ph ${icon} text-sm`} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-semibold text-primary">{entry.userName}</span>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
               </div>
-              <p className="text-sm text-text-secondary mt-0.5">
-                <span className="font-medium text-primary">{entry.target}</span>
-                {entry.details && <span className="text-text-placeholder"> — {entry.details}</span>}
-              </p>
+              <div style={{ marginTop: '8px' }}>
+                <div className="text-sm font-medium text-primary">{entry.target}</div>
+                {entry.details && (
+                  <div className="flex items-center gap-1 flex-wrap" style={{ marginTop: '4px' }}>
+                    {entry.details.split(', ').map((seg, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {i > 0 && <span className="text-text-placeholder" style={{ fontSize: '10px' }}>·</span>}
+                        <span className="text-xs" style={{ color: '#6B7280' }}>{seg}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0 pt-1.5">
+            <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0" style={{ paddingTop: '2px' }}>
               {formatTime(entry.timestamp)}
             </div>
           </div>
