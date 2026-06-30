@@ -107,6 +107,27 @@ export default function AdminLogin() {
     background: 'rgba(255, 255, 255, 0.25)',
     border: '1px solid rgba(255, 255, 255, 0.3)',
   };
+  const modalInputStyle = {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: '1px solid #D1D5DB',
+    background: 'rgba(255,255,255,0.5)',
+    color: '#1C1C1E',
+    fontSize: 14,
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  };
+  const modalLabelStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '6px',
+  };
   const labelClasses = "text-xs font-medium mb-1";
   const labelStyle = { color: '#374151' };
 
@@ -174,15 +195,15 @@ export default function AdminLogin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={closeFlow}>
           <div className="admin-login-modal relative z-10 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'rgba(255, 255, 255, 0.5)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.6)',
+              background: 'rgba(255,255,255,0.65)',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              border: '1px solid rgba(255,255,255,0.6)',
               borderRadius: 24,
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
               maxHeight: 'calc(100vh - 40px)',
               overflowY: 'auto',
-              padding: '32px 32px 28px',
+              padding: '28px',
             }}>
 
             <div className="flex items-center justify-between mb-6">
@@ -201,29 +222,31 @@ export default function AdminLogin() {
                 </div>
               </div>
               <button type="button" onClick={closeFlow}
-                style={{ background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '6px', display: 'flex', borderRadius: 8, transition: 'all 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.transform = 'scale(1)'; }}
+                style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
 
             {/* Step 2 — Enter Email */}
             {flowStep === 'email' && (
               <div>
-                <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses} style={labelStyle}>Email Address</label>
+                <div className="flex flex-col mb-5">
+                  <label style={modalLabelStyle}>Email Address</label>
                   <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="Enter your email" className={inputClasses}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    style={modalInputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
+                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
                 >Send Code</button>
               </div>
             )}
@@ -237,8 +260,8 @@ export default function AdminLogin() {
                 <div className="mb-5 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.35)', color: '#8E8E93' }}>
                   Demo Code: <strong style={{ color: '#1C1C1E' }} className="tracking-wider text-sm">{generatedCode}</strong>
                 </div>
-                <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses} style={labelStyle}>Verification Code</label>
+                <div className="flex flex-col mb-5">
+                  <label style={modalLabelStyle}>Verification Code</label>
                   <div className="flex justify-center gap-2">
                     {codeDigits.map((digit, i) => (
                       <input key={i} type="text" inputMode="numeric" maxLength={1} value={digit}
@@ -247,24 +270,26 @@ export default function AdminLogin() {
                         onKeyDown={(e) => handleDigitKeyDown(i, e)}
                         className="w-10 h-12 text-center text-sm font-semibold outline-none"
                         style={{
-                          borderRadius: 10,
-                          border: '1px solid rgba(0,0,0,0.12)',
-                          background: '#ffffff',
+                          borderRadius: 12,
+                          border: '1px solid #D1D5DB',
+                          background: 'rgba(255,255,255,0.5)',
                           color: '#1C1C1E',
                           transition: 'border-color 0.2s, box-shadow 0.2s',
                         }}
-                        onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                        onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
                       />
                     ))}
                   </div>
                   {codeError && <span className="text-xs text-center mt-1" style={{ color: '#DC2626' }}>{codeError}</span>}
                 </div>
                 <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
+                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
                 >Verify Code</button>
               </div>
             )}
@@ -272,30 +297,32 @@ export default function AdminLogin() {
             {/* Step 5 — Reset Password */}
             {flowStep === 'reset' && (
               <div>
-                <div className="flex flex-col gap-1.5 mb-3">
-                  <label className={labelClasses} style={labelStyle}>New Password</label>
+                <div className="flex flex-col mb-3">
+                  <label style={modalLabelStyle}>New Password</label>
                   <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password" className={inputClasses}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    style={modalInputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
-                <div className="flex flex-col gap-1.5 mb-5">
-                  <label className={labelClasses} style={labelStyle}>Confirm New Password</label>
+                <div className="flex flex-col mb-5">
+                  <label style={modalLabelStyle}>Confirm New Password</label>
                   <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password" className={inputClasses}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    style={modalInputStyle}
+                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
                   />
                   {passwordError && <span className="text-xs mt-1" style={{ color: '#DC2626' }}>{passwordError}</span>}
                 </div>
                 <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
+                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
                 >Reset Password</button>
               </div>
             )}
@@ -312,10 +339,12 @@ export default function AdminLogin() {
                   Your password has been reset successfully. You can now sign in with your new password.
                 </div>
                 <button type="button" onClick={closeFlow}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer"
-                  style={{ background: '#059669', color: '#fff', transition: 'all 0.2s ease-in-out', boxShadow: '0 4px 14px 0 rgba(5,150,105,0.25)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px 0 rgba(5,150,105,0.35)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px 0 rgba(5,150,105,0.25)'; }}
+                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer"
+                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >Back to Sign In</button>
               </div>
             )}
