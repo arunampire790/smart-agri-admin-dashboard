@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom';
-import { Check, Clock } from 'lucide-react';
+import { Check, Clock, UserPlus, User, Mail, Phone, Shield, Activity } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { logActivity, getActivityLogByUser } from '../../utils/activityLogger';
 
-const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-[#1C1C1E] select-none";
+const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const inputClass = "add-input-field";
 const cancelBtnClass = "add-cancel-btn";
 const submitBtnClass = "add-submit-btn";
@@ -299,41 +299,94 @@ export default function Employees() {
 
       {/* Add Employee Modal */}
       {showAddModal && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
-          <div className="glass-card rounded-[20px] p-6 w-[450px] shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowAddModal(false)} className="add-close-btn absolute top-4 right-4"><i className="ph ph-x" /></button>
-            <div className="text-lg font-bold text-[#1C1C1E] mb-1">Add New Employee</div>
-            <div className="text-xs text-text-secondary mb-5">Create a new admin staff account.</div>
-            <form onSubmit={handleAdd}>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Name</label>
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name" className={inputClass} />
-                {errors.name && <span className="text-[10px] text-danger-text">{errors.name}</span>}
-              </div>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Email</label>
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address" className={inputClass} />
-                {errors.email && <span className="text-[10px] text-danger-text">{errors.email}</span>}
-              </div>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Phone</label>
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx" className={inputClass} />
-                {errors.phone && <span className="text-[10px] text-danger-text">{errors.phone}</span>}
-              </div>
-              {/* Role is auto-assigned as 'admin'; no UI to set masterAdmin */}
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className={labelClass}>Role</label>
-                <div className="add-input-field flex items-center text-text-placeholder text-sm select-none" style={{ cursor: 'default', opacity: 0.7 }}>
-                  admin
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <UserPlus size={20} color="#fff" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New Employee</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Create a new admin staff account.</div>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5 mb-6">
-                <label className={labelClass}>Status</label>
-                <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+              <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+              ><i className="ph ph-x text-lg" /></button>
+            </div>
+
+            <form onSubmit={handleAdd}>
+              <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                  <User size={15} color="#10B981" />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Employee Information</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <User size={12} color="#9CA3AF" /> Name
+                    </div>
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                      className={glassInput}
+                    />
+                    {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Mail size={12} color="#9CA3AF" /> Email
+                    </div>
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                      className={glassInput}
+                    />
+                    {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Phone size={12} color="#9CA3AF" /> Phone
+                    </div>
+                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
+                      className={glassInput}
+                    />
+                    {errors.phone && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.phone}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Shield size={12} color="#9CA3AF" /> Role
+                    </div>
+                    <div className={glassInput} style={{ cursor: 'default', opacity: 0.65, display: 'flex', alignItems: 'center', userSelect: 'none' }}>admin</div>
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Activity size={12} color="#9CA3AF" /> Status
+                    </div>
+                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancel</button>
-                <button type="submit" className={submitBtnClass}><Check size={16} color="#FFFFFF" /> Save Employee</button>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" onClick={() => setShowAddModal(false)}
+                  style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  Cancel
+                </button>
+                <button type="submit"
+                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+                >
+                  <Check size={16} /> Save Employee
+                </button>
               </div>
             </form>
           </div>
