@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useUsers } from '../../context/UserContext';
@@ -39,8 +40,25 @@ export default function GlobalHeader() {
   const notifRef = useRef(null);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
+  const overlayInputRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (searchOpen && overlayInputRef.current) {
+      overlayInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handler = (e) => {
+      if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [searchOpen]);
 
   const filteredResults = useMemo(() => {
     if (!debouncedQuery.trim()) return null;
@@ -81,19 +99,19 @@ export default function GlobalHeader() {
 
   useEffect(() => {
     if (focusedIndex < 0) return;
-    const el = searchRef.current?.querySelector(`[data-search-index="${focusedIndex}"]`);
+    const el = resultsRef.current?.querySelector(`[data-search-index="${focusedIndex}"]`);
     el?.scrollIntoView({ block: 'nearest' });
   }, [focusedIndex]);
 
   useEffect(() => {
     const handler = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target) && !searchOpen) setSearchOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [searchOpen]);
 
   const handleSearchKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
@@ -157,59 +175,80 @@ export default function GlobalHeader() {
           <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
         </div>
 
-        {searchOpen && (
-          <div className="absolute left-0 top-full mt-2 w-[480px] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 overflow-hidden z-50"
-            style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            {!searchQuery.trim() ? (
-              <div className="px-4 py-8 text-center text-sm text-text-secondary">
-                <div className="text-lg mb-1">⌘K</div>
-                Start typing to search across users, farms, robots, tasks, and employees
+        {searchOpen && createPortal(
+          <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => { setSearchOpen(false); setSearchQuery(''); }}>
+            <div onClick={(e) => e.stopPropagation()} style={{
+              position: 'fixed',
+              top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 560, maxWidth: 'calc(100vw - 32px)',
+              background: 'rgba(255,255,255,0.65)',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              border: '1px solid rgba(255,255,255,0.6)',
+              borderRadius: 24,
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+              maxHeight: 'calc(100vh - 80px)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}>
+              <div className="flex items-center gap-3 px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
+                <i className="ph ph-magnifying-glass text-lg text-text-placeholder shrink-0" />
+                <input ref={overlayInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={handleSearchKeyDown} placeholder="Search users, farms, robots, tasks, employees..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
+                <div className="text-[10px] text-text-placeholder font-medium px-2 py-1 rounded-md shrink-0" style={{ background: 'rgba(0,0,0,0.04)' }}>⌘K</div>
               </div>
-            ) : searchQuery !== debouncedQuery ? (
-              <div className="px-4 py-8 text-center text-sm text-text-secondary">
-                <div className="text-lg mb-1">Searching...</div>
+              <div className="overflow-y-auto" ref={resultsRef} style={{ maxHeight: 400 }} onMouseMove={handleDropdownMouseMove}>
+                {!searchQuery.trim() ? (
+                  <div className="px-4 py-12 text-center text-sm text-text-secondary">
+                    Start typing to search across users, farms, robots, tasks, and employees
+                  </div>
+                ) : searchQuery !== debouncedQuery ? (
+                  <div className="px-4 py-12 text-center text-sm text-text-secondary">Searching...</div>
+                ) : hasAnyResults ? (
+                  <div>
+                    {(() => {
+                      let idx = 0;
+                      const labelMap = { users: 'Users', farms: 'Farms', robots: 'Robots', tasks: 'Tasks', employees: 'Employees' };
+                      return Object.entries(filteredResults).map(([key, section]) =>
+                        section.items.length > 0 && (
+                          <div key={key}>
+                            <div className="px-5 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{labelMap[key] || key}</div>
+                            {section.items.map((item) => {
+                              const ii = idx++;
+                              return (
+                                <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
+                                  className={`flex items-center gap-3 w-full px-5 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
+                                >
+                                  <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm text-primary font-medium truncate">{item.label}</div>
+                                    <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                            {section.hasMore && (
+                              <button onClick={() => seeAllNavigate(section.path)}
+                                className="flex items-center gap-2 w-full px-5 py-2 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(16,185,129,0.06)] text-xs text-brand font-medium"
+                              >
+                                See all results in {labelMap[key] || key}
+                                <i className="ph ph-arrow-right text-xs" />
+                              </button>
+                            )}
+                          </div>
+                        )
+                      );
+                    })()}
+                    <div className="px-5 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
+                  </div>
+                ) : (
+                  <div className="px-4 py-12 text-center text-sm text-text-secondary">No results found for '<span className="font-medium text-primary">{(searchQuery || '').length > 30 ? searchQuery.slice(0, 30) + '...' : searchQuery}</span>'</div>
+                )}
               </div>
-            ) : hasAnyResults ? (
-              <div className="max-h-80 overflow-y-auto" onMouseMove={handleDropdownMouseMove}>
-                {(() => {
-                  let idx = 0;
-                  const labelMap = { users: 'Users', farms: 'Farms', robots: 'Robots', tasks: 'Tasks', employees: 'Employees' };
-                  return Object.entries(filteredResults).map(([key, section]) =>
-                    section.items.length > 0 && (
-                      <div key={key}>
-                        <div className="px-4 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{labelMap[key] || key}</div>
-                        {section.items.map((item) => {
-                          const ii = idx++;
-                          return (
-                            <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
-                              className={`flex items-center gap-3 w-full px-4 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
-                            >
-                              <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm text-primary font-medium truncate">{item.label}</div>
-                                <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                        {section.hasMore && (
-                          <button onClick={() => seeAllNavigate(section.path)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(16,185,129,0.06)] text-xs text-brand font-medium"
-                          >
-                            See all results in {labelMap[key] || key}
-                            <i className="ph ph-arrow-right text-xs" />
-                          </button>
-                        )}
-                      </div>
-                    )
-                  );
-                })()}
-                <div className="px-4 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
-              </div>
-            ) : (
-              <div className="px-4 py-8 text-center text-sm text-text-secondary">No results found for '<span className="font-medium text-primary">{(searchQuery || '').length > 30 ? searchQuery.slice(0, 30) + '...' : searchQuery}</span>'</div>
-            )}
-          </div>
+            </div>
+          </div>,
+          document.body
         )}
       </div>
 
