@@ -95,6 +95,7 @@ function getIconConfig(label) {
 }
 
 const statusOpts = ['Active', 'Idle', 'Offline'];
+const userStatusOpts = ['Active', 'Inactive'];
 
 function Select({ options, value, onChange, placeholder, style, onMouseEnter, onMouseLeave, onFocus, onBlur, className }) {
   const [open, setOpen] = useState(false);
@@ -131,13 +132,22 @@ export default function Farms() {
   const navigate = useNavigate();
   const { farms, addFarm } = useFarms();
   const { robots } = useRobots();
-  const { users } = useUsers();
+  const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
   const [errors, setErrors] = useState({});
+  const [editUser, setEditUser] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
+  const [editErrors, setEditErrors] = useState({});
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape') { setShowAddModal(false); setEditUser(null); } };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, []);
 
   const userNames = users.length ? users.map((u) => u.name) : [];
 
@@ -173,6 +183,25 @@ export default function Farms() {
   };
 
   const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' }); setErrors({}); setShowAddModal(true); };
+  const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
+  const validateEdit = () => {
+    const errs = {};
+    if (!editForm.name.trim()) errs.name = 'Full name is required';
+    if (!editForm.email.trim()) errs.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) errs.email = 'Invalid email format';
+    if (!editForm.phone.trim()) errs.phone = 'Phone number is required';
+    setEditErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+  const handleEdit = (e) => {
+    e.preventDefault();
+    if (!validateEdit()) return;
+    const status = editForm.status;
+    const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : 'bg-danger-bg text-danger-text';
+    updateUser(editUser, { name: editForm.name.trim(), email: editForm.email.trim(), phone: editForm.phone.trim(), status, cls });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited User', target: editForm.name.trim(), details: `Name: ${editUser.name} → ${editForm.name.trim()}, Status: ${status}` });
+    setEditUser(null);
+  };
 
   const inputBase = {
     background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -279,7 +308,7 @@ export default function Farms() {
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{farm.owner}</span>
                   </td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{connectedCount}</td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600, textAlign: 'left' }}>{connectedCount}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
@@ -421,7 +450,108 @@ export default function Farms() {
         </div>,
         document.body
       )}
-      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {editUser && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditUser(null)}>
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <i className="ph ph-pen text-white text-lg" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit User Details</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Update information for {editUser.name}.</div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setEditUser(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+              ><i className="ph ph-x text-lg" /></button>
+            </div>
+
+            <form onSubmit={handleEdit}>
+              <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                  <i className="ph ph-user text-[15px]" style={{ color: '#10B981' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Name
+                    </div>
+                    <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Enter full name"
+                      style={inputBase}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur}
+                      onMouseEnter={inputHoverEnter}
+                      onMouseLeave={inputHoverLeave}
+                    />
+                    {editErrors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{editErrors.name}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> Email
+                    </div>
+                    <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="Enter email address"
+                      style={inputBase}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur}
+                      onMouseEnter={inputHoverEnter}
+                      onMouseLeave={inputHoverLeave}
+                    />
+                    {editErrors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{editErrors.email}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> Phone
+                    </div>
+                    <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} placeholder="+1-555-xxxx"
+                      style={inputBase}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur}
+                      onMouseEnter={inputHoverEnter}
+                      onMouseLeave={inputHoverLeave}
+                    />
+                    {editErrors.phone && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{editErrors.phone}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
+                    </div>
+                    <Select value={editForm.status} onChange={(v) => setEditForm({ ...editForm, status: v })} options={userStatusOpts} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" onClick={() => setEditUser(null)}
+                  style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  Cancel
+                </button>
+                <button type="submit"
+                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+                >
+                  <i className="ph ph-check" /> Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} onEdit={(user) => { setProfileUser(null); openEdit(user); }} />}
     </>
   );
 }
