@@ -1,5 +1,26 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+function useCardGlow() {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const onMouseEnter = useCallback(() => setIsHovered(true), []);
+  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
+
+  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
+}
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@smartagri.com');
@@ -131,29 +152,43 @@ export default function AdminLogin() {
   const labelClasses = "text-xs font-medium mb-1";
   const labelStyle = { color: '#374151' };
 
+  const { ref: cardRef, onMouseMove: cardMouseMove, onMouseEnter: cardEnter, onMouseLeave: cardLeave, pos: cardPos, isHovered: cardHovered } = useCardGlow();
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #d4edda 0%, #e8d5f5 50%, #cce5ff 100%)' }}
     >
-      <style>{`.admin-login-modal input::placeholder { color: #9CA3AF; }`}</style>
+      <style>{`.admin-login-modal input::placeholder { color: #9CA3AF; } @keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(5,150,105,0.3)}50%{box-shadow:0 0 16px rgba(5,150,105,0.5)}}`}</style>
       <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full" style={{ background: '#059669', filter: 'blur(150px)', opacity: 0.4 }} />
       <div className="absolute -bottom-48 -right-32 w-[550px] h-[550px] rounded-full" style={{ background: '#7C3AED', filter: 'blur(140px)', opacity: 0.3 }} />
       <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full" style={{ background: '#0D9488', filter: 'blur(120px)', opacity: 0.35 }} />
       <div className="absolute bottom-1/3 left-1/4 w-[320px] h-[320px] rounded-full" style={{ background: '#10B981', filter: 'blur(100px)', opacity: 0.3 }} />
 
       {/* Login Card */}
-      <div className="rounded-2xl p-10 w-[400px]" style={{
+      <div ref={cardRef} onMouseMove={cardMouseMove} onMouseEnter={cardEnter} onMouseLeave={cardLeave} className="rounded-2xl p-10 w-[400px]" style={{
         background: 'rgba(255, 255, 255, 0.2)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.4)',
         borderRadius: 24,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        boxShadow: cardHovered ? '0 12px 40px rgba(0,0,0,0.2)' : '0 8px 32px rgba(0,0,0,0.15)',
         position: 'relative',
+        overflow: 'hidden',
+        transition: 'box-shadow 0.2s ease',
       }}>
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: 'inherit',
+          background: `radial-gradient(circle 200px at ${cardPos.x}% ${cardPos.y}%, rgba(16,185,129,0.12), transparent)`,
+          opacity: cardHovered ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
         <div className="text-center mb-6">
           <div className="flex justify-center mb-6">
-            <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base">
+            <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white text-base" style={{ transition: 'transform 0.2s ease', cursor: 'default' }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
               <i className="ph ph-sprout" />
             </div>
           </div>
@@ -165,23 +200,36 @@ export default function AdminLogin() {
           <div className="flex flex-col gap-1.5 mb-4">
             <label className={labelClasses} style={labelStyle}>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} style={loginInputStyle}
-              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.18)'; }}
               onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; }}
+              onMouseEnter={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(5,150,105,0.4)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.06)'; } }}
+              onMouseLeave={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; } }}
             />
           </div>
           <div className="flex flex-col gap-1.5 mb-4">
             <label className={labelClasses} style={labelStyle}>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClasses} style={loginInputStyle}
-              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.12)'; }}
+              onFocus={(e) => { e.target.style.borderColor = '#059669'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.18)'; }}
               onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; }}
+              onMouseEnter={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(5,150,105,0.4)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.06)'; } }}
+              onMouseLeave={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.boxShadow = 'none'; } }}
             />
           </div>
           <div className="mb-4 text-right">
             <button type="button" onClick={openForgotPassword}
-              className="bg-none border-none p-0 text-xs text-brand cursor-pointer hover:underline font-medium"
+              className="bg-none border-none p-0 text-xs text-brand cursor-pointer font-medium"
+              style={{ transition: 'color 0.15s ease, text-decoration-color 0.15s ease', textDecoration: 'underline', textDecorationColor: 'transparent', textUnderlineOffset: '2px' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#047857'; e.currentTarget.style.textDecorationColor = '#047857'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#059669'; e.currentTarget.style.textDecorationColor = 'transparent'; }}
             >Forgot Password?</button>
           </div>
-          <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2 hover:opacity-90">
+          <button type="submit" className="w-full bg-brand text-white border-none rounded-xl py-2.5 text-sm font-medium cursor-pointer flex items-center justify-center gap-2"
+            style={{ transition: 'all 0.2s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.animation = 'pulse-glow 1.5s ease-in-out infinite'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.animation = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+            onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+          >
             Sign in
           </button>
           <div className="mt-3 p-3 rounded-xl bg-[#7676801F] text-xs text-text-secondary">
