@@ -7,12 +7,20 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import DatePicker from '../components/DatePicker';
 import UserProfileModal from '../components/UserProfileModal';
-import { ClipboardList, FileText, User, MapPin, Tag, AlertCircle, Calendar, Check } from 'lucide-react';
+import { ClipboardList, FileText, User, MapPin, Tag, AlertCircle, Calendar, Check, Droplets, Sprout, Search, Wrench, Wheat, Trash2 } from 'lucide-react';
 
 const priorityStyles = {
   High: { cls: 'bg-danger-bg text-danger-text' },
   Medium: { cls: 'bg-warning-bg text-warning-text' },
   Low: { cls: 'bg-brand-light text-brand-dark' },
+};
+
+const typeIconMap = {
+  Irrigation: Droplets,
+  Fertilizer: Sprout,
+  Inspection: Search,
+  Maintenance: Wrench,
+  Harvest: Wheat,
 };
 
 const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
@@ -204,6 +212,11 @@ export default function Tasks() {
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Completed Task', target: task.title, details: `Assigned to: ${task.assignedTo}, Farm: ${task.farm}` });
   };
 
+  const handleDeleteTask = (task) => {
+    removeTask(task.id);
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Task', target: task.title, details: `Assigned to: ${task.assignedTo}, Farm: ${task.farm}` });
+  };
+
   const totalTasks = tasks.length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
@@ -325,18 +338,18 @@ export default function Tasks() {
                     >{task.assignedTo}</span>
                   </td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.farm}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary">{task.type}</span></td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/40 text-text-secondary" style={{ gap: '5px' }}>{(() => { const Icon = typeIconMap[task.type]; return Icon ? <Icon size={14} /> : null; })()}{task.type}</span></td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.dueDate}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     {task.status === 'Pending' && (
-                      <button onClick={() => handleStartTask(task)} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Start</button>
+                      <button onClick={() => handleStartTask(task)} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(59,130,246,0.18)]">Start</button>
                     )}
                     {task.status === 'In Progress' && (
-                      <button onClick={() => handleCompleteTask(task)} className="text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 font-medium text-text-secondary transition-all duration-200 hover:scale-[1.02] hover:bg-white/80">Complete</button>
+                      <button onClick={() => handleCompleteTask(task)} style={{ background: 'rgba(46,158,107,0.1)', color: '#2e9e6b', border: '1px solid rgba(46,158,107,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(46,158,107,0.18)]">Complete</button>
                     )}
                     {task.status === 'Completed' && (
-                      <span className="text-xs font-medium text-text-secondary">Done</span>
+                      <button onClick={() => handleDeleteTask(task)} style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }} className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(239,68,68,0.16)]" title="Delete task"><Trash2 size={13} /><span>Delete</span></button>
                     )}
                   </td>
                 </tr>
