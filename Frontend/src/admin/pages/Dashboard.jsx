@@ -47,14 +47,14 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
         cursor: onClick ? 'pointer' : undefined,
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+        boxShadow: isHovered ? '0 16px 48px rgba(0,0,0,0.6)' : outerStyle?.boxShadow,
       }}
     >
       <div style={{
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(46,158,107,0.2), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -140,11 +140,39 @@ export default function Dashboard() {
   const [profileUser, setProfileUser] = useState(null);
 
   return (
-    <>
-      <div className="mb-6">
-        <div className="text-2xl font-bold text-primary">Dashboard</div>
-        <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
-      </div>
+    <div className="dashboard-dark" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: '#0a0a0f' }}>
+      <style>{`
+        .dashboard-dark {
+          --color-text-primary: #ffffff;
+          --color-text-secondary: rgba(255,255,255,0.55);
+          --color-surface: rgba(255,255,255,0.07);
+          --color-border: rgba(255,255,255,0.12);
+        }
+        .dashboard-dark .text-primary { color: #ffffff !important; }
+        .dashboard-dark .text-text-secondary { color: rgba(255,255,255,0.55) !important; }
+        .dashboard-dark .text-secondary { color: rgba(255,255,255,0.55) !important; }
+        .dashboard-dark .glass-card { background: rgba(255,255,255,0.07) !important; backdrop-filter: blur(24px) !important; -webkit-backdrop-filter: blur(24px) !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important; }
+        .dashboard-dark .bg-white { background: rgba(255,255,255,0.07) !important; }
+        .dashboard-dark .border-table-sep { border-color: rgba(255,255,255,0.08) !important; }
+        .dashboard-dark table th { color: rgba(255,255,255,0.55) !important; }
+        .dashboard-dark button.border { border-color: rgba(255,255,255,0.15) !important; color: rgba(255,255,255,0.55) !important; }
+        .dashboard-dark button.border:hover { background: rgba(255,255,255,0.1) !important; }
+        .dashboard-dark .pill { background: rgba(255,255,255,0.08) !important; }
+        .dashboard-dark [class*="bg-danger"] { background: rgba(239,68,68,0.15) !important; }
+        .dashboard-dark [class*="bg-warning"] { background: rgba(245,158,11,0.15) !important; }
+        .dashboard-dark [class*="bg-brand-light"] { background: rgba(16,185,129,0.15) !important; }
+        .dashboard-dark [class*="text-brand-dark"] { color: #34d399 !important; }
+        .dashboard-dark [class*="text-danger-text"] { color: #ef4444 !important; }
+        .dashboard-dark [class*="text-warning-text"] { color: #f59e0b !important; }
+      `}</style>
+      <div style={{ position: 'fixed', top: '-15%', left: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,158,107,0.3) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', top: '-10%', right: '-10%', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', bottom: '-15%', right: '-5%', width: '450px', height: '450px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div className="mb-6">
+          <div className="text-2xl font-bold text-primary">Dashboard</div>
+          <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-4">
         <GlowCard
@@ -223,10 +251,10 @@ export default function Dashboard() {
                   <stop offset="100%" stopColor="rgba(16,185,129,0)" />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(46,158,107,0.3)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#ffffff' }} />
               <Area type="monotone" dataKey="val" stroke="#10B981" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -241,10 +269,10 @@ export default function Dashboard() {
                   <stop offset="100%" stopColor="rgba(4,120,87,0)" />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(46,158,107,0.3)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: '#ffffff' }} />
               <Area type="monotone" dataKey="val" stroke="#047857" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#047857', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -287,7 +315,8 @@ export default function Dashboard() {
           </tbody>
         </table>
       </div>
-      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
-    </>
+        {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      </div>
+    </div>
   );
 }
