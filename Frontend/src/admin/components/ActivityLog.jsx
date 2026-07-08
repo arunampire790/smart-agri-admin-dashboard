@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useActivityLog } from '../../context/ActivityLogContext';
 
 const entityColors = {
@@ -40,22 +40,7 @@ export default function ActivityLog() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const btnRef = useRef(null);
-  const [btnPos, setBtnPos] = useState({ x: 50, y: 50 });
-  const [btnHovered, setBtnHovered] = useState(false);
   const timeOptions = ['Today', 'Last 7 Days', 'Last Month', 'Last Year'];
-
-  const onBtnMove = useCallback((e) => {
-    const el = btnRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setBtnPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }, []);
-
-  const onBtnEnter = useCallback(() => setBtnHovered(true), []);
-  const onBtnLeave = useCallback(() => { setBtnHovered(false); setBtnPos({ x: 50, y: 50 }); }, []);
 
   const handleRefresh = () => {
     if (refreshing) return;
@@ -127,30 +112,19 @@ export default function ActivityLog() {
           ref={btnRef}
           onClick={handleRefresh}
           disabled={refreshing}
-          onMouseMove={onBtnMove}
-          onMouseEnter={onBtnEnter}
-          onMouseLeave={onBtnLeave}
           style={{
-            position: 'relative', overflow: 'hidden',
-            background: 'linear-gradient(135deg, #059669, #10B981)',
+            background: 'linear-gradient(135deg, #2e7d2e, #4caf50)',
             border: 'none', borderRadius: '12px', color: '#fff',
             fontSize: '14px', fontWeight: 500, padding: '10px 20px',
             cursor: refreshing ? 'not-allowed' : 'pointer',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-            transform: btnHovered && !refreshing ? 'scale(1.02)' : 'scale(1)',
-            boxShadow: btnHovered && !refreshing ? '0 8px 25px rgba(5,150,105,0.3)' : 'none',
+            transition: 'all 0.2s ease',
             display: 'flex', alignItems: 'center', gap: '8px',
           }}
+          onMouseEnter={(e) => { if (!refreshing) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; e.currentTarget.style.filter = 'brightness(1.08)'; } }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.filter = 'brightness(1)'; }}
         >
-          {btnHovered && !refreshing && (
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 'inherit',
-              background: `radial-gradient(circle 120px at ${btnPos.x}% ${btnPos.y}%, rgba(255,255,255,0.25), transparent)`,
-              pointerEvents: 'none', zIndex: 0,
-            }} />
-          )}
-          <i className="ph ph-arrows-clockwise text-base" style={{ position: 'relative', zIndex: 1, animation: refreshing ? 'spin 0.6s linear infinite' : 'none' }} />
-          <span style={{ position: 'relative', zIndex: 1 }}>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          <i className="ph ph-arrows-clockwise text-base" style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none' }} />
+          <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
         </button>
       </div>
 

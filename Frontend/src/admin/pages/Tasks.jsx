@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUsers } from '../../context/UserContext';
@@ -34,58 +34,23 @@ const typeStyles = {
 const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
 const priorityOptions = ['High', 'Medium', 'Low'];
 
-function useCardGlow() {
-  const ref = useRef(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  const onMouseMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }, []);
-
-  const onMouseEnter = useCallback(() => setIsHovered(true), []);
-  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
-
-  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
-}
-
 function GlowCard({ className, style: outerStyle, onClick, children }) {
-  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      ref={ref}
-      onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
       className={className}
       style={{
         ...outerStyle,
-        position: 'relative',
-        overflow: 'hidden',
         cursor: onClick ? 'pointer' : undefined,
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+        transition: 'all 0.25s ease',
+        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
       }}
     >
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
-        opacity: isHovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
       {children}
     </div>
   );
@@ -253,7 +218,7 @@ export default function Tasks() {
           <div className="text-2xl font-bold text-primary">Task Management</div>
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]">
+        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]">
           <i className="ph ph-plus" /> Assign Task
         </button>
       </div>
@@ -337,7 +302,11 @@ export default function Tasks() {
               <tr><td colSpan="7" className="text-center py-12 text-text-secondary text-sm">No tasks in this category.</td></tr>
             ) : (
               filteredTasks.map((task) => (
-                <tr key={task.id}>
+                <tr key={task.id}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  style={{ transition: 'background 0.15s ease' }}
+                >
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{task.title}</strong></td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
@@ -501,8 +470,8 @@ export default function Tasks() {
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >

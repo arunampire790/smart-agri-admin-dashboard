@@ -1,57 +1,22 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { TrendingUp, CheckCircle, Bot, Sprout } from 'lucide-react';
 
-function useCardGlow() {
-  const ref = useRef(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  const onMouseMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }, []);
-
-  const onMouseEnter = useCallback(() => setIsHovered(true), []);
-  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
-
-  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
-}
-
 function GlowCard({ className, style: outerStyle, children }) {
-  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      ref={ref}
-      onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={className}
       style={{
         ...outerStyle,
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+        transition: 'all 0.25s ease',
+        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
       }}
     >
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
-        opacity: isHovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
       {children}
     </div>
   );
@@ -61,7 +26,6 @@ export default function Analytics() {
   const { robots } = useRobots();
   const [hoveredCrop, setHoveredCrop] = useState(null);
   const [hoveredRadial, setHoveredRadial] = useState(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;
@@ -94,25 +58,6 @@ export default function Analytics() {
     accum -= len;
     return seg;
   });
-
-  const handleCropHover = (crop, idx, e) => {
-    setHoveredCrop(idx);
-    const rect = e.currentTarget.closest('.crop-card').getBoundingClientRect();
-    setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
-  };
-
-  const handleRadialHover = (key, e) => {
-    setHoveredRadial(key);
-    const rect = e.currentTarget.closest('.radial-card').getBoundingClientRect();
-    setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
-  };
-
-  const handleRadialMove = (e) => {
-    if (hoveredRadial !== null) {
-      const rect = e.currentTarget.closest('.radial-card').getBoundingClientRect();
-      setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
-    }
-  };
 
   return (
     <>
@@ -150,7 +95,7 @@ export default function Analytics() {
                   {donutSegments.map((seg, i) => (
                     <g key={seg.label}
                       style={{ transformOrigin: '60px 60px', transition: 'transform 0.2s ease-out', cursor: 'pointer' }}
-                      onMouseEnter={(e) => handleCropHover(seg, i, e)}
+                      onMouseEnter={() => setHoveredCrop(i)}
                       onMouseLeave={() => setHoveredCrop(null)}
                     >
                       <circle cx={cx} cy={cy} r={donutR} fill="none"
@@ -188,7 +133,7 @@ export default function Analytics() {
             </div>
           </div>
           {hoveredCrop !== null && (
-            <div style={{ position: 'absolute', top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 70}px`, background: '#FFFFFF', borderRadius: '8px', padding: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #E5E7EB', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '8px', padding: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #E5E7EB', pointerEvents: 'none', whiteSpace: 'nowrap', marginTop: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: crops[hoveredCrop].color }} />
                 <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{crops[hoveredCrop].label}</span>
@@ -214,8 +159,7 @@ export default function Analytics() {
                       strokeDashoffset={0}
                       style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 19 : 16 }}
                       opacity={hoveredRadial === null || hoveredRadial === 'active' ? 1 : 0.25}
-                      onMouseEnter={(e) => handleRadialHover('active', e)}
-                      onMouseMove={handleRadialMove}
+                      onMouseEnter={() => setHoveredRadial('active')}
                       onMouseLeave={() => setHoveredRadial(null)}
                     />
                   )}
@@ -227,8 +171,7 @@ export default function Analytics() {
                         strokeDashoffset={0}
                         style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 19 : 16 }}
                         opacity={hoveredRadial === null || hoveredRadial === 'idle' ? 1 : 0.25}
-                        onMouseEnter={(e) => handleRadialHover('idle', e)}
-                        onMouseMove={handleRadialMove}
+                        onMouseEnter={() => setHoveredRadial('idle')}
                         onMouseLeave={() => setHoveredRadial(null)}
                       />
                     </g>
@@ -261,7 +204,7 @@ export default function Analytics() {
             </div>
           </div>
           {hoveredRadial !== null && (
-            <div style={{ position: 'absolute', zIndex: 100, top: `${tooltipPos.y - 50}px`, left: `${tooltipPos.x - 90}px`, background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '10px 14px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            <div style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '10px 14px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', pointerEvents: 'none', whiteSpace: 'nowrap', marginTop: '8px' }}>
               {hoveredRadial === 'active' && (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>

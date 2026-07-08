@@ -277,7 +277,7 @@ export default function Employees() {
     removeEmployee(deleteEmployee); setDeleteEmployee(null);
   };
 
-  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]";
+  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
   if (!isMasterAdmin) {
     return (
@@ -314,7 +314,7 @@ export default function Employees() {
 .add-cancel-btn:hover { background: #F3F4F6; border-color: #9CA3AF; color: #111827; }
 .add-cancel-btn:active { transform: scale(0.97); }
 .add-submit-btn { cursor: pointer; transition: all 0.2s ease; background: #4caf50; color: #FFFFFF; font-weight: 600; border: none; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
-.add-submit-btn:hover { background: #2e7d2e; box-shadow: 0 4px 14px rgba(76,175,80,0.3); transform: translateY(-1px); }
+.add-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,125,50,0.35); }
 .add-submit-btn:active { transform: translateY(1px) scale(0.96); opacity: 0.95; }
 .cancel-btn:hover, .cancel-btn:focus-visible { animation: pulseGlowGray 1.5s ease-in-out infinite; }
 .delete-btn:hover, .delete-btn:focus-visible { animation: pulseGlowRed 1.5s ease-in-out infinite; }
@@ -353,7 +353,11 @@ export default function Employees() {
             </thead>
             <tbody>
               {filtered.map((emp, i) => (
-                <tr key={i} className="group">
+                <tr key={i} className="group"
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  style={{ transition: 'background 0.15s ease' }}
+                >
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
@@ -471,8 +475,8 @@ export default function Employees() {
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -568,8 +572,8 @@ export default function Employees() {
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >

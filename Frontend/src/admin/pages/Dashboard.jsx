@@ -1,4 +1,4 @@
-import { memo, useState, useRef, useCallback } from 'react';
+import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
@@ -8,58 +8,23 @@ import UserProfileModal from '../components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, MapPin } from 'lucide-react';
 
-function useCardGlow() {
-  const ref = useRef(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  const onMouseMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }, []);
-
-  const onMouseEnter = useCallback(() => setIsHovered(true), []);
-  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
-
-  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
-}
-
 function GlowCard({ className, style: outerStyle, onClick, children }) {
-  const { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered } = useCardGlow();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      ref={ref}
-      onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
       className={className}
       style={{
         ...outerStyle,
-        position: 'relative',
-        overflow: 'hidden',
         cursor: onClick ? 'pointer' : undefined,
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isHovered ? '0 12px 40px rgba(26,46,26,0.15)' : outerStyle?.boxShadow,
+        transition: 'all 0.25s ease',
+        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
       }}
     >
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
-        opacity: isHovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
       {children}
     </div>
   );
@@ -273,7 +238,11 @@ export default function Dashboard() {
           </thead>
           <tbody>
             {tasks.slice(0, 5).map((task) => (
-              <tr key={task.id}>
+              <tr key={task.id}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                style={{ transition: 'background 0.15s ease' }}
+              >
                 <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
                 <td className="px-4 py-4 border-b border-table-sep">
                   <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}

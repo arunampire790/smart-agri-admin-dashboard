@@ -1,26 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-function useCardGlow() {
-  const ref = useRef(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  const onMouseMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }, []);
-
-  const onMouseEnter = useCallback(() => setIsHovered(true), []);
-  const onMouseLeave = useCallback(() => { setIsHovered(false); setPos({ x: 50, y: 50 }); }, []);
-
-  return { ref, onMouseMove, onMouseEnter, onMouseLeave, pos, isHovered };
-}
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@smartagri.com');
@@ -154,7 +133,7 @@ export default function AdminLogin() {
   const labelClasses = "text-xs font-medium mb-1";
   const labelStyle = { color: '#374151' };
 
-  const { ref: cardRef, onMouseMove: cardMouseMove, onMouseEnter: cardEnter, onMouseLeave: cardLeave, pos: cardPos, isHovered: cardHovered } = useCardGlow();
+  const [cardHovered, setCardHovered] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
@@ -166,26 +145,19 @@ export default function AdminLogin() {
       <div className="absolute pointer-events-none" style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(46,125,50,0.4) 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.4, bottom: '-100px', right: '-50px', zIndex: 0 }} />
 
       {/* Login Card */}
-      <div ref={cardRef} onMouseMove={cardMouseMove} onMouseEnter={cardEnter} onMouseLeave={cardLeave} className="p-10" style={{
+      <div onMouseEnter={() => setCardHovered(true)} onMouseLeave={() => setCardHovered(false)} className="p-10" style={{
         width: '420px',
         background: 'rgba(255,255,255,0.07)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 20,
-        boxShadow: cardHovered ? '0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)' : '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+        boxShadow: cardHovered ? '0 12px 40px rgba(26,46,26,0.3)' : '0 8px 40px rgba(0,0,0,0.5)',
         position: 'relative',
         zIndex: 10,
         overflow: 'hidden',
-        transition: 'box-shadow 0.2s ease',
+        transition: 'box-shadow 0.3s ease',
       }}>
-        <div style={{
-          position: 'absolute', inset: 0, borderRadius: 'inherit',
-          background: `radial-gradient(circle 200px at ${cardPos.x}% ${cardPos.y}%, rgba(76,175,80,0.15), transparent)`,
-          opacity: cardHovered ? 1 : 0,
-          transition: 'opacity 0.2s ease',
-          pointerEvents: 'none', zIndex: 0,
-        }} />
         <div className="text-center mb-0" style={{ position: 'relative', zIndex: 1 }}>
           <div className="flex justify-center mb-6">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-base" style={{ background: '#2e7d2e', transition: 'transform 0.2s ease', cursor: 'default' }}
@@ -237,8 +209,8 @@ export default function AdminLogin() {
               color: '#ffffff', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: '8px',
               transition: 'all 0.2s ease',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#3d9140'; e.currentTarget.style.transform = 'scale(1.01)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(46,125,50,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; e.currentTarget.style.filter = 'brightness(1.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.filter = 'brightness(1)'; }}
           >
             Sign in
           </button>
@@ -303,7 +275,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()}
                   className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
                   onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
@@ -346,7 +318,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)}
                   className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
                   onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
@@ -379,7 +351,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword}
                   className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
                   onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
@@ -401,7 +373,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={closeFlow}
                   className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer"
                   style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}

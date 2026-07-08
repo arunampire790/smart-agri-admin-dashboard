@@ -30,6 +30,7 @@ export default function AdminLayout() {
     background: 'none',
     textAlign: 'left',
     position: 'relative',
+    transition: 'all 0.2s ease',
   };
 
   const navItemInactive = {
@@ -95,8 +96,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/dashboard')}
             className={isActive('/admin/dashboard') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/dashboard') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Dashboard</span>
           </div>
@@ -105,8 +106,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/analytics')}
             className={isActive('/admin/analytics') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/analytics') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Analytics</span>
           </div>
@@ -116,8 +117,8 @@ export default function AdminLayout() {
               onClick={() => { navigate('/admin/robots'); setRobotsOpen((o) => !o); }}
               className={isRobotsActive ? 'nav-active-indicator' : undefined}
               style={isRobotsActive ? navItemActive : navItemInactive}
-              onMouseEnter={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-              onMouseLeave={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+              onMouseEnter={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+              onMouseLeave={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
             >
               <span>Robots</span>
               <i
@@ -147,8 +148,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/users')}
             className={isActive('/admin/users') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/users') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Users</span>
           </div>
@@ -157,8 +158,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/farms')}
             className={isActive('/admin/farms') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/farms') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Farms</span>
           </div>
@@ -167,8 +168,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/tasks')}
             className={isActive('/admin/tasks') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/tasks') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Tasks</span>
           </div>
@@ -179,8 +180,8 @@ export default function AdminLayout() {
                 onClick={() => { navigate('/admin/employees'); setEmployeesOpen((o) => !o); }}
                 className={isEmployeesActive ? 'nav-active-indicator' : undefined}
                 style={isEmployeesActive ? navItemActive : navItemInactive}
-                onMouseEnter={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-                onMouseLeave={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+                onMouseEnter={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+                onMouseLeave={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
               >
                 <span>Employees</span>
                 <i
@@ -211,8 +212,8 @@ export default function AdminLayout() {
             onClick={() => navigate('/admin/settings')}
             className={isActive('/admin/settings') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/settings') ? navItemActive : navItemInactive}
-            onMouseEnter={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; } }}
-            onMouseLeave={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
+            onMouseEnter={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '16px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '12px'; } }}
           >
             <span>Settings</span>
           </div>
