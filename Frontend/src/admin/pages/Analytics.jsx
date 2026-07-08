@@ -43,10 +43,10 @@ export default function Analytics() {
   ];
 
   const metrics = [
-    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
-    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
-    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot, iconBg: 'rgba(239,68,68,0.12)', iconColor: '#dc2626', glow: 'rgba(239,68,68,0.7)' },
-    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
+    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
+    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
+    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot, iconBg: 'rgba(239,68,68,0.12)', iconColor: '#dc2626' },
+    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
   ];
 
   const cx = 60, cy = 60, donutR = 42, donutStroke = 16;
@@ -69,7 +69,6 @@ export default function Analytics() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {metrics.map((item, i) => (
           <GlowCard key={i} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: `radial-gradient(circle, ${item.glow} 0%, transparent 70%)`, filter: 'blur(30px)', opacity: 0.35 }} />
             <div className="relative z-10 flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-secondary mb-2">{item.label}</div>

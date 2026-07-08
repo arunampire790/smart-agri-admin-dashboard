@@ -70,7 +70,6 @@ export default function SensorsDetails() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         {/* NPK Soil Probes */}
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">NPK Soil Probes</div>
@@ -85,7 +84,6 @@ export default function SensorsDetails() {
 
         {/* Field Camera */}
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(217,119,6,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">Field Camera</div>
@@ -100,7 +98,6 @@ export default function SensorsDetails() {
 
         {/* Fertilizer Tester */}
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">Fertilizer Tester</div>
@@ -147,7 +144,6 @@ export default function SensorsDetails() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {sectorData.map((sector) => (
           <div key={sector.name} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.5) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.25 }} />
             <div className="relative z-10">
               <div className="text-sm font-semibold text-[#1a2e1a] mb-4">{sector.name}</div>
               <div className="grid grid-cols-3 gap-3">

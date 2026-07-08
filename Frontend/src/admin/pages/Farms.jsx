@@ -39,16 +39,6 @@ function getStatusLabel(connectedRobots) {
   return { label: 'Idle', cls: 'bg-warning-bg text-warning-text pill' };
 }
 
-function getGlowColor(label) {
-  switch (label) {
-    case 'Total Farms': return 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)';
-    case 'Regions': return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
-    case 'Crop Types': return 'radial-gradient(circle, rgba(147,51,234,0.7) 0%, transparent 70%)';
-    case 'Active Robots': return 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)';
-    default: return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
-  }
-}
-
 function getIconConfig(label) {
   switch (label) {
     case 'Total Farms': return { Icon: MapPin, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
@@ -289,7 +279,6 @@ export default function Farms() {
               className="glass-card rounded-2xl p-5"
               style={{ contentVisibility: 'auto' }}
             >
-              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: getGlowColor(card.label), filter: 'blur(30px)', opacity: 0.35 }} />
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-secondary mb-2">{card.label}</div>

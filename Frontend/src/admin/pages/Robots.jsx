@@ -238,7 +238,6 @@ export default function Robots() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Online</div>
@@ -251,7 +250,6 @@ export default function Robots() {
           </div>
         </GlowCard>
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Idle</div>
@@ -264,7 +262,6 @@ export default function Robots() {
           </div>
         </GlowCard>
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Maintenance</div>
@@ -277,7 +274,6 @@ export default function Robots() {
           </div>
         </GlowCard>
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Offline</div>

@@ -225,7 +225,6 @@ export default function Tasks() {
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         <GlowCard onClick={() => setActiveTab('all')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Tasks</div>
@@ -237,7 +236,6 @@ export default function Tasks() {
           </div>
         </GlowCard>
         <GlowCard onClick={() => setActiveTab('pending')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Pending</div>
@@ -249,7 +247,6 @@ export default function Tasks() {
           </div>
         </GlowCard>
         <GlowCard onClick={() => setActiveTab('inprog')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">In Progress</div>
@@ -261,7 +258,6 @@ export default function Tasks() {
           </div>
         </GlowCard>
         <GlowCard onClick={() => setActiveTab('done')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Completed</div>
