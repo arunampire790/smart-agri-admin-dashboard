@@ -350,7 +350,7 @@ export default function GlobalHeader() {
         <button onClick={() => setProfileModalOpen(true)} aria-label="Admin profile"
           className="bg-none border-none cursor-pointer shrink-0">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110"
-            style={{ color: '#1F2937', background: '#2e7d2e', boxShadow: 'none', transition: 'box-shadow 0.2s ease' }}
+            style={{ color: '#FFFFFF', background: '#2e7d2e', fontWeight: 600, fontSize: '14px', letterSpacing: '0.02em', boxShadow: 'none', transition: 'box-shadow 0.2s ease' }}
             onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.4)'}
             onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
           >
