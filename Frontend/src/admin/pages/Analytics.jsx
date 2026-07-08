@@ -43,10 +43,10 @@ export default function Analytics() {
   ];
 
   const metrics = [
-    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
-    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
-    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot, iconBg: 'rgba(239,68,68,0.12)', iconColor: '#dc2626' },
-    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e' },
+    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp },
+    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle },
+    { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot },
+    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout },
   ];
 
   const cx = 60, cy = 60, donutR = 42, donutStroke = 16;
@@ -75,8 +75,8 @@ export default function Analytics() {
                 <div className="text-3xl font-extrabold text-primary mb-1">{item.val}</div>
                 <div className={`text-[10px] leading-relaxed ${item.changeCls}`}>{item.change}</div>
               </div>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: item.iconBg }}>
-                <item.Icon size={18} color={item.iconColor} />
+              <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <item.Icon size={20} color="#2e7d2e" />
               </div>
             </div>
           </GlowCard>
