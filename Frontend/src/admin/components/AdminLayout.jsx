@@ -64,7 +64,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="relative text-primary h-screen overflow-hidden flex" style={{ background: '#f1f8f1' }}>
+    <div className="relative text-primary h-screen overflow-hidden flex" style={{ background: '#F4F7F5' }}>
       <div className="fixed pointer-events-none z-0" style={{ width: 400, height: 400, background: '#4caf50', filter: 'blur(120px)', opacity: 0.12, top: '-10%', left: '-10%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#2e7d2e', filter: 'blur(150px)', opacity: 0.08, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#4caf50', filter: 'blur(100px)', opacity: 0.06, bottom: '-5%', left: '15%' }} />
@@ -74,7 +74,7 @@ export default function AdminLayout() {
         minWidth: 220,
         minHeight: '100%',
         background: '#142E1C',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+        borderRight: '1px solid rgba(255,255,255,0.04)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

@@ -191,14 +191,15 @@ export default function GlobalHeader() {
     <>
     <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
     <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0"
-      style={{ background: '#1a2e1a', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(20,46,28,0.08)' }}
       onKeyDown={searchShortcut}>
       <div className="flex items-center relative" ref={searchRef}>
-        <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
-          <i className="ph ph-magnifying-glass" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }} />
+        <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: '#FFFFFF', border: '1px solid rgba(20,46,28,0.12)' }}>
+          <i className="ph ph-magnifying-glass" style={{ color: '#9CA3AF', fontSize: '14px' }} />
           <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
-            style={{ color: '#ffffff', placeholder: { color: 'rgba(255,255,255,0.4)' } }}
+            style={{ color: '#111827' }}
           />
+          <style>{`header input::placeholder { color: #6B7280 !important; }`}</style>
         </div>
 
         {searchOpen && createPortal(
@@ -283,8 +284,8 @@ export default function GlobalHeader() {
       </div>
 
       <div className="flex items-center gap-5 shrink-0">
-        <div className="flex items-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>EN / 日本語</div>
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>EN / 日本語</div>
+        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>
           <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#4caf50', animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
           System Online
         </div>
@@ -292,9 +293,9 @@ export default function GlobalHeader() {
         <div className="relative shrink-0" ref={notifRef} onKeyDown={handleKeyDown}>
           <button ref={notifButtonRef} onClick={handleNotifToggle} aria-label="Notifications" aria-expanded={notifOpen} aria-haspopup="true"
             className="relative cursor-pointer bg-none border-none text-xl leading-none"
-            style={{ color: 'rgba(255,255,255,0.65)', transition: 'color 0.2s ease' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.65)'}>
+            style={{ color: '#1F2937', transition: 'color 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#111827'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#1F2937'}>
             <i className="ph ph-bell" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">{unreadCount}</span>
@@ -348,8 +349,8 @@ export default function GlobalHeader() {
         {/* User Avatar — opens Admin Profile modal directly */}
         <button onClick={() => setProfileModalOpen(true)} aria-label="Admin profile"
           className="bg-none border-none cursor-pointer shrink-0">
-          <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110"
-            style={{ background: '#2e7d2e', boxShadow: 'none', transition: 'box-shadow 0.2s ease' }}
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110"
+            style={{ color: '#1F2937', background: '#2e7d2e', boxShadow: 'none', transition: 'box-shadow 0.2s ease' }}
             onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.4)'}
             onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
           >
@@ -358,9 +359,9 @@ export default function GlobalHeader() {
         </button>
         <button onClick={handleLogout} aria-label="Logout"
           className="bg-none border-none cursor-pointer text-xl leading-none"
-          style={{ color: 'rgba(255,255,255,0.65)', transition: 'color 0.2s ease' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderRadius = '8px'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.background = 'none'; }}>
+          style={{ color: '#1F2937', transition: 'color 0.2s ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.background = 'rgba(20,46,28,0.05)'; e.currentTarget.style.borderRadius = '8px'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#1F2937'; e.currentTarget.style.background = 'none'; }}>
           <i className="ph ph-sign-out" />
         </button>
       </div>
