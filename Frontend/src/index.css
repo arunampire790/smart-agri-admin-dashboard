@@ -110,6 +110,13 @@ input, textarea, [contenteditable] {
   background: #4caf50;
 }
 
+.analytics-data-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 46, 28, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
 .content-visibility-auto {
   content-visibility: auto;
 }
