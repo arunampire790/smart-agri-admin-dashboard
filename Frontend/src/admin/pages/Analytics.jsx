@@ -93,7 +93,6 @@ export default function Analytics() {
                 <g style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}>
                   {donutSegments.map((seg, i) => (
                     <g key={seg.label}
-                      style={{ transformOrigin: '60px 60px', transition: 'transform 0.2s ease-out', cursor: 'pointer' }}
                       onMouseEnter={() => setHoveredCrop(i)}
                       onMouseLeave={() => setHoveredCrop(null)}
                     >
@@ -104,7 +103,7 @@ export default function Analytics() {
                         strokeDashoffset={seg.offset}
                         strokeLinecap="round"
                         opacity={hoveredCrop === null || hoveredCrop === i ? 1 : 0.25}
-                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transform: hoveredCrop === i ? 'scale(1.05)' : 'scale(1)', transformOrigin: '60px 60px', transition: 'transform 0.2s ease-out, opacity 0.2s ease', filter: hoveredCrop === i ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' : 'none' }}
+                        style={{ cursor: 'pointer', pointerEvents: 'stroke', strokeWidth: hoveredCrop === i ? 19 : 16, transition: 'stroke-width 0.15s ease-out, opacity 0.2s ease' }}
                       />
                     </g>
                   ))}
@@ -156,7 +155,7 @@ export default function Analytics() {
                       stroke="#4caf50" strokeWidth={16} strokeLinecap="round"
                       strokeDasharray={`${activePct * 2 * Math.PI * 70} ${2 * Math.PI * 70}`}
                       strokeDashoffset={0}
-                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 19 : 16 }}
+                      style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.15s ease-out, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 19 : 16 }}
                       opacity={hoveredRadial === null || hoveredRadial === 'active' ? 1 : 0.25}
                       onMouseEnter={() => setHoveredRadial('active')}
                       onMouseLeave={() => setHoveredRadial(null)}
@@ -168,7 +167,7 @@ export default function Analytics() {
                         stroke="#F59E0B" strokeWidth={16} strokeLinecap="round"
                         strokeDasharray={`${idlePct * 2 * Math.PI * 70} ${2 * Math.PI * 70}`}
                         strokeDashoffset={0}
-                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 19 : 16 }}
+                        style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.15s ease-out, opacity 0.2s ease', strokeWidth: hoveredRadial === 'idle' ? 19 : 16 }}
                         opacity={hoveredRadial === null || hoveredRadial === 'idle' ? 1 : 0.25}
                         onMouseEnter={() => setHoveredRadial('idle')}
                         onMouseLeave={() => setHoveredRadial(null)}
