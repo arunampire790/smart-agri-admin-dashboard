@@ -244,8 +244,8 @@ export default function Robots() {
               <div className="text-3xl font-extrabold text-primary">{active}</div>
               <div className="text-[10px] text-[#22C55E] mt-1">85–100% battery</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e8f5e9' }}>
-              <i className="ph ph-activity" style={{ color: '#2e7d2e' }} />
+            <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ph ph-activity" style={{ fontSize: '20px', color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
@@ -256,8 +256,8 @@ export default function Robots() {
               <div className="text-3xl font-extrabold text-primary">{idle}</div>
               <div className="text-[10px] text-[#D97706] mt-1">45–62% battery</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#fff3e0' }}>
-              <i className="ph ph-clock" style={{ color: '#d97706' }} />
+            <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ph ph-clock" style={{ fontSize: '20px', color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
@@ -268,8 +268,8 @@ export default function Robots() {
               <div className="text-3xl font-extrabold text-primary">0</div>
               <div className="text-[10px] text-text-secondary mt-1">N/A</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e0f2fe' }}>
-              <i className="ph ph-toolbox" style={{ color: '#0284c7' }} />
+            <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ph ph-toolbox" style={{ fontSize: '20px', color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
@@ -280,8 +280,8 @@ export default function Robots() {
               <div className="text-3xl font-extrabold text-primary">{offline}</div>
               <div className="text-[10px] text-[#EF4444] mt-1">12% battery last seen</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#ffebee' }}>
-              <i className="ph ph-wifi-slash" style={{ color: '#dc2626' }} />
+            <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ph ph-wifi-slash" style={{ fontSize: '20px', color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
