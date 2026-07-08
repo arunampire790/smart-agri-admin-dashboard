@@ -87,7 +87,7 @@ export default function Settings() {
       </SettingsSection>
 
       <div className="flex gap-3 mt-6">
-        <button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#E5E5EA]">Cancel</button>
+        <button className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white font-medium text-text-secondary hover:bg-[#d1e8d1]">Cancel</button>
         <button className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 hover:opacity-90">Save Changes</button>
       </div>
     </>

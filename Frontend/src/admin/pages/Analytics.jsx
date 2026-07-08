@@ -46,7 +46,7 @@ function GlowCard({ className, style: outerStyle, children }) {
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -71,7 +71,7 @@ export default function Analytics() {
   const idlePct = total > 0 ? idle / total : 0;
 
   const crops = [
-    { label: 'Wheat', pct: 25, color: '#10B981' },
+    { label: 'Wheat', pct: 25, color: '#4caf50' },
     { label: 'Others', pct: 22, color: '#A7F3D0' },
     { label: 'Corn', pct: 20, color: '#F59E0B' },
     { label: 'Soybeans', pct: 18, color: '#6366F1' },
@@ -79,10 +79,10 @@ export default function Analytics() {
   ];
 
   const metrics = [
-    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
-    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
+    { val: '86.5%', label: 'Avg Farm Productivity', change: '↑ +5.2%', changeCls: 'text-[#16A34A]', Icon: TrendingUp, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
+    { val: '92.3%', label: 'Task Completion Rate', change: '↑ +3.1%', changeCls: 'text-[#16A34A]', Icon: CheckCircle, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
     { val: '78.4%', label: 'Robot Efficiency', change: '↓ -1.8%', changeCls: 'text-[#DC2626]', Icon: Bot, iconBg: 'rgba(239,68,68,0.12)', iconColor: '#dc2626', glow: 'rgba(239,68,68,0.7)' },
-    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,158,107,0.12)', iconColor: '#059669', glow: 'rgba(5,150,105,0.7)' },
+    { val: '24', label: 'Crop Yield (t/ha)', change: '↑ +2.1%', changeCls: 'text-[#16A34A]', Icon: Sprout, iconBg: 'rgba(46,125,50,0.12)', iconColor: '#2e7d2e', glow: 'rgba(46,125,50,0.7)' },
   ];
 
   const cx = 60, cy = 60, donutR = 42, donutStroke = 16;
@@ -209,7 +209,7 @@ export default function Analytics() {
                 <g style={{ transform: 'rotate(-90deg)', transformOrigin: '100px 100px' }}>
                   {activePct > 0 && (
                     <circle cx={100} cy={100} r={70} fill="none"
-                      stroke="#10B981" strokeWidth={16} strokeLinecap="round"
+                      stroke="#4caf50" strokeWidth={16} strokeLinecap="round"
                       strokeDasharray={`${activePct * 2 * Math.PI * 70} ${2 * Math.PI * 70}`}
                       strokeDashoffset={0}
                       style={{ cursor: 'pointer', pointerEvents: 'stroke', transition: 'stroke-width 0.2s ease, opacity 0.2s ease', strokeWidth: hoveredRadial === 'active' ? 19 : 16 }}
@@ -242,7 +242,7 @@ export default function Analytics() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '160px', width: '100%' }}>
               {[
-                { key: 'active', label: 'Active', count: active, color: '#10B981' },
+                { key: 'active', label: 'Active', count: active, color: '#4caf50' },
                 { key: 'idle', label: 'Idle', count: idle, color: '#F59E0B' },
                 { key: 'offline', label: 'Offline', count: offline, color: '#EF4444' },
               ].map((item) => (
@@ -265,7 +265,7 @@ export default function Analytics() {
               {hoveredRadial === 'active' && (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#4caf50' }} />
                     <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Active</span>
                   </div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', marginLeft: '16px' }}>{active}</div>

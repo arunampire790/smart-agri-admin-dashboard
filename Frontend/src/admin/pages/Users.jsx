@@ -42,15 +42,15 @@ const StatusDropdown = ({ value, onChange, options }) => {
             <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
               style={{
                 padding: '12px 16px', fontSize: '14px',
-                color: opt === value ? '#10B981' : '#1d1d1f',
-                background: opt === value ? 'rgba(16,185,129,0.12)' : 'transparent',
+                color: opt === value ? '#4caf50' : '#1d1d1f',
+                background: opt === value ? 'rgba(76,175,80,0.12)' : 'transparent',
                 cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}
               onMouseEnter={(e) => {
                 if (opt !== value) {
-                  e.currentTarget.style.background = 'rgba(16,185,129,0.12)';
-                  e.currentTarget.style.color = '#10B981';
+                  e.currentTarget.style.background = 'rgba(76,175,80,0.12)';
+                  e.currentTarget.style.color = '#4caf50';
                 }
               }}
               onMouseLeave={(e) => {
@@ -61,7 +61,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
               }}
             >
               <span>{opt}</span>
-              {opt === value && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              {opt === value && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ export default function Users() {
   };
 
   const labelClass = "text-xs font-medium text-primary tracking-wide";
-  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]";
   const btnGhost = "text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80";
 
   const statusOptions = ['Active', 'Inactive'];
@@ -180,7 +180,7 @@ export default function Users() {
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => setProfileUser(u)}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{u.name}</span>
                   </td>
@@ -189,8 +189,8 @@ export default function Users() {
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{u.farms}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: u.status === 'Active' ? '#10B981' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ fontSize: '13px', fontWeight: 500, color: u.status === 'Active' ? '#059669' : '#DC2626' }}>{u.status}</span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: u.status === 'Active' ? '#4caf50' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', fontWeight: 500, color: u.status === 'Active' ? '#2e7d2e' : '#DC2626' }}>{u.status}</span>
                     </span>
                   </td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{u.joined}</td>
@@ -222,7 +222,7 @@ export default function Users() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-user-plus text-white text-lg" />
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export default function Users() {
             <form onSubmit={handleAdd}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <i className="ph ph-user text-[15px]" style={{ color: '#10B981' }} />
+                  <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -290,9 +290,9 @@ export default function Users() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -349,7 +349,7 @@ export default function Users() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
@@ -366,7 +366,7 @@ export default function Users() {
             <form onSubmit={handleEdit}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <i className="ph ph-user text-[15px]" style={{ color: '#10B981' }} />
+                  <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -417,9 +417,9 @@ export default function Users() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -442,7 +442,7 @@ export default function Users() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)}
-                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
               >Cancel</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
                 <i className="ph ph-trash" /> Delete

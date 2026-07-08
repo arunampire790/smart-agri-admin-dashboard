@@ -54,7 +54,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -77,7 +77,7 @@ const statusOpts = {
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const labelClass = "text-xs font-medium text-primary";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]";
 
 function Select({ options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -115,20 +115,20 @@ function Select({ options, value, onChange, placeholder }) {
               <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
                 style={{
                   padding: '12px 16px', fontSize: '14px',
-                  color: selected ? '#10B981' : '#1d1d1f',
-                  background: selected ? 'rgba(16,185,129,0.12)' : 'transparent',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}
                 onMouseEnter={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10B981'; }
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
                 }}
                 onMouseLeave={(e) => {
                   if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
                 }}
               >
                 <span>{opt}</span>
-                {selected && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
               </div>
             );
           })}
@@ -142,7 +142,7 @@ function FormFields({ form, setForm, errors, userNames }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <i className="ph ph-robot text-[15px]" style={{ color: '#10B981' }} />
+        <i className="ph ph-robot text-[15px]" style={{ color: '#4caf50' }} />
         <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Robot Information</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -281,7 +281,7 @@ export default function Robots() {
               <div className="text-[10px] text-[#22C55E] mt-1">85–100% battery</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e8f5e9' }}>
-              <i className="ph ph-activity" style={{ color: '#059669' }} />
+              <i className="ph ph-activity" style={{ color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
@@ -355,7 +355,7 @@ export default function Robots() {
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <span onClick={() => { const u = users.find((x) => x.name === r.owner); if (u) setProfileUser(u); }}
                     style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                   >{r.owner}</span>
                 </td>
@@ -371,7 +371,7 @@ export default function Robots() {
                 </td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: r.status === 'Active' ? '#065F46' : r.status === 'Idle' ? '#92400E' : '#991B1B' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#F59E0B' : '#EF4444', flexShrink: 0 }} />
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Idle' ? '#F59E0B' : '#EF4444', flexShrink: 0 }} />
                     {r.status}
                   </span>
                 </td>
@@ -394,7 +394,7 @@ export default function Robots() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-robot text-white text-lg" />
                 </div>
                 <div>
@@ -421,9 +421,9 @@ export default function Robots() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -443,7 +443,7 @@ export default function Robots() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
@@ -470,9 +470,9 @@ export default function Robots() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >

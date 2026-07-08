@@ -190,11 +190,15 @@ export default function GlobalHeader() {
   return (
     <>
     <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
-    <header className="flex justify-between items-center w-full h-[72px] px-6 border-b border-white/30 glass shrink-0" onKeyDown={searchShortcut}>
+    <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0"
+      style={{ background: '#1a2e1a', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      onKeyDown={searchShortcut}>
       <div className="flex items-center relative" ref={searchRef}>
-        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 w-[320px]" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
-          <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />
-          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
+        <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
+          <i className="ph ph-magnifying-glass" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }} />
+          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
+            style={{ color: '#ffffff', placeholder: { color: 'rgba(255,255,255,0.4)' } }}
+          />
         </div>
 
         {searchOpen && createPortal(
@@ -204,29 +208,29 @@ export default function GlobalHeader() {
               top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
               width: 560, maxWidth: 'calc(100vw - 32px)',
-              background: 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              borderRadius: 24,
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+              background: '#ffffff',
+              border: '1px solid rgba(76,175,80,0.15)',
+              borderRadius: 16,
+              boxShadow: '0 8px 32px rgba(26,46,26,0.15)',
               maxHeight: 'calc(100vh - 80px)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
             }}>
-              <div className="flex items-center gap-3 px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
-                <i className="ph ph-magnifying-glass text-lg text-text-placeholder shrink-0" />
-                <input ref={overlayInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={handleSearchKeyDown} placeholder="Search users, farms, robots, tasks, employees..." aria-label="Search" className="border-none bg-transparent text-sm text-primary w-full outline-none placeholder:text-text-placeholder" />
-                <div className="text-[10px] text-text-placeholder font-medium px-2 py-1 rounded-md shrink-0" style={{ background: 'rgba(0,0,0,0.04)' }}>⌘K</div>
+              <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: 'rgba(76,175,80,0.1)' }}>
+                <i className="ph ph-magnifying-glass text-lg" style={{ color: 'rgba(26,46,26,0.4)' }} />
+                <input ref={overlayInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={handleSearchKeyDown} placeholder="Search users, farms, robots, tasks, employees..." aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
+                  style={{ color: '#1a2e1a', placeholder: { color: 'rgba(26,46,26,0.4)' } }}
+                />
+                <div className="text-[10px] font-medium px-2 py-1 rounded-md shrink-0" style={{ color: 'rgba(26,46,26,0.4)', background: 'rgba(76,175,80,0.08)' }}>⌘K</div>
               </div>
               <div className="overflow-y-auto" ref={resultsRef} style={{ maxHeight: 400 }} onMouseMove={handleDropdownMouseMove}>
                 {!searchQuery.trim() ? (
-                  <div className="px-4 py-12 text-center text-sm text-text-secondary">
+                  <div className="px-4 py-12 text-center text-sm" style={{ color: '#5a7a5a' }}>
                     Start typing to search across users, farms, robots, tasks, and employees
                   </div>
                 ) : searchQuery !== debouncedQuery ? (
-                  <div className="px-4 py-12 text-center text-sm text-text-secondary">Searching...</div>
+                  <div className="px-4 py-12 text-center text-sm" style={{ color: '#5a7a5a' }}>Searching...</div>
                 ) : hasAnyResults ? (
                   <div>
                     {(() => {
@@ -235,24 +239,28 @@ export default function GlobalHeader() {
                       return Object.entries(filteredResults).map(([key, section]) =>
                         section.items.length > 0 && (
                           <div key={key}>
-                            <div className="px-5 py-2 text-[10px] font-semibold text-text-secondary uppercase tracking-wider bg-[rgba(0,0,0,0.02)]">{labelMap[key] || key}</div>
+                            <div className="px-5 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(26,46,26,0.4)', background: 'rgba(76,175,80,0.04)' }}>{labelMap[key] || key}</div>
                             {section.items.map((item) => {
                               const ii = idx++;
                               return (
                                 <button key={item.key} data-search-index={ii} onClick={() => navigateTo(item.to)}
-                                  className={`flex items-center gap-3 w-full px-5 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(0,0,0,0.06)]' : ''} hover:bg-[rgba(0,0,0,0.06)]`}
+                                  className={`flex items-center gap-3 w-full px-5 py-2.5 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${focusedIndex === ii ? 'bg-[rgba(76,175,80,0.08)]' : ''}`}
+                                  style={{ hover: { background: 'rgba(76,175,80,0.06)' } }}
                                 >
-                                  <i className={`${item.icon} text-base text-text-placeholder shrink-0`} />
+                                  <i className={`${item.icon} text-base shrink-0`} style={{ color: 'rgba(26,46,26,0.4)' }} />
                                   <div className="min-w-0 flex-1">
-                                    <div className="text-sm text-primary font-medium truncate">{item.label}</div>
-                                    <div className="text-[10px] text-text-placeholder truncate">{item.sub}</div>
+                                    <div className="text-sm font-medium truncate" style={{ color: '#1a2e1a' }}>{item.label}</div>
+                                    <div className="text-[10px] truncate" style={{ color: 'rgba(26,46,26,0.4)' }}>{item.sub}</div>
                                   </div>
                                 </button>
                               );
                             })}
                             {section.hasMore && (
                               <button onClick={() => seeAllNavigate(section.path)}
-                                className="flex items-center gap-2 w-full px-5 py-2 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(16,185,129,0.06)] text-xs text-brand font-medium"
+                                className="flex items-center gap-2 w-full px-5 py-2 text-left bg-none border-none cursor-pointer transition-colors duration-150 text-xs font-medium"
+                                style={{ color: '#2e7d2e' }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(76,175,80,0.06)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                               >
                                 See all results in {labelMap[key] || key}
                                 <i className="ph ph-arrow-right text-xs" />
@@ -262,10 +270,10 @@ export default function GlobalHeader() {
                         )
                       );
                     })()}
-                    <div className="px-5 py-2 text-[10px] text-text-placeholder text-center border-t border-[rgba(0,0,0,0.04)]">{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
+                    <div className="px-5 py-2 text-[10px] text-center border-t" style={{ color: 'rgba(26,46,26,0.4)', borderColor: 'rgba(76,175,80,0.08)' }}>{totalCount} result{totalCount !== 1 ? 's' : ''}</div>
                   </div>
                 ) : (
-                  <div className="px-4 py-12 text-center text-sm text-text-secondary">No results found for '<span className="font-medium text-primary">{(searchQuery || '').length > 30 ? searchQuery.slice(0, 30) + '...' : searchQuery}</span>'</div>
+                  <div className="px-4 py-12 text-center text-sm" style={{ color: '#5a7a5a' }}>No results found for '<span className="font-medium" style={{ color: '#1a2e1a' }}>{(searchQuery || '').length > 30 ? searchQuery.slice(0, 30) + '...' : searchQuery}</span>'</div>
                 )}
               </div>
             </div>
@@ -275,15 +283,18 @@ export default function GlobalHeader() {
       </div>
 
       <div className="flex items-center gap-5 shrink-0">
-        <div className="flex items-center px-3 py-2 rounded-full text-xs text-text-secondary font-medium whitespace-nowrap" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>EN / 日本語</div>
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs text-text-secondary font-medium whitespace-nowrap" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-light)' }}>
-          <span className="w-2 h-2 rounded-full bg-brand inline-block" style={{ animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
+        <div className="flex items-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>EN / 日本語</div>
+        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#4caf50', animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
           System Online
         </div>
         {/* Notification Bell */}
         <div className="relative shrink-0" ref={notifRef} onKeyDown={handleKeyDown}>
           <button ref={notifButtonRef} onClick={handleNotifToggle} aria-label="Notifications" aria-expanded={notifOpen} aria-haspopup="true"
-            className="relative cursor-pointer bg-none border-none text-xl text-text-secondary hover:text-text-placeholder transition-colors duration-150 leading-none">
+            className="relative cursor-pointer bg-none border-none text-xl leading-none"
+            style={{ color: 'rgba(255,255,255,0.65)', transition: 'color 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.65)'}>
             <i className="ph ph-bell" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-danger-text text-white text-[10px] leading-none px-1 py-0.5 rounded-full font-bold">{unreadCount}</span>
@@ -296,37 +307,37 @@ export default function GlobalHeader() {
                 top: notifPos.top,
                 right: notifPos.right,
                 width: 320,
-                background: 'rgba(255,255,255,0.85)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
-                border: '1px solid rgba(255,255,255,0.5)',
-                borderRadius: 12,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                background: '#ffffff',
+                border: '1px solid rgba(76,175,80,0.15)',
+                borderRadius: 14,
+                boxShadow: '0 8px 32px rgba(26,46,26,0.15)',
                 overflow: 'hidden',
               }}>
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
-                  <span className="text-sm font-semibold text-primary">Notifications</span>
+                <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'rgba(76,175,80,0.08)' }}>
+                  <span className="text-sm font-semibold" style={{ color: '#1a2e1a' }}>Notifications</span>
                   {unreadCount > 0 && (
                     <button onClick={markAllRead}
-                      className="bg-none border-none text-xs text-brand cursor-pointer hover:underline font-medium"
+                      className="bg-none border-none text-xs cursor-pointer hover:underline font-medium"
+                      style={{ color: '#2e7d2e' }}
                     >Mark all as read</button>
                   )}
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {notifications.map((n) => (
                     <button key={n.id} onClick={() => markOneRead(n.id)}
-                      className={`flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150 hover:bg-[rgba(0,0,0,0.04)] ${n.read ? '' : 'bg-[rgba(16,185,129,0.04)]'}`}
+                      className={`flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${n.read ? '' : ''}`}
+                      style={{ hover: { background: '#f1f8f1' } }}
                     >
-                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? 'bg-transparent' : 'bg-brand'}`} />
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? 'bg-transparent' : ''}`} style={{ background: n.read ? 'transparent' : '#4caf50' }} />
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm ${n.read ? 'text-text-secondary' : 'text-primary font-medium'}`}>{n.text}</div>
-                        <div className="text-[10px] text-text-placeholder mt-0.5">{n.time}</div>
+                        <div className={`text-sm ${n.read ? '' : 'font-medium'}`} style={{ color: n.read ? '#5a7a5a' : '#1a2e1a' }}>{n.text}</div>
+                        <div className="text-[10px] mt-0.5" style={{ color: '#5a7a5a' }}>{n.time}</div>
                       </div>
                     </button>
                   ))}
                 </div>
                 {notifications.length === 0 && (
-                  <div className="px-4 py-8 text-center text-sm text-text-secondary">No notifications</div>
+                  <div className="px-4 py-8 text-center text-sm" style={{ color: '#5a7a5a' }}>No notifications</div>
                 )}
               </div>
             </div>,
@@ -337,11 +348,19 @@ export default function GlobalHeader() {
         {/* User Avatar — opens Admin Profile modal directly */}
         <button onClick={() => setProfileModalOpen(true)} aria-label="Admin profile"
           className="bg-none border-none cursor-pointer shrink-0">
-          <div className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110 hover:shadow-[0_0_0_3px_rgba(5,150,105,0.3)]">
+          <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110"
+            style={{ background: '#2e7d2e', boxShadow: 'none', transition: 'box-shadow 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.4)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          >
             {initials}
           </div>
         </button>
-        <button onClick={handleLogout} aria-label="Logout" className="bg-none border-none cursor-pointer text-xl text-text-placeholder hover:text-text-secondary shrink-0 leading-none">
+        <button onClick={handleLogout} aria-label="Logout"
+          className="bg-none border-none cursor-pointer text-xl leading-none"
+          style={{ color: 'rgba(255,255,255,0.65)', transition: 'color 0.2s ease' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderRadius = '8px'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.background = 'none'; }}>
           <i className="ph ph-sign-out" />
         </button>
       </div>

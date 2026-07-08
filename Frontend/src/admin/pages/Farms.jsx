@@ -55,7 +55,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -76,20 +76,20 @@ function getStatusLabel(connectedRobots) {
 
 function getGlowColor(label) {
   switch (label) {
-    case 'Total Farms': return 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)';
+    case 'Total Farms': return 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)';
     case 'Regions': return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
     case 'Crop Types': return 'radial-gradient(circle, rgba(147,51,234,0.7) 0%, transparent 70%)';
-    case 'Active Robots': return 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)';
+    case 'Active Robots': return 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)';
     default: return 'radial-gradient(circle, rgba(59,130,246,0.7) 0%, transparent 70%)';
   }
 }
 
 function getIconConfig(label) {
   switch (label) {
-    case 'Total Farms': return { Icon: MapPin, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
+    case 'Total Farms': return { Icon: MapPin, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     case 'Regions': return { Icon: Globe, bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' };
-    case 'Crop Types': return { Icon: Sprout, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
-    case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,158,107,0.12)', color: '#2e9e6b' };
+    case 'Crop Types': return { Icon: Sprout, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
+    case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     default: return { Icon: MapPin, bg: 'rgba(107,114,128,0.12)', color: '#6B7280' };
   }
 }
@@ -116,9 +116,9 @@ function Select({ options, value, onChange, placeholder, style, onMouseEnter, on
           {options.map((opt) => {
             const selected = opt === value;
             return (
-              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', fontSize: '13px', cursor: 'pointer', background: selected ? 'rgba(16,185,129,0.08)' : 'transparent', color: selected ? '#059669' : '#111827' }}>
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', fontSize: '13px', cursor: 'pointer', background: selected ? 'rgba(76,175,80,0.08)' : 'transparent', color: selected ? '#2e7d2e' : '#111827' }}>
                 <span>{opt}</span>
-                {selected && <i className="ph ph-check" style={{ fontSize: '12px', color: '#059669' }} />}
+                {selected && <i className="ph ph-check" style={{ fontSize: '12px', color: '#2e7d2e' }} />}
               </div>
             );
           })}
@@ -270,13 +270,13 @@ export default function Farms() {
     width: '100%', outline: 'none', boxSizing: 'border-box',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
   };
-  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; };
+  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#4caf50'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.15)'; };
   const inputBlur = (e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; };
   const inputHoverEnter = (e) => e.currentTarget.style.borderColor = '#9CA3AF';
   const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 
   const labelStyle = { color: '#374151', fontWeight: 600, fontSize: '13px' };
-  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]";
 
   const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
@@ -369,7 +369,7 @@ export default function Farms() {
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{farm.owner}</span>
                   </td>
@@ -379,8 +379,8 @@ export default function Farms() {
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.robot || '—'}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#10B981' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ fontSize: '13px', fontWeight: 500, color: status.label === 'Active' ? '#059669' : status.label === 'Idle' ? '#D97706' : '#DC2626' }}>{status.label}</span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#4caf50' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', fontWeight: 500, color: status.label === 'Active' ? '#2e7d2e' : status.label === 'Idle' ? '#D97706' : '#DC2626' }}>{status.label}</span>
                     </span>
                   </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
@@ -407,7 +407,7 @@ export default function Farms() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-robot text-white text-lg" />
                 </div>
                 <div>
@@ -424,7 +424,7 @@ export default function Farms() {
             <form onSubmit={handleAdd}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <Sprout size={15} style={{ color: '#10B981' }} />
+                  <Sprout size={15} style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -498,9 +498,9 @@ export default function Farms() {
                         <button key={opt} type="button"
                           onClick={() => setForm({ ...form, status: opt })}
                           style={{ flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer',
-                            border: form.status === opt ? '2px solid #10B981' : '1px solid #D1D5DB',
-                            background: form.status === opt ? 'rgba(16,185,129,0.1)' : '#FFFFFF',
-                            color: form.status === opt ? '#059669' : '#4B5563',
+                            border: form.status === opt ? '2px solid #4caf50' : '1px solid #D1D5DB',
+                            background: form.status === opt ? 'rgba(76,175,80,0.1)' : '#FFFFFF',
+                            color: form.status === opt ? '#2e7d2e' : '#4B5563',
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
@@ -526,9 +526,9 @@ export default function Farms() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -546,7 +546,7 @@ export default function Farms() {
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
@@ -562,7 +562,7 @@ export default function Farms() {
             <form onSubmit={handleUpdateFarm}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <Sprout size={15} style={{ color: '#10B981' }} />
+                  <Sprout size={15} style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -636,9 +636,9 @@ export default function Farms() {
                         <button key={opt} type="button"
                           onClick={() => setEditFarmForm({ ...editFarmForm, status: opt })}
                           style={{ flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer',
-                            border: editFarmForm.status === opt ? '2px solid #10B981' : '1px solid #D1D5DB',
-                            background: editFarmForm.status === opt ? 'rgba(16,185,129,0.1)' : '#FFFFFF',
-                            color: editFarmForm.status === opt ? '#059669' : '#4B5563',
+                            border: editFarmForm.status === opt ? '2px solid #4caf50' : '1px solid #D1D5DB',
+                            background: editFarmForm.status === opt ? 'rgba(76,175,80,0.1)' : '#FFFFFF',
+                            color: editFarmForm.status === opt ? '#2e7d2e' : '#4B5563',
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={(e) => { if (editFarmForm.status !== opt) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
@@ -663,9 +663,9 @@ export default function Farms() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -686,7 +686,7 @@ export default function Farms() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteFarm(null)}
-                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
               >Cancel</button>
               <button onClick={handleDeleteFarm} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
                 <Trash2 size={14} /> Delete
@@ -703,7 +703,7 @@ export default function Farms() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
@@ -720,7 +720,7 @@ export default function Farms() {
             <form onSubmit={handleEdit}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <i className="ph ph-user text-[15px]" style={{ color: '#10B981' }} />
+                  <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -783,9 +783,9 @@ export default function Farms() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >

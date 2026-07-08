@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #059669;
-  --color-brand-dark: #15803d;
-  --color-brand-light: rgba(52, 199, 89, 0.15);
+  --color-brand: #2e7d2e;
+  --color-brand-dark: #2e7d2e;
+  --color-brand-light: rgba(76, 175, 80, 0.12);
   --color-warning-bg: rgba(255, 149, 0, 0.15);
   --color-warning-text: #b45309;
   --color-danger-bg: rgba(255, 59, 48, 0.15);
   --color-danger-text: #b91c1c;
   --color-idle-bg: rgba(255, 149, 0, 0.12);
   --color-idle-text: #d97706;
-  --color-surface: #F2F2F7;
-  --color-card: rgba(255, 255, 255, 0.4);
-  --color-border: rgba(0, 0, 0, 0.05);
-  --color-text-secondary: #8E8E93;
-  --color-text-placeholder: #98989D;
-  --color-table-sep: #E5E5EA;
-  --color-text-primary: #1C1C1E;
-  --bg-glass-light: rgba(255, 255, 255, 0.25);
-  --border-glass-light: rgba(255, 255, 255, 0.3);
-  --bg-modal: rgba(255, 255, 255, 0.65);
-  --border-modal: rgba(255, 255, 255, 0.6);
+  --color-surface: #f1f8f1;
+  --color-card: #ffffff;
+  --color-border: rgba(76, 175, 80, 0.12);
+  --color-text-secondary: #5a7a5a;
+  --color-text-placeholder: rgba(26, 46, 26, 0.4);
+  --color-table-sep: rgba(76, 175, 80, 0.08);
+  --color-text-primary: #1a2e1a;
+  --bg-glass-light: rgba(255, 255, 255, 0.1);
+  --border-glass-light: rgba(255, 255, 255, 0.15);
+  --bg-modal: #ffffff;
+  --border-modal: rgba(76, 175, 80, 0.15);
 }
 
 .text-primary { color: var(--color-text-primary); }
@@ -48,11 +48,11 @@ input, textarea, [contenteditable] {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.4);
+  background: #ffffff;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+  border: 1px solid rgba(76, 175, 80, 0.15);
+  box-shadow: 0 2px 12px rgba(46, 125, 50, 0.08);
   outline: none !important;
   min-height: 0;
   will-change: transform;
@@ -107,7 +107,7 @@ input, textarea, [contenteditable] {
   width: 3px;
   height: 20px;
   border-radius: 2px;
-  background: #34C759;
+  background: #4caf50;
 }
 
 .content-visibility-auto {

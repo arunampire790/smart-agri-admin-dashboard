@@ -28,7 +28,7 @@ const typeStyles = {
   Fertilizer: { bg: 'rgba(161,98,7,0.1)', color: '#a16207' },
   Inspection: { bg: 'rgba(139,92,246,0.1)', color: '#8b5cf6' },
   Maintenance: { bg: 'rgba(249,115,22,0.1)', color: '#f97316' },
-  Harvest: { bg: 'rgba(46,158,107,0.1)', color: '#2e9e6b' },
+  Harvest: { bg: 'rgba(46,125,50,0.1)', color: '#2e9e6b' },
 };
 
 const typeOptions = ['Irrigation', 'Fertilizer', 'Inspection', 'Harvesting'];
@@ -80,7 +80,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -114,7 +114,7 @@ function SelectDropdown({ options, value, onChange, placeholder }) {
         style={{ ...base, boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none' }}
         onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
         onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = '#4caf50'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; }}
         onBlur={(e) => { if (!open) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; } }}
       >
         <span style={{ color: value ? '#111827' : '#9CA3AF' }}>{value || placeholder}</span>
@@ -133,20 +133,20 @@ function SelectDropdown({ options, value, onChange, placeholder }) {
               <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
                 style={{
                   padding: '12px 16px', fontSize: '14px',
-                  color: selected ? '#10B981' : '#1d1d1f',
-                  background: selected ? 'rgba(16,185,129,0.12)' : 'transparent',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}
                 onMouseEnter={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10B981'; }
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
                 }}
                 onMouseLeave={(e) => {
                   if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
                 }}
               >
                 <span>{opt}</span>
-                {selected && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
               </div>
             );
           })}
@@ -176,7 +176,7 @@ export default function Tasks() {
     width: '100%', outline: 'none', boxSizing: 'border-box',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'text',
   };
-  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; };
+  const inputFocus = (e) => { e.currentTarget.style.borderColor = '#4caf50'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(52,199,89,0.3)'; };
   const inputBlur = (e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.boxShadow = 'none'; };
   const inputHoverEnter = (e) => e.currentTarget.style.borderColor = '#9CA3AF';
   const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
@@ -253,7 +253,7 @@ export default function Tasks() {
           <div className="text-2xl font-bold text-primary">Task Management</div>
           <div className="text-sm text-text-secondary mt-1">Assign and track agricultural tasks</div>
         </div>
-        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]">
+        <button onClick={openAssign} className="bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]">
           <i className="ph ph-plus" /> Assign Task
         </button>
       </div>
@@ -296,14 +296,14 @@ export default function Tasks() {
           </div>
         </GlowCard>
         <GlowCard onClick={() => setActiveTab('done')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Completed</div>
               <div className="text-3xl font-extrabold text-primary">{completedCount}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ background: '#e8f5e9' }}>
-              <i className="ph ph-check-circle" style={{ color: '#059669' }} />
+              <i className="ph ph-check-circle" style={{ color: '#2e7d2e' }} />
             </div>
           </div>
         </GlowCard>
@@ -342,7 +342,7 @@ export default function Tasks() {
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{task.assignedTo}</span>
                   </td>
@@ -355,7 +355,7 @@ export default function Tasks() {
                       <button onClick={() => handleStartTask(task)} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(59,130,246,0.18)]">Start</button>
                     )}
                     {task.status === 'In Progress' && (
-                      <button onClick={() => handleCompleteTask(task)} style={{ background: 'rgba(46,158,107,0.1)', color: '#2e9e6b', border: '1px solid rgba(46,158,107,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(46,158,107,0.18)]">Complete</button>
+                      <button onClick={() => handleCompleteTask(task)} style={{ background: 'rgba(46,125,50,0.1)', color: '#2e9e6b', border: '1px solid rgba(46,125,50,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(46,125,50,0.18)]">Complete</button>
                     )}
                     {task.status === 'Completed' && (
                       <button onClick={() => handleDeleteTask(task)} style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }} className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(239,68,68,0.16)]" title="Delete task"><Trash2 size={13} /><span>Delete</span></button>
@@ -374,7 +374,7 @@ export default function Tasks() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <ClipboardList size={20} color="#fff" />
                 </div>
                 <div>
@@ -391,7 +391,7 @@ export default function Tasks() {
             <form onSubmit={handleAssignTaskSubmit}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <ClipboardList size={15} color="#10B981" />
+                  <ClipboardList size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Task Details</span>
                 </div>
 
@@ -465,7 +465,7 @@ export default function Tasks() {
                     <div className="flex gap-2" style={{ userSelect: 'none' }}>
                       {priorityOptions.map((p) => {
                         const active = form.priority === p;
-                        const colorMap = { High: '#DC2626', Medium: '#D97706', Low: '#10B981' };
+                        const colorMap = { High: '#DC2626', Medium: '#D97706', Low: '#4caf50' };
                         return (
                           <button key={p} type="button" onClick={() => setForm({ ...form, priority: p })}
                             style={{
@@ -500,9 +500,9 @@ export default function Tasks() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >

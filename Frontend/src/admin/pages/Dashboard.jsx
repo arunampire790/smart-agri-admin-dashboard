@@ -47,14 +47,14 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
         cursor: onClick ? 'pointer' : undefined,
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : outerStyle?.boxShadow,
+        boxShadow: isHovered ? '0 12px 40px rgba(26,46,26,0.15)' : outerStyle?.boxShadow,
       }}
     >
       <div style={{
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -88,7 +88,7 @@ const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks 
     <ResponsiveContainer width="100%" height={180}>
       <PieChart>
         <Pie data={[{ name: 'Active', value: activeCount }, { name: 'Pending', value: pendingCount }, { name: 'Completed', value: completedCount }]} cx="50%" cy="50%" innerRadius={55} outerRadius={78} dataKey="value" strokeWidth={0}>
-          {[{ name: 'Active', color: '#10B981' }, { name: 'Pending', color: '#D97706' }, { name: 'Completed', color: '#0D9488' }].map((entry, i) => (
+          {[{ name: 'Active', color: '#4caf50' }, { name: 'Pending', color: '#D97706' }, { name: 'Completed', color: '#0D9488' }].map((entry, i) => (
             <Cell key={i} fill={entry.color} />
           ))}
         </Pie>
@@ -157,10 +157,10 @@ export default function Dashboard() {
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Users</div>
               <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{users.length}</div>
-              <div className="text-xs leading-relaxed text-[#22C55E]">↑ +12% from last month</div>
+              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>↑ +12% from last month</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(46,158,107,0.12)' }}>
-              <Users size={18} color="#059669" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <Users size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -169,15 +169,15 @@ export default function Dashboard() {
           className="glass-card rounded-2xl p-5"
           style={{ contentVisibility: 'auto' }}
         >
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(46,125,50,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Farms</div>
               <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{farms.length}</div>
-              <div className="text-xs leading-relaxed text-[#22C55E]">↑ +8% from last month</div>
+              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>↑ +8% from last month</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(46,158,107,0.12)' }}>
-              <MapPin size={18} color="#059669" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <MapPin size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -188,7 +188,7 @@ export default function Dashboard() {
           <div className="text-sm font-semibold text-primary mb-3">Task Lifecycle</div>
           <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
           <div className="flex justify-center gap-5 text-xs mt-1">
-            {[{ name: 'Active', value: activeCount, color: '#10B981' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
+            {[{ name: 'Active', value: activeCount, color: '#4caf50' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.color }} />
                 <span className="text-text-secondary">{item.name}</span>
@@ -219,15 +219,15 @@ export default function Dashboard() {
             <AreaChart data={userGrowth} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="userGrowthFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(16,185,129,0.2)" />
-                  <stop offset="100%" stopColor="rgba(16,185,129,0)" />
+                  <stop offset="0%" stopColor="rgba(76,175,80,0.2)" />
+                  <stop offset="100%" stopColor="rgba(76,175,80,0)" />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
-              <Area type="monotone" dataKey="val" stroke="#10B981" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
+              <Area type="monotone" dataKey="val" stroke="#4caf50" strokeWidth={2.5} fill="url(#userGrowthFill)" dot={false} activeDot={{ r: 4, fill: '#4caf50', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -237,15 +237,15 @@ export default function Dashboard() {
             <AreaChart data={farmRegs} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="farmRegsFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(4,120,87,0.2)" />
-                  <stop offset="100%" stopColor="rgba(4,120,87,0)" />
+                  <stop offset="0%" stopColor="rgba(46,125,50,0.2)" />
+                  <stop offset="100%" stopColor="rgba(46,125,50,0)" />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 'auto']} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--color-surface)', backdropFilter: 'blur(8px)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} labelStyle={{ fontWeight: 600, color: 'var(--color-text-primary)' }} />
-              <Area type="monotone" dataKey="val" stroke="#047857" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#047857', stroke: '#fff', strokeWidth: 2 }} />
+              <Area type="monotone" dataKey="val" stroke="#2e7d2e" strokeWidth={2.5} fill="url(#farmRegsFill)" dot={false} activeDot={{ r: 4, fill: '#2e7d2e', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -254,7 +254,10 @@ export default function Dashboard() {
       <div className="glass-card rounded-2xl p-5 mb-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm font-semibold text-primary">Recent Tasks</div>
-          <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl cursor-pointer bg-white flex items-center gap-1.5 font-medium text-text-secondary hover:bg-[#E5E5EA]">
+          <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 font-medium"
+            style={{ color: '#5a7a5a', border: '1px solid rgba(76,175,80,0.2)', background: '#ffffff', transition: 'all 0.2s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; e.currentTarget.style.borderColor = '#4caf50'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.borderColor = 'rgba(76,175,80,0.2)'; }}>
             <i className="ph ph-arrow-right" /> View all
           </button>
         </div>
@@ -274,9 +277,9 @@ export default function Dashboard() {
                 <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
                 <td className="px-4 py-4 border-b border-table-sep">
                   <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
-                    style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#1a2e1a', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#1a2e1a'; }}
                   >{task.assignedTo}</span>
                 </td>
                 <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.farm}</td>

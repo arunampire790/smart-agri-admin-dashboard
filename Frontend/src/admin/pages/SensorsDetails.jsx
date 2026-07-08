@@ -45,7 +45,7 @@ function GlowCard({ className, style: outerStyle, children }) {
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(16,185,129,0.15), transparent)`,
+        background: `radial-gradient(circle 200px at ${pos.x}% ${pos.y}%, rgba(76,175,80,0.15), transparent)`,
         opacity: isHovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
         pointerEvents: 'none',
@@ -66,10 +66,10 @@ const sectorData = [
 
 const nutrientColor = (status) => {
   switch (status) {
-    case 'Good': return { bar: '#10B981', text: '#10B981', bg: 'rgba(16,185,129,0.12)' };
+    case 'Good': return { bar: '#4caf50', text: '#4caf50', bg: 'rgba(76,175,80,0.12)' };
     case 'Low': return { bar: '#EF4444', text: '#EF4444', bg: 'rgba(239,68,68,0.12)' };
     case 'Too High': return { bar: '#D97706', text: '#D97706', bg: 'rgba(217,119,6,0.12)' };
-    default: return { bar: '#10B981', text: '#10B981', bg: 'rgba(16,185,129,0.12)' };
+    default: return { bar: '#4caf50', text: '#4caf50', bg: 'rgba(76,175,80,0.12)' };
   }
 };
 
@@ -92,7 +92,7 @@ export default function SensorsDetails() {
       {/* Page Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center shrink-0">
-          <Radar size={22} color="#059669" />
+          <Radar size={22} color="#2e7d2e" />
         </div>
         <div>
           <div className="text-2xl font-bold text-[#000000]">Sensors Details</div>
@@ -101,19 +101,19 @@ export default function SensorsDetails() {
       </div>
 
       {/* Sensor Connection Checklist */}
-      <div className="text-base font-semibold text-[#1C1C1E] mb-4">Sensor Connection Checklist</div>
+      <div className="text-base font-semibold text-[#1a2e1a] mb-4">Sensor Connection Checklist</div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         {/* NPK Soil Probes */}
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">NPK Soil Probes</div>
-              <div className="text-sm font-medium text-[#1C1C1E] mb-2">8 Working Perfectly</div>
+              <div className="text-sm font-medium text-[#1a2e1a] mb-2">8 Working Perfectly</div>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-brand-dark">0 Offline</span>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(16,185,129,0.12)' }}>
-              <Flask size={18} color="#059669" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <Flask size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -124,7 +124,7 @@ export default function SensorsDetails() {
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">Field Camera</div>
-              <div className="text-sm font-medium text-[#1C1C1E] mb-2">1 Needs Attention</div>
+              <div className="text-sm font-medium text-[#1a2e1a] mb-2">1 Needs Attention</div>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text">Lens may be dirty</span>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(217,119,6,0.12)' }}>
@@ -135,22 +135,22 @@ export default function SensorsDetails() {
 
         {/* Fertilizer Tester */}
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.7) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.35 }} />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="text-xs font-semibold text-text-secondary mb-1">Fertilizer Tester</div>
-              <div className="text-sm font-medium text-[#1C1C1E] mb-2">Ready to Use</div>
+              <div className="text-sm font-medium text-[#1a2e1a] mb-2">Ready to Use</div>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-brand-dark">All Systems OK</span>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(16,185,129,0.12)' }}>
-              <TestTube size={18} color="#059669" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <TestTube size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
       </div>
 
       {/* AI Field Camera Feed */}
-      <div className="text-base font-semibold text-[#1C1C1E] mb-4">AI Field Camera Feed</div>
+      <div className="text-base font-semibold text-[#1a2e1a] mb-4">AI Field Camera Feed</div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         {cameraFeeds.map((feed) => (
           <div key={feed.id} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
@@ -163,7 +163,7 @@ export default function SensorsDetails() {
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-warning-bg text-warning-text mb-2">
               <span>{feed.warning}</span>
             </div>
-            <div className="text-sm font-semibold text-[#1C1C1E] mt-2">Camera #{feed.id} — {feed.sector} ({feed.label})</div>
+            <div className="text-sm font-semibold text-[#1a2e1a] mt-2">Camera #{feed.id} — {feed.sector} ({feed.label})</div>
             <div className="text-xs text-text-secondary mt-1">{feed.description}</div>
           </div>
         ))}
@@ -172,19 +172,19 @@ export default function SensorsDetails() {
       {/* Warning Banner */}
       <div className="flex items-start gap-3 p-4 mb-6 rounded-xl border-l-4 border-warning-text" style={{ background: 'rgba(217,119,6,0.1)' }}>
         <AlertTriangle size={20} color="#D97706" className="shrink-0 mt-0.5" />
-        <div className="text-sm text-[#1C1C1E]">
+        <div className="text-sm text-[#1a2e1a]">
           <span className="font-semibold">Warning:</span> Obstacles detected in Sector B. Clear the stones and avoid the washout hole before driving heavy machinery or tractors through this path.
         </div>
       </div>
 
       {/* Soil Nutrition Breakdown */}
-      <div className="text-base font-semibold text-[#1C1C1E] mb-4">Soil Nutrition Breakdown</div>
+      <div className="text-base font-semibold text-[#1a2e1a] mb-4">Soil Nutrition Breakdown</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {sectorData.map((sector) => (
           <div key={sector.name} className="glass-card rounded-2xl p-5 relative overflow-hidden sensor-card" style={{ contentVisibility: 'auto' }}>
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.5) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.25 }} />
+            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'radial-gradient(circle, rgba(76,175,80,0.5) 0%, transparent 70%)', filter: 'blur(30px)', opacity: 0.25 }} />
             <div className="relative z-10">
-              <div className="text-sm font-semibold text-[#1C1C1E] mb-4">{sector.name}</div>
+              <div className="text-sm font-semibold text-[#1a2e1a] mb-4">{sector.name}</div>
               <div className="grid grid-cols-3 gap-3">
                 {['nitrogen', 'phosphorus', 'potassium'].map((key) => {
                   const nutrient = sector.nutrients[key];
@@ -206,7 +206,7 @@ export default function SensorsDetails() {
                             strokeDasharray={circumference} strokeDashoffset={offset} transform={`rotate(-90 ${cxcy} ${cxcy})`}
                             style={{ transition: 'stroke-dashoffset 0.8s ease' }}
                           />
-                          <text x={cxcy} y={cxcy} textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="800" fill="#1C1C1E">{nutrient.value}%</text>
+                          <text x={cxcy} y={cxcy} textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="800" fill="#1a2e1a">{nutrient.value}%</text>
                         </svg>
                       </div>
                       <span className="text-[10px] font-semibold text-primary leading-tight">{compactLabel}</span>
@@ -221,9 +221,9 @@ export default function SensorsDetails() {
       </div>
 
       {/* Fertilizer Tip Banner */}
-      <div className="flex items-start gap-3 p-4 rounded-xl border-l-4 border-brand" style={{ background: 'rgba(16,185,129,0.1)' }}>
-        <Leaf size={20} color="#10B981" className="shrink-0 mt-0.5" />
-        <div className="text-sm text-[#1C1C1E]">
+      <div className="flex items-start gap-3 p-4 rounded-xl border-l-4 border-brand" style={{ background: 'rgba(76,175,80,0.1)' }}>
+        <Leaf size={20} color="#4caf50" className="shrink-0 mt-0.5" />
+        <div className="text-sm text-[#1a2e1a]">
           <span className="font-semibold">Fertilizer Tip:</span> Soil Nitrogen is Low in Sector B. Add a light application of nitrogen-rich fertilizer during your next watering cycle.
         </div>
       </div>

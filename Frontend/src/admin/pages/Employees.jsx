@@ -10,7 +10,7 @@ const inputClass = "add-input-field";
 const cancelBtnClass = "add-cancel-btn";
 const submitBtnClass = "add-submit-btn";
 const closeBtnClass = "add-close-btn";
-const labelClass = "text-xs font-medium text-[#1C1C1E] tracking-wide";
+const labelClass = "text-xs font-medium text-[#1a2e1a] tracking-wide";
 const statusOptions = ['Active', 'Inactive'];
 
 const StatusDropdown = ({ value, onChange, options }) => {
@@ -26,7 +26,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} className={`add-input-field flex items-center justify-between ${open ? 'add-input-open' : ''}`} style={{ cursor: 'pointer' }}>
-        <span className={value ? 'text-[#1C1C1E]' : 'text-text-placeholder'}>{value}</span>
+        <span className={value ? 'text-[#1a2e1a]' : 'text-text-placeholder'}>{value}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -49,8 +49,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
               style={{
                 padding: '12px 16px',
                 fontSize: '14px',
-                color: opt === value ? '#10B981' : '#1d1d1f',
-                background: opt === value ? 'rgba(16,185,129,0.12)' : 'transparent',
+                color: opt === value ? '#4caf50' : '#1d1d1f',
+                background: opt === value ? 'rgba(76,175,80,0.12)' : 'transparent',
                 outline: 'none !important',
                 cursor: 'pointer',
                 transition: 'background 0.15s, color 0.15s',
@@ -60,8 +60,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
               }}
               onMouseEnter={(e) => {
                 if (opt !== value) {
-                  e.currentTarget.style.background = 'rgba(16,185,129,0.12)';
-                  e.currentTarget.style.color = '#10B981';
+                  e.currentTarget.style.background = 'rgba(76,175,80,0.12)';
+                  e.currentTarget.style.color = '#4caf50';
                 }
               }}
               onMouseLeave={(e) => {
@@ -72,7 +72,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
               }}
             >
               <span>{opt}</span>
-              {opt === value && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              {opt === value && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
             </div>
           ))}
         </div>
@@ -115,7 +115,7 @@ function ActivityLog({ employeeName }) {
 
   const entityBorderColors = {
     User: 'rgba(59,130,246,0.35)',
-    Farm: 'rgba(16,185,129,0.35)',
+    Farm: 'rgba(76,175,80,0.35)',
     Robot: 'rgba(139,92,246,0.35)',
     Task: 'rgba(245,158,11,0.35)',
   };
@@ -172,12 +172,12 @@ function ActivityLog({ employeeName }) {
                       return (
                         <span key={i} style={{
                           display: 'inline-flex', alignItems: 'center', gap: '4px',
-                          background: actuallyChanged ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.04)',
-                          border: `1px solid ${actuallyChanged ? 'rgba(16,185,129,0.2)' : 'rgba(0,0,0,0.06)'}`,
+                          background: actuallyChanged ? 'rgba(76,175,80,0.1)' : 'rgba(0,0,0,0.04)',
+                          border: `1px solid ${actuallyChanged ? 'rgba(76,175,80,0.2)' : 'rgba(0,0,0,0.06)'}`,
                           borderRadius: '6px', padding: '4px 8px', fontSize: '12px',
                         }}>
                           <span style={{ color: '#6B7280', fontWeight: 500 }}>{label}:</span>
-                          <span style={{ color: actuallyChanged ? '#059669' : '#374151', fontWeight: 500 }}>
+                          <span style={{ color: actuallyChanged ? '#2e7d2e' : '#374151', fontWeight: 500 }}>
                             {hasChange ? (
                               <>{parts[0]} <span style={{ color: '#9CA3AF' }}>→</span> {parts[1]}</>
                             ) : value}
@@ -203,7 +203,7 @@ function AccessDenied() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <i className="ph ph-shield-warning text-6xl text-text-placeholder mb-4" />
-      <h2 className="text-xl font-bold text-[#1C1C1E] mb-2">Access Denied</h2>
+      <h2 className="text-xl font-bold text-[#1a2e1a] mb-2">Access Denied</h2>
       <p className="text-sm text-text-secondary">You don't have permission to view this page.</p>
     </div>
   );
@@ -277,17 +277,17 @@ export default function Employees() {
     removeEmployee(deleteEmployee); setDeleteEmployee(null);
   };
 
-  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(5,150,105,0.3)]";
+  const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_8px_25px_rgba(46,125,50,0.3)]";
 
   if (!isMasterAdmin) {
     return (
       <>
         <style>{`
 @keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
-.add-input-field { font-size: 0.875rem; padding: 0.625rem 0.875rem; border-radius: 0.75rem; width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); outline: none; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); cursor: text; box-sizing: border-box; color: #1C1C1E; }
+.add-input-field { font-size: 0.875rem; padding: 0.625rem 0.875rem; border-radius: 0.75rem; width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); outline: none; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); cursor: text; box-sizing: border-box; color: #1a2e1a; }
 .add-input-field::placeholder { color: #98989D; }
 .add-input-field:hover { border-color: #9CA3AF; }
-.add-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); outline: none; }
+.add-input-field:focus { background: #FFFFFF; border-color: #4caf50; box-shadow: 0 0 0 4px rgba(76,175,80,0.15); outline: none; }
         `}</style>
         <AccessDenied />
       </>
@@ -300,21 +300,21 @@ export default function Employees() {
 @keyframes statusPulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
 .add-modal-input { width: 100%; height: 40px; border-radius: 8px; padding: 0 14px; font-size: 14px; background: #FFFFFF; color: #111827; border: 1px solid #D1D5DB; transition: all 0.2s ease; box-sizing: border-box; cursor: text; }
 .add-modal-input:hover { border-color: #9CA3AF; }
-.add-modal-input:focus { border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); outline: none; }
+.add-modal-input:focus { border-color: #4caf50; box-shadow: 0 0 0 4px rgba(76,175,80,0.15); outline: none; }
 .add-modal-input::placeholder { color: #4B5563; }
 .add-modal-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
 .add-close-btn { cursor: pointer; transition: color 0.15s ease, transform 0.15s ease; background: none; border: none; font-size: 1.25rem; line-height: 1; padding: 0; color: #9CA3AF; }
 .add-close-btn:hover { color: #EF4444; transform: scale(1.1); }
-.add-input-field { font-size: 0.875rem; padding: 0.625rem 0.875rem; border-radius: 0.75rem; width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); outline: none; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); cursor: text; box-sizing: border-box; color: #1C1C1E; }
+.add-input-field { font-size: 0.875rem; padding: 0.625rem 0.875rem; border-radius: 0.75rem; width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); outline: none; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); cursor: text; box-sizing: border-box; color: #1a2e1a; }
 .add-input-field::placeholder { color: #98989D; }
 .add-input-field:hover { border-color: #9CA3AF; }
-.add-input-field:focus { background: #FFFFFF; border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); outline: none; }
-.add-input-open { background: #FFFFFF !important; border-color: #10B981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.15) !important; }
+.add-input-field:focus { background: #FFFFFF; border-color: #4caf50; box-shadow: 0 0 0 4px rgba(76,175,80,0.15); outline: none; }
+.add-input-open { background: #FFFFFF !important; border-color: #4caf50 !important; box-shadow: 0 0 0 4px rgba(76,175,80,0.15) !important; }
 .add-cancel-btn { cursor: pointer; transition: all 0.15s ease; font-size: 0.8125rem; padding: 0.375rem 0.875rem; border: 1px solid rgba(0,0,0,0.05); border-radius: 0.75rem; background: #FFFFFF; color: #6B7280; font-weight: 500; }
 .add-cancel-btn:hover { background: #F3F4F6; border-color: #9CA3AF; color: #111827; }
 .add-cancel-btn:active { transform: scale(0.97); }
-.add-submit-btn { cursor: pointer; transition: all 0.2s ease; background: #10B981; color: #FFFFFF; font-weight: 600; border: none; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
-.add-submit-btn:hover { background: #059669; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transform: translateY(-1px); }
+.add-submit-btn { cursor: pointer; transition: all 0.2s ease; background: #4caf50; color: #FFFFFF; font-weight: 600; border: none; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+.add-submit-btn:hover { background: #2e7d2e; box-shadow: 0 4px 14px rgba(76,175,80,0.3); transform: translateY(-1px); }
 .add-submit-btn:active { transform: translateY(1px) scale(0.96); opacity: 0.95; }
 .cancel-btn:hover, .cancel-btn:focus-visible { animation: pulseGlowGray 1.5s ease-in-out infinite; }
 .delete-btn:hover, .delete-btn:focus-visible { animation: pulseGlowRed 1.5s ease-in-out infinite; }
@@ -333,7 +333,7 @@ export default function Employees() {
 
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold text-[#1C1C1E] mb-3">All Employees ({employees.length})</div>
+          <div className="text-sm font-semibold text-[#1a2e1a] mb-3">All Employees ({employees.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search employees by name or email..." aria-label="Search employees" className={glassInput} />
         </div>
         {filtered.length === 0 ? (
@@ -356,7 +356,7 @@ export default function Employees() {
                 <tr key={i} className="group">
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
                       onClick={() => { if (isMasterAdmin) setViewActivity(emp); }}
                     >{emp.name}</span>
@@ -366,8 +366,8 @@ export default function Employees() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.role}</td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     <span className="inline-flex items-center justify-center" style={{ gap: '6px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: emp.status === 'Active' ? '#10B981' : '#EF4444', animation: emp.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
-                      <span style={{ color: emp.status === 'Active' ? '#10B981' : '#EF4444', fontWeight: 500, fontSize: '12px', letterSpacing: '0.01em' }}>{emp.status}</span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: emp.status === 'Active' ? '#4caf50' : '#EF4444', animation: emp.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                      <span style={{ color: emp.status === 'Active' ? '#4caf50' : '#EF4444', fontWeight: 500, fontSize: '12px', letterSpacing: '0.01em' }}>{emp.status}</span>
                     </span>
                   </td>
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.joined}</td>
@@ -396,7 +396,7 @@ export default function Employees() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <UserPlus size={20} color="#fff" />
                 </div>
                 <div>
@@ -413,7 +413,7 @@ export default function Employees() {
             <form onSubmit={handleAdd}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <User size={15} color="#10B981" />
+                  <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Employee Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -470,9 +470,9 @@ export default function Employees() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -493,7 +493,7 @@ export default function Employees() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <UserPen size={20} color="#fff" />
                 </div>
                 <div>
@@ -510,7 +510,7 @@ export default function Employees() {
             <form onSubmit={handleEdit}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <User size={15} color="#10B981" />
+                  <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Employee Information</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
@@ -567,9 +567,9 @@ export default function Employees() {
                   Cancel
                 </button>
                 <button type="submit"
-                  style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#4caf50'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
@@ -589,7 +589,7 @@ export default function Employees() {
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Clock size={20} color="#fff" />
                 </div>
                 <div>
@@ -604,7 +604,7 @@ export default function Employees() {
             </div>
             <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                <Activity size={15} color="#10B981" />
+                <Activity size={15} color="#4caf50" />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activity History</span>
               </div>
               <ActivityLog employeeName={viewActivity.name} />
@@ -624,7 +624,7 @@ export default function Employees() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteEmployee(null)}
-                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#E5E5EA] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
               >Cancel</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
                 <Trash2 size={14} /> Delete
