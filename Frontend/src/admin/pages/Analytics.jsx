@@ -7,15 +7,8 @@ import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import {
-  AlertTriangle, AlertCircle, Thermometer, Droplets, Radar, MapPin,
-  ArrowRight, Maximize2, CheckCircle as CheckCircleIcon, Clock,
-  Bot, RefreshCw, TrendingUp,
-} from 'lucide-react';
+import { computeTriangleAreaAcres } from '../../utils/farmArea';
+import { AlertTriangle, AlertCircle, Thermometer, Droplets, Radar, MapPin, ArrowRight } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -26,16 +19,11 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
       onClick={onClick}
       className={className}
       style={{
-        background: '#ffffff',
-        border: '1px solid rgba(76,175,80,0.12)',
-        borderRadius: '16px',
-        boxShadow: '0 2px 12px rgba(46,125,50,0.06)',
-        padding: '24px',
         ...outerStyle,
         cursor: onClick ? 'pointer' : undefined,
         transition: 'all 0.25s ease',
         transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : boxShadow || '0 2px 12px rgba(46,125,50,0.06)',
+        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
       }}
     >
       {children}
@@ -51,10 +39,10 @@ function Clickable({ onClick, children, showArrow }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        cursor: 'pointer', transition: 'background 0.15s ease',
-        background: hover ? '#fef2f2' : 'transparent',
-        borderRadius: '8px', padding: '10px 12px',
-        display: 'flex', alignItems: 'center', gap: '10px',
+        cursor: 'pointer', transition: 'all 0.15s ease',
+        background: hover ? 'rgba(76,175,80,0.06)' : 'transparent',
+        borderRadius: '8px', padding: '8px 10px',
+        display: 'flex', alignItems: 'center', gap: '8px',
       }}
     >
       {children}
@@ -75,15 +63,16 @@ function relativeTime(iso) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function actionDot(action) {
+  const a = (action || '').toLowerCase();
+  if (a.includes('add') || a.startsWith('create')) return '#10B981';
+  if (a.includes('edit') || a.includes('update')) return '#F59E0B';
+  if (a.includes('delete') || a.includes('remove')) return '#EF4444';
+  return '#9CA3AF';
+}
+
 const cropEmojis = { wheat: '🌾', barley: '🌾', corn: '🌽', soybeans: '🫘', apples: '🍎', pears: '🍐', rice: '🍚', strawberries: '🍓', tomatoes: '🍅', alfalfa: '🌿', hay: '🌾' };
 
-const taskTypeColors = { Irrigation: '#3b82f6', Fertilizer: '#4caf50', Inspection: '#8b5cf6', Maintenance: '#f97316' };
-
-function batteryLabel(pct) {
-  if (pct >= 85) return { label: 'Excellent', color: '#2e7d2e', bg: 'rgba(46,125,50,0.1)' };
-  if (pct >= 60) return { label: 'Good', color: '#4caf50', bg: 'rgba(76,175,80,0.1)' };
-  return { label: 'Low', color: '#f97316', bg: 'rgba(249,115,22,0.1)' };
-}
 
 export default function Analytics() {
   const navigate = useNavigate();
@@ -106,8 +95,9 @@ export default function Analytics() {
   const sortedBattery = useMemo(() => [...robots].sort((a, b) => a.battery - b.battery), [robots]);
 
   const taskTypes = ['Irrigation', 'Fertilizer', 'Inspection', 'Maintenance'];
-  const taskTypeData = taskTypes.map((t) => ({
-    name: t, count: tasks.filter((x) => x.type === t).length, color: taskTypeColors[t] || '#6B7280',
+  const taskColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'];
+  const taskTypeData = taskTypes.map((t, i) => ({
+    name: t, count: tasks.filter((x) => x.type === t).length, color: taskColors[i],
   }));
   const maxTaskTypeCount = Math.max(...taskTypeData.map((t) => t.count), 1);
 
@@ -123,8 +113,11 @@ export default function Analytics() {
   const [sortBy, setSortBy] = useState('size');
   const farmAreaAcres = useMemo(() => {
     return farms.map((f) => {
-      const sizeNum = parseFloat(f.size) || 0;
-      return { ...f, acres: sizeNum };
+      const seed = f.name.length + (f.location || '').length;
+      const p1 = { lat: 36 + (seed % 8), lng: -(119 + (seed % 5)) };
+      const p2 = { lat: 36 + ((seed * 7) % 8), lng: -(119 + ((seed * 3) % 5)) };
+      const p3 = { lat: 36 + ((seed * 13) % 8), lng: -(119 + ((seed * 11) % 5)) };
+      return { ...f, acres: parseFloat(computeTriangleAreaAcres(p1, p2, p3)) };
     });
   }, [farms]);
   const totalArea = farmAreaAcres.reduce((s, f) => s + f.acres, 0);
@@ -164,376 +157,389 @@ export default function Analytics() {
     return best ? { name: best.name, count: max } : null;
   }, [farms]);
 
-  const timelineData = useMemo(() => {
-    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-    const completedTaskDates = tasks.filter((t) => t.status === 'Completed').map((t) => new Date(t.dueDate));
-    if (completedTaskDates.length === 0) {
-      return weeks.map((w) => ({ week: w, completed: 0 }));
-    }
-    const minDate = new Date(Math.min(...completedTaskDates.map((d) => d.getTime())));
-    const maxDate = new Date(Math.max(...completedTaskDates.map((d) => d.getTime())));
-    const range = (maxDate.getTime() - minDate.getTime()) / 3;
-    return weeks.map((w, i) => ({
-      week: w,
-      completed: completedTaskDates.filter((d) => d.getTime() >= minDate.getTime() + (i - 1) * range && d.getTime() < minDate.getTime() + i * range).length,
-    }));
-  }, [tasks]);
-
-  const activeRobotsPct = robots.length > 0 ? Math.round((robots.filter((r) => r.status === 'Active').length / robots.length) * 100) : 0;
-  const activeFarms = farms.filter((f) => f.status === 'Active').length;
+  const employeeActivity = useMemo(() => {
+    const counts = {};
+    entries.forEach((e) => {
+      const name = e.userName || 'Unknown';
+      counts[name] = (counts[name] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, actions]) => ({ name, actions })).sort((a, b) => b.actions - a.actions);
+  }, [entries]);
+  const maxActivity = employeeActivity.length > 0 ? employeeActivity[0].actions : 1;
+  const recentEntries = useMemo(() => entries.slice(0, 5), [entries]);
 
   return (
     <>
       <div className="mb-6">
-        <div className="text-2xl font-bold" style={{ color: '#1a2e1a' }}>Analytics</div>
-        <div className="text-sm mt-1" style={{ color: '#5a7a5a' }}>Command center — deeper insights not shown on the Dashboard</div>
+        <div className="text-2xl font-bold text-primary">Analytics</div>
+        <div className="text-sm text-text-secondary mt-1">Command center — deeper insights not shown on the Dashboard</div>
       </div>
 
-      <div style={{ background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '16px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)', padding: '24px', marginBottom: '24px', borderLeft: hasAlerts ? '4px solid #ef4444' : '4px solid #10B981' }}>
-        <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle size={20} color={hasAlerts ? '#ef4444' : '#10B981'} style={{ verticalAlign: 'middle' }} />
-          <span style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700 }}>System Alerts</span>
-          {hasAlerts && (
-            <span style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600, marginLeft: 'auto' }}>
-              Needs attention
-            </span>
-          )}
-        </div>
-        {!hasAlerts ? (
-          <div className="px-4 py-3 rounded-xl text-[13px] font-medium" style={{ background: 'rgba(16,185,129,0.08)', color: '#10B981' }}>
-            ✓ All Systems Normal — No alerts at this time
+      <GlowCard className="glass-card rounded-2xl mb-6" style={{ contentVisibility: 'auto' }}>
+        <div className="p-5">
+          <div className="flex items-center gap-1 mb-3">
+            <AlertTriangle size={16} color={hasAlerts ? '#EF4444' : '#10B981'} />
+            <span className="text-sm font-semibold text-primary">System Alerts</span>
+            {hasAlerts && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>Needs attention</span>}
           </div>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-3 mb-4">
+          {!hasAlerts ? (
+            <div className="px-4 py-3 rounded-xl text-[12px] font-medium" style={{ background: 'rgba(16,185,129,0.08)', color: '#10B981' }}>
+              ✓ All Systems Normal — No alerts at this time
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-3 mb-4">
+                {offlineRobots.length > 0 && (
+                  <div onClick={() => navigate('/admin/robots')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(239,68,68,0.1)' }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
+                    <span className="text-lg font-extrabold" style={{ color: '#EF4444' }}>{offlineRobots.length}</span>
+                    <span className="text-[11px] font-semibold" style={{ color: '#EF4444' }}>Robots Offline</span>
+                  </div>
+                )}
+                {lowBattRobots.length > 0 && (
+                  <div onClick={() => navigate('/admin/robots')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(245,158,11,0.1)' }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: '#F59E0B' }} />
+                    <span className="text-lg font-extrabold" style={{ color: '#F59E0B' }}>{lowBattRobots.length}</span>
+                    <span className="text-[11px] font-semibold" style={{ color: '#F59E0B' }}>Low Battery</span>
+                  </div>
+                )}
+                {overdueTasks.length > 0 && (
+                  <div onClick={() => navigate('/admin/tasks')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(239,68,68,0.08)' }}>
+                    <AlertCircle size={16} color="#EF4444" />
+                    <span className="text-lg font-extrabold" style={{ color: '#EF4444' }}>{overdueTasks.length}</span>
+                    <span className="text-[11px] font-semibold" style={{ color: '#EF4444' }}>Overdue Tasks</span>
+                  </div>
+                )}
+              </div>
               {offlineRobots.length > 0 && (
-                <div onClick={() => navigate('/admin/robots')} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '10px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>{offlineRobots.length}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#ef4444' }}>Robots Offline</span>
+                <div className="mb-2">
+                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Offline Robots</div>
+                  {offlineRobots.map((r) => (
+                    <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#EF4444' }} />
+                      <span className="text-[12px] font-semibold text-primary">{r.name}</span>
+                      <span className="text-[10px] text-text-secondary">· Offline · Assigned: {r.farm}</span>
+                      <span className="text-[10px] font-medium shrink-0 ml-auto" style={{ color: '#EF4444' }}>View Robot</span>
+                    </Clickable>
+                  ))}
                 </div>
               )}
               {lowBattRobots.length > 0 && (
-                <div onClick={() => navigate('/admin/robots')} style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: '10px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: '#F59E0B' }}>{lowBattRobots.length}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#F59E0B' }}>Low Battery</span>
+                <div className="mb-2">
+                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Low Battery Robots</div>
+                  {lowBattRobots.map((r) => (
+                    <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#F59E0B' }} />
+                      <span className="text-[12px] font-semibold text-primary">{r.name}</span>
+                      <span className="text-[10px] text-text-secondary">· {r.battery}% battery · Assigned: {r.farm}</span>
+                      <span className="text-[10px] font-semibold shrink-0 ml-auto" style={{ color: '#F59E0B' }}>View Robot</span>
+                    </Clickable>
+                  ))}
                 </div>
               )}
               {overdueTasks.length > 0 && (
-                <div onClick={() => navigate('/admin/tasks')} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '10px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <AlertCircle size={18} color="#ef4444" />
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>{overdueTasks.length}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#ef4444' }}>Overdue Tasks</span>
+                <div className="mb-1">
+                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Overdue Tasks</div>
+                  {overdueTasks.slice(0, 5).map((t) => {
+                    const days = Math.floor((now - new Date(t.dueDate).getTime()) / 86400000);
+                    return (
+                      <Clickable key={t.id} onClick={() => navigate('/admin/tasks')} showArrow>
+                        <AlertCircle size={12} color="#EF4444" className="shrink-0" />
+                        <span className="text-[12px] font-semibold text-primary">{t.title}</span>
+                        <span className="text-[10px] text-text-secondary">· {t.assignedTo} · {t.farm}</span>
+                        <span className="text-[10px] font-medium shrink-0 ml-auto" style={{ color: '#EF4444' }}>{days}d overdue</span>
+                      </Clickable>
+                    );
+                  })}
+                  {overdueTasks.length > 5 && (
+                    <div className="text-[10px] font-semibold mt-1 px-2" style={{ color: '#D97706' }}>+{overdueTasks.length - 5} more overdue tasks</div>
+                  )}
                 </div>
               )}
-            </div>
-            {offlineRobots.length > 0 && (
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ color: '#5a7a5a', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Offline Robots</div>
-                {offlineRobots.map((r) => (
-                  <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ color: '#1a2e1a', fontWeight: 700, fontSize: '13px' }}>{r.name}</span>
-                    <span style={{ color: '#5a7a5a', fontSize: '13px' }}>· Offline · Assigned: {r.farm}</span>
-                    <span style={{ color: '#ef4444', fontSize: '13px', fontWeight: 600, marginLeft: 'auto', flexShrink: 0 }}>View Robot</span>
-                  </Clickable>
-                ))}
-              </div>
-            )}
-            {lowBattRobots.length > 0 && (
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ color: '#5a7a5a', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Low Battery Robots</div>
-                {lowBattRobots.map((r) => (
-                  <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ color: '#1a2e1a', fontWeight: 700, fontSize: '13px' }}>{r.name}</span>
-                    <span style={{ color: '#5a7a5a', fontSize: '13px' }}>· {r.battery}% battery · Assigned: {r.farm}</span>
-                    <span style={{ color: '#F59E0B', fontSize: '13px', fontWeight: 700, marginLeft: 'auto', flexShrink: 0 }}>{r.battery}%</span>
-                  </Clickable>
-                ))}
-              </div>
-            )}
-            {overdueTasks.length > 0 && (
-              <div style={{ marginBottom: '4px' }}>
-                <div style={{ color: '#5a7a5a', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Overdue Tasks</div>
-                {overdueTasks.slice(0, 5).map((t) => {
-                  const days = Math.floor((now - new Date(t.dueDate).getTime()) / 86400000);
-                  return (
-                    <Clickable key={t.id} onClick={() => navigate('/admin/tasks')} showArrow>
-                      <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
-                      <span style={{ color: '#1a2e1a', fontWeight: 600, fontSize: '13px' }}>{t.title}</span>
-                      <span style={{ color: '#5a7a5a', fontSize: '13px' }}>· {t.assignedTo} · {t.farm}</span>
-                      <span style={{ color: '#dc2626', fontWeight: 700, fontSize: '13px', marginLeft: 'auto', flexShrink: 0 }}>{days}d overdue</span>
-                    </Clickable>
-                  );
-                })}
-                {overdueTasks.length > 5 && (
-                  <div style={{ color: '#2e7d2e', fontWeight: 500, fontSize: '13px', marginTop: '4px', cursor: 'pointer', paddingLeft: '10px' }}
-                    onClick={() => navigate('/admin/tasks')}>+{overdueTasks.length - 5} more overdue tasks</div>
-                )}
-              </div>
-            )}
-            <div style={{ color: 'rgba(90,122,90,0.6)', fontSize: '12px', fontStyle: 'italic', marginTop: '12px' }}>Click any alert to navigate directly to the issue</div>
-          </>
-        )}
-      </div>
+              <div className="text-[9px] text-text-secondary italic mt-3">Click any alert to navigate directly to the issue</div>
+            </>
+          )}
+        </div>
+      </GlowCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginBottom: '24px' }}>
-        <GlowCard>
-          <div className="flex items-center justify-between" style={{ marginBottom: '4px' }}>
-            <span style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700 }}>Robot Battery Health</span>
-            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>Click any robot to view details →</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-primary">Robot Battery Health</span>
+            <span className="text-[10px] text-text-secondary">Click any robot to view details →</span>
           </div>
-          <div style={{ color: '#5a7a5a', fontSize: '13px', marginBottom: '16px' }}>Full fleet — sorted by battery (lowest first)</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="text-[10px] text-text-secondary mb-3">Full fleet — sorted by battery (lowest first)</div>
+          <div className="space-y-2">
             {sortedBattery.map((r) => {
-              const bl = batteryLabel(r.battery);
-              const barColor = r.battery < 60 ? '#f97316' : r.battery < 85 ? '#4caf50' : '#2e7d2e';
+              const barColor = r.battery < 20 ? '#EF4444' : r.battery < 50 ? '#F59E0B' : '#10B981';
+              const statusLabel = r.battery < 20 ? '⚠ CRITICAL' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
               return (
-                <div key={r.id} onClick={() => navigate('/admin/robots')}
-                  style={{ cursor: 'pointer', borderRadius: '10px', padding: '10px 12px', transition: 'background 0.15s ease', display: 'flex', flexDirection: 'column', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: r.battery < 20 ? '#ef4444' : r.battery < 60 ? '#f97316' : '#4caf50', display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ color: '#1a2e1a', fontWeight: 600, fontSize: '14px' }}>{r.name}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#1a2e1a', fontWeight: 700, fontSize: '15px' }}>{r.battery}%</span>
-                      <span style={{ background: bl.bg, color: bl.color, borderRadius: '20px', padding: '2px 10px', fontSize: '12px', fontWeight: 600 }}>{bl.label}</span>
-                    </div>
+                <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: barColor }} />
+                  <span className="text-[12px] font-semibold text-primary min-w-[90px]">{r.name}</span>
+                  <div className="flex-1 max-w-[120px] h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${r.battery}%`, background: barColor }} />
                   </div>
-                  <div style={{ background: 'rgba(76,175,80,0.12)', borderRadius: '99px', height: '8px', width: '100%' }}>
-                    <div style={{ width: `${r.battery}%`, height: '100%', borderRadius: '99px', background: barColor, transition: 'width 0.3s ease' }} />
-                  </div>
-                </div>
+                  <span className="text-[11px] font-bold min-w-[32px] text-right" style={{ color: barColor }}>{r.battery}%</span>
+                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded shrink-0" style={{
+                    background: r.battery < 20 ? 'rgba(239,68,68,0.1)' : r.battery < 50 ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
+                    color: barColor,
+                  }}>{statusLabel}</span>
+                </Clickable>
               );
             })}
           </div>
-          <div onClick={() => navigate('/admin/robots')} style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', color: '#f97316', fontSize: '13px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <AlertCircle size={14} color="#f97316" />
+          <div onClick={() => navigate('/admin/robots')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#F59E0B' }}>
             {robots.filter((r) => r.battery < 50).length} robots need charging soon →
           </div>
         </GlowCard>
 
-        <GlowCard>
-          <div className="flex items-center justify-between" style={{ marginBottom: '4px' }}>
-            <span style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700 }}>Task Analysis</span>
-            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>Click any item to view tasks →</span>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-primary">Task Analysis</span>
+            <span className="text-[10px] text-text-secondary">Click any item to view tasks →</span>
           </div>
-          <div style={{ color: '#5a7a5a', fontSize: '13px', marginBottom: '16px' }}>Breakdown by type and priority</div>
-
-          <div style={{ color: '#5a7a5a', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>BY TYPE</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+          <div className="text-[10px] text-text-secondary mb-3">Breakdown by type and priority</div>
+          <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">By Type</div>
+          <div className="space-y-1.5 mb-3">
             {taskTypeData.map((t) => (
-              <div key={t.name} onClick={() => navigate('/admin/tasks')}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '6px', padding: '4px 6px', transition: 'background 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                <span style={{ color: '#1a2e1a', fontWeight: 500, minWidth: '90px', fontSize: '13px' }}>{t.name}</span>
-                <div style={{ flex: 1, background: 'rgba(26,46,26,0.08)', borderRadius: '99px', height: '10px' }}>
-                  <div style={{ width: `${(t.count / maxTaskTypeCount) * 100}%`, height: '100%', borderRadius: '99px', background: t.color, transition: 'width 0.3s ease' }} />
+              <Clickable key={t.name} onClick={() => navigate('/admin/tasks')} showArrow>
+                <span className="text-[11px] font-semibold text-primary min-w-[80px]">{t.name}</span>
+                <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${(t.count / maxTaskTypeCount) * 100}%`, background: t.color }} />
                 </div>
-                <span style={{ color: '#5a7a5a', minWidth: '60px', textAlign: 'right', fontSize: '13px' }}>{t.count} tasks</span>
-              </div>
+                <span className="text-[11px] font-bold text-primary min-w-[18px] text-right">{t.count}</span>
+                <span className="text-[10px] text-text-secondary shrink-0">tasks</span>
+              </Clickable>
             ))}
           </div>
-
-          <div style={{ paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-            <div style={{ color: '#5a7a5a', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>BY PRIORITY</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="pt-2 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+            <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">By Priority</div>
+            <div className="space-y-1.5">
               {[
-                { name: 'High', count: highCount, color: '#ef4444', emoji: '🔴' },
-                { name: 'Medium', count: medCount, color: '#f97316', emoji: '🟡' },
-                { name: 'Low', count: lowCount, color: '#4caf50', emoji: '🟢' },
+                { name: 'High', count: highCount, color: '#EF4444', emoji: '🔴' },
+                { name: 'Medium', count: medCount, color: '#F59E0B', emoji: '🟡' },
+                { name: 'Low', count: lowCount, color: '#10B981', emoji: '🟢' },
               ].map((p) => (
-                <div key={p.name} onClick={() => navigate('/admin/tasks')}
-                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '6px', padding: '4px 6px', transition: 'background 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                  <span style={{ fontSize: '13px', minWidth: '20px' }}>{p.emoji}</span>
-                  <span style={{ color: '#1a2e1a', fontWeight: 500, minWidth: '60px', fontSize: '13px' }}>{p.name}</span>
-                  <div style={{ flex: 1, background: 'rgba(26,46,26,0.08)', borderRadius: '99px', height: '10px' }}>
-                    <div style={{ width: `${(p.count / maxPriority) * 100}%`, height: '100%', borderRadius: '99px', background: p.color, transition: 'width 0.3s ease' }} />
+                <Clickable key={p.name} onClick={() => navigate('/admin/tasks')} showArrow>
+                  <span className="text-[11px]">{p.emoji}</span>
+                  <span className="text-[11px] font-semibold text-primary min-w-[50px]">{p.name}</span>
+                  <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(p.count / maxPriority) * 100}%`, background: p.color }} />
                   </div>
-                  <span style={{ color: '#5a7a5a', minWidth: '60px', textAlign: 'right', fontSize: '13px' }}>{p.count} tasks</span>
-                </div>
+                  <span className="text-[11px] font-bold text-primary min-w-[36px] text-right">{p.count} tasks</span>
+                </Clickable>
               ))}
             </div>
           </div>
-
-          <div onClick={() => navigate('/admin/tasks')} style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', color: '#2e7d2e', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+          <div onClick={() => navigate('/admin/tasks')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#2e7d2e' }}>
             {totalTasks} total tasks · {completionPct}% completion rate →
           </div>
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginBottom: '24px' }}>
-        <GlowCard>
-          <div className="flex items-center justify-between" style={{ marginBottom: '4px' }}>
-            <span style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700 }}>Farm Portfolio</span>
-            <div style={{ display: 'flex', gap: '4px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-primary">Farm Portfolio</span>
+            <div className="flex gap-1">
               {['size', 'status', 'owner'].map((s) => (
                 <button key={s} onClick={() => setSortBy(s)}
-                  style={{ background: sortBy === s ? '#1a2e1a' : '#f1f8f1', border: sortBy === s ? '1px solid #1a2e1a' : '1px solid rgba(76,175,80,0.2)', color: sortBy === s ? '#ffffff' : '#1a2e1a', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.03em', transition: 'all 0.15s ease' }}>
-                  {s}
+                  style={{ padding: '2px 8px', fontSize: '9px', fontWeight: 600, border: 'none', borderRadius: '4px', cursor: 'pointer', background: sortBy === s ? '#142E1C' : 'rgba(0,0,0,0.04)', color: sortBy === s ? '#FFFFFF' : '#5A7A5A', textTransform: 'uppercase', letterSpacing: '0.03em', transition: 'all 0.15s ease' }}>
+                  {s} ↕
                 </button>
               ))}
             </div>
           </div>
-          <div style={{ color: '#2e7d2e', fontSize: '13px', marginBottom: '16px' }}>Click any farm to view details →</div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+          <div className="text-[10px] text-text-secondary mb-3">Click any farm to view details →</div>
+          <div className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-lg text-center" style={{ background: 'rgba(76,175,80,0.03)' }}>
             <div>
-              <Maximize2 size={18} color="#2e7d2e" style={{ margin: '0 auto 4px' }} />
-              <div style={{ color: '#1a2e1a', fontSize: '22px', fontWeight: 700 }}>{totalArea.toFixed(1)}</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Est. acres</div>
+              <div className="text-[15px]">🌍</div>
+              <div className="text-sm font-extrabold text-primary">{totalArea.toFixed(1)}</div>
+              <div className="text-[8px] text-text-secondary">Est. acres</div>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(76,175,80,0.12)', borderRight: '1px solid rgba(76,175,80,0.12)' }}>
-              <CheckCircleIcon size={18} color="#2e7d2e" style={{ margin: '0 auto 4px' }} />
-              <div style={{ color: '#1a2e1a', fontSize: '22px', fontWeight: 700 }}>{activeArea.toFixed(1)}</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Active</div>
+            <div className="border-x" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+              <div className="text-[15px]">🟢</div>
+              <div className="text-sm font-extrabold text-primary">{activeArea.toFixed(1)}</div>
+              <div className="text-[8px] text-text-secondary">Active</div>
             </div>
             <div>
-              <Clock size={18} color="#2e7d2e" style={{ margin: '0 auto 4px' }} />
-              <div style={{ color: '#1a2e1a', fontSize: '22px', fontWeight: 700 }}>{idleArea.toFixed(1)}</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Idle</div>
+              <div className="text-[15px]">💤</div>
+              <div className="text-sm font-extrabold text-primary">{idleArea.toFixed(1)}</div>
+              <div className="text-[8px] text-text-secondary">Idle</div>
             </div>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '300px', overflow: 'auto', scrollbarWidth: 'thin' }}>
+          <div className="text-[8px] text-text-secondary mb-3 text-center" title="Based on 3-point boundary approximation">Est. Acres based on 3-point boundary approximation</div>
+          <div className="space-y-1.5 max-h-[280px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
             {sortedFarms.map((f) => {
               const barW = (f.acres / maxFarmArea) * 100;
               const robotCount = robots.filter((r) => r.farm === f.name).length;
               return (
-                <div key={f.name} onClick={() => navigate('/admin/farms')}
-                  style={{ cursor: 'pointer', borderRadius: '10px', padding: '10px 12px', transition: 'background 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.status === 'Active' ? '#4caf50' : f.status === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ color: '#1a2e1a', fontWeight: 600, fontSize: '14px' }}>{f.name}</span>
-                    <span style={{ color: '#5a7a5a', fontSize: '12px' }}>{f.owner}</span>
-                    <span style={{ color: '#5a7a5a', fontSize: '12px', marginLeft: 'auto' }}>{f.location || f.soil}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ flex: 1, background: 'rgba(76,175,80,0.12)', borderRadius: '99px', height: '6px' }}>
-                      <div style={{ width: `${barW}%`, height: '100%', borderRadius: '99px', background: '#4caf50', transition: 'width 0.3s ease' }} />
+                <Clickable key={f.name} onClick={() => navigate('/admin/farms')} showArrow>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: f.status === 'Active' ? '#10B981' : f.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
+                      <span className="text-[12px] font-semibold text-primary truncate">{f.name}</span>
+                      <span className="text-[10px] text-text-secondary truncate">{f.owner}</span>
                     </div>
-                    <span style={{ color: '#2e7d2e', fontWeight: 600, fontSize: '13px', flexShrink: 0 }}>{f.acres} Est. acres</span>
-                    <span style={{ color: '#5a7a5a', fontSize: '12px', flexShrink: 0 }}>· {robotCount} robot{robotCount !== 1 ? 's' : ''}</span>
+                    <div className="h-1.5 rounded-full mb-0.5" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${barW}%`, background: '#4caf50' }} />
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] text-text-secondary">
+                      <span>{f.location || f.soil}</span>
+                      <span>· {f.acres.toFixed(1)} Est. acres</span>
+                      <span>· {robotCount} robot{robotCount !== 1 ? 's' : ''}</span>
+                    </div>
                   </div>
-                </div>
+                </Clickable>
               );
             })}
           </div>
         </GlowCard>
 
-        <GlowCard>
-          <div style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Crops Across All Farms</div>
-          <div style={{ color: '#5a7a5a', fontSize: '13px', marginBottom: '16px' }}>What our farmers are growing</div>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="text-sm font-semibold text-primary mb-1">Crops Across All Farms</div>
+          <div className="text-[10px] text-text-secondary mb-3">What our farmers are growing</div>
           {cropFrequency.length > 0 ? (
             <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="space-y-2">
                 {cropFrequency.slice(0, 5).map((crop, i) => {
                   const barW = (crop.count / maxCropCount) * 100;
-                  const barColors = ['#2e7d2e', '#4caf50', '#f97316', '#8b5cf6', '#ec4899'];
                   return (
-                    <div key={crop.name} onClick={() => navigate('/admin/farms')}
-                      style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '6px', padding: '4px 6px', transition: 'background 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                      <span style={{ color: '#5a7a5a', fontWeight: 700, fontSize: '13px', minWidth: '24px' }}>#{i + 1}</span>
-                      <span style={{ fontSize: '15px' }}>{crop.emoji}</span>
-                      <span style={{ color: '#1a2e1a', fontWeight: 500, minWidth: '80px', fontSize: '13px' }}>{crop.name}</span>
-                      <div style={{ flex: 1, background: 'rgba(26,46,26,0.08)', borderRadius: '99px', height: '10px' }}>
-                        <div style={{ width: `${barW}%`, height: '100%', borderRadius: '99px', background: barColors[i], transition: 'width 0.3s ease' }} />
+                    <Clickable key={crop.name} onClick={() => navigate('/admin/farms')} showArrow>
+                      <span className="text-[11px] font-bold text-text-secondary min-w-[18px]">#{i + 1}</span>
+                      <span className="text-[13px]">{crop.emoji}</span>
+                      <span className="text-[12px] font-semibold text-primary min-w-[80px]">{crop.name}</span>
+                      <div className="flex-1 h-2.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                        <div className="h-full rounded-full transition-all" style={{ width: `${barW}%`, background: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899'][i % 5] }} />
                       </div>
-                      <span style={{ color: '#5a7a5a', fontSize: '13px', minWidth: '60px', textAlign: 'right' }}>{crop.count} farm{crop.count !== 1 ? 's' : ''}</span>
-                    </div>
+                      <span className="text-[11px] font-bold text-primary min-w-[40px] text-right">{crop.count} farm{crop.count !== 1 ? 's' : ''}</span>
+                    </Clickable>
                   );
                 })}
               </div>
               {cropFrequency.length > 5 && (
-                <div style={{ color: '#5a7a5a', fontSize: '13px', marginTop: '8px', paddingLeft: '8px' }}>and {cropFrequency.length - 5} more crops...</div>
+                <div className="text-[10px] text-text-secondary mt-1 px-2">and {cropFrequency.length - 5} more crops...</div>
               )}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                <span style={{ background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', color: '#2e7d2e', cursor: 'pointer' }}
-                  onClick={() => navigate('/admin/farms')}>
+              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
                   🏆 Most Grown: {mostGrown ? `${mostGrown.emoji} ${mostGrown.name} (${mostGrown.count} farms)` : '—'}
                 </span>
-                <span style={{ background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', color: '#2e7d2e', cursor: 'pointer' }}
-                  onClick={() => navigate('/admin/farms')}>
+                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(59,130,246,0.1)', color: '#3B82F6' }}>
                   🌱 {mostDiverseFarm ? `${mostDiverseFarm.name} (${mostDiverseFarm.count} crop types)` : '—'}
                 </span>
-                <span style={{ background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', color: '#2e7d2e' }}>
+                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(139,92,246,0.1)', color: '#8B5CF6' }}>
                   🔍 {cropFrequency.length} unique crop types
                 </span>
               </div>
             </>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#5a7a5a', fontSize: '13px' }}>No crop data available</div>
+            <div className="flex items-center justify-center h-[200px] text-sm text-text-secondary">No crop data available</div>
           )}
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginBottom: '24px' }}>
-        <GlowCard>
-          <div style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Task Completion Timeline</div>
-          <div style={{ color: '#5a7a5a', fontSize: '13px', marginBottom: '16px' }}>Tasks completed per week</div>
-          {timelineData.length > 0 && timelineData.some((d) => d.completed > 0) ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={timelineData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,46,26,0.06)" vertical={false} />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: '#5a7a5a', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5a7a5a', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }} />
-                <Bar dataKey="completed" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                  {timelineData.map((entry, i) => (
-                    <rect key={i} fill={entry.completed > 0 ? '#4caf50' : 'rgba(76,175,80,0.2)'} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {isMasterAdmin ? (
+          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold text-primary">Team Activity</span>
+              <span className="text-[10px] text-text-secondary">Click any employee to view →</span>
+            </div>
+            {employeeActivity.length > 0 ? (
+              <>
+                <div className="space-y-1.5 mb-3">
+                  {employeeActivity.map((emp, i) => {
+                    const pct = (emp.actions / maxActivity) * 100;
+                    return (
+                      <Clickable key={emp.name} onClick={() => navigate('/admin/employees')} showArrow>
+                        <span className="text-[10px] font-bold text-text-secondary min-w-[16px]">#{i + 1}</span>
+                        <span className="text-[11px] font-semibold text-primary min-w-[100px] truncate">{emp.name}</span>
+                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: i === 0 ? '#10B981' : '#4caf50' }} />
+                        </div>
+                        <span className="text-[11px] font-bold text-primary min-w-[20px] text-right">{emp.actions}</span>
+                      </Clickable>
+                    );
+                  })}
+                </div>
+                <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Latest</div>
+                <div className="space-y-0.5">
+                  {recentEntries.map((e) => (
+                    <Clickable key={e.id} onClick={() => navigate('/admin/employees')} showArrow>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: actionDot(e.action) }} />
+                      <span className="text-[10px] font-semibold text-primary min-w-[60px] truncate">{e.userName.split(' ')[0]}</span>
+                      <span className="text-[10px] text-text-secondary flex-1 truncate">
+                        {e.action} <span className="font-medium text-primary">{e.target}</span>
+                      </span>
+                      <span className="text-[8px] text-text-secondary shrink-0 whitespace-nowrap">{relativeTime(e.timestamp)}</span>
+                    </Clickable>
                   ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#5a7a5a', fontSize: '13px', flexDirection: 'column', gap: '8px' }}>
-              <TrendingUp size={32} color="rgba(90,122,90,0.3)" />
-              No completed tasks to show timeline
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '24px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-            <div><span style={{ color: '#5a7a5a', fontSize: '12px' }}>Total completed: </span><span style={{ color: '#2e7d2e', fontWeight: 600, fontSize: '14px' }}>{completedTasks}</span></div>
-            <div><span style={{ color: '#5a7a5a', fontSize: '12px' }}>Avg per week: </span><span style={{ color: '#2e7d2e', fontWeight: 600, fontSize: '14px' }}>{(completedTasks / 4).toFixed(1)}</span></div>
+                </div>
+                <div onClick={() => navigate('/admin/employees')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#2e7d2e' }}>
+                  View full audit log →
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-[200px] text-sm text-text-secondary">No activity recorded yet</div>
+            )}
+          </GlowCard>
+        ) : (
+          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+            <div className="text-sm font-semibold text-primary mb-1">Sensor Network</div>
+            <div className="text-[10px] text-text-secondary mb-3">Sensors are assigned per robot — data available once hardware is connected</div>
+            <div className="space-y-2">
+              {[
+{ icon: Thermometer, name: 'DHT11 — Temperature & Humidity', measure: 'Air temp (°C) and relative humidity (%)' },
+              { icon: Droplets, name: 'Soil Moisture Sensor', measure: 'Soil wetness (0% dry — 100% saturated)' },
+              { icon: Radar, name: 'Ultrasonic Distance Sensor', measure: 'Obstacle detection and distance (cm)' },
+              { icon: MapPin, name: 'WiFi Location Tracker', measure: 'Robot position within farm boundaries' },
+            ].map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.name} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
+                  <Icon size={16} color="#9CA3AF" className="shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold text-primary truncate">{s.name}</div>
+                    <div className="text-[9px] text-text-secondary truncate">{s.measure}</div>
+                  </div>
+                  <span className="text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(156,163,175,0.1)', color: '#9CA3AF' }}>
+                    ⏳ Awaiting Connection
+                  </span>
+                </div>
+              );
+            })}
           </div>
+          <div className="text-[9px] text-text-secondary italic mt-3">Sensor readings will appear here automatically once robots are connected to the hardware API</div>
         </GlowCard>
+      )}
 
-        <GlowCard>
-          <div style={{ color: '#1a2e1a', fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>System Health Overview</div>
-          <div style={{ color: '#5a7a5a', fontSize: '13px', marginBottom: '16px' }}>Key operational metrics at a glance</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <Bot size={20} color="#2e7d2e" />
-              <div style={{ color: '#1a2e1a', fontSize: '24px', fontWeight: 700 }}>{activeRobotsPct}%</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Robot Fleet Active</div>
-            </div>
-            <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <TrendingUp size={20} color="#2e7d2e" />
-              <div style={{ color: '#1a2e1a', fontSize: '24px', fontWeight: 700 }}>{completionPct}%</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Task Completion Rate</div>
-            </div>
-            <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <MapPin size={20} color="#2e7d2e" />
-              <div style={{ color: '#1a2e1a', fontSize: '24px', fontWeight: 700 }}>{activeFarms} of {farms.length}</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Farms Active</div>
-            </div>
-            <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={20} color="#2e7d2e" />
-              <div style={{ color: '#1a2e1a', fontSize: '24px', fontWeight: 700 }}>Active</div>
-              <div style={{ color: '#5a7a5a', fontSize: '12px' }}>Data Freshness</div>
-            </div>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="text-sm font-semibold text-primary mb-1">Sensor Network</div>
+          <div className="text-[10px] text-text-secondary mb-3">Sensors are assigned per robot — data available once hardware is connected</div>
+          <div className="space-y-2">
+            {[
+              { icon: Thermometer, name: 'DHT11 — Temperature & Humidity', measure: 'Air temp (°C) and relative humidity (%)' },
+              { icon: Droplets, name: 'Soil Moisture Sensor', measure: 'Soil wetness (0% dry — 100% saturated)' },
+              { icon: Radar, name: 'Ultrasonic Distance Sensor', measure: 'Obstacle detection and distance (cm)' },
+              { icon: MapPin, name: 'WiFi Location Tracker', measure: 'Robot position within farm boundaries' },
+            ].map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.name} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
+                  <Icon size={16} color="#9CA3AF" className="shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold text-primary truncate">{s.name}</div>
+                    <div className="text-[9px] text-text-secondary truncate">{s.measure}</div>
+                  </div>
+                  <span className="text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(156,163,175,0.1)', color: '#9CA3AF' }}>
+                    ⏳ Awaiting Connection
+                  </span>
+                </div>
+              );
+            })}
           </div>
+          <div className="text-[9px] text-text-secondary italic mt-3">// TODO: Replace placeholder rows with real sensor data from hardware API/WebSocket once connected</div>
         </GlowCard>
       </div>
     </>
