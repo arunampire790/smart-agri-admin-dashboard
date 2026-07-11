@@ -8,9 +8,9 @@ import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import { AlertTriangle, AlertCircle, Thermometer, Droplets, Radar, MapPin, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight } from 'lucide-react';
 
-function GlowCard({ className, style: outerStyle, onClick, children }) {
+function GlowCard({ className, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <div
@@ -19,7 +19,6 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
       onClick={onClick}
       className={className}
       style={{
-        ...outerStyle,
         cursor: onClick ? 'pointer' : undefined,
         transition: 'all 0.25s ease',
         transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
@@ -71,8 +70,34 @@ function actionDot(action) {
   return '#9CA3AF';
 }
 
-const cropEmojis = { wheat: '🌾', barley: '🌾', corn: '🌽', soybeans: '🫘', apples: '🍎', pears: '🍐', rice: '🍚', strawberries: '🍓', tomatoes: '🍅', alfalfa: '🌿', hay: '🌾' };
-
+function BatteryIcon({ battery, status }) {
+  const isOffline = status === 'Offline';
+  const fillColor = battery >= 50 ? '#10B981' : battery >= 20 ? '#F59E0B' : '#EF4444';
+  const isEmpty = isOffline || battery === 0;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', margin: '8px 0' }}>
+      <div style={{
+        width: '80px', height: '36px', borderRadius: '6px',
+        border: `2px solid ${isEmpty ? '#D1D5DB' : fillColor}`,
+        padding: '2px', position: 'relative', background: isEmpty ? '#F9FAFB' : 'transparent',
+        display: 'flex', alignItems: 'center',
+      }}>
+        <div style={{
+          height: 'calc(100% - 0px)', width: isEmpty ? '0%' : `${Math.min(battery, 100)}%`,
+          borderRadius: '3px',
+          background: isEmpty ? 'transparent' : fillColor,
+          transition: 'width 0.5s ease',
+        }} />
+      </div>
+      <div style={{
+        width: '5px', height: '14px', borderRadius: '0 3px 3px 0',
+        background: isEmpty ? '#D1D5DB' : fillColor,
+        border: `1px solid ${isEmpty ? '#D1D5DB' : fillColor}`,
+        borderLeft: 'none',
+      }} />
+    </div>
+  );
+}
 
 export default function Analytics() {
   const navigate = useNavigate();
@@ -88,29 +113,60 @@ export default function Analytics() {
   const now = new Date();
 
   const offlineRobots = robots.filter((r) => r.status === 'Offline');
-  const lowBattRobots = robots.filter((r) => r.battery < 20);
+  const criticalBattRobots = robots.filter((r) => r.battery < 20);
   const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && new Date(t.dueDate) < now);
-  const hasAlerts = offlineRobots.length > 0 || lowBattRobots.length > 0 || overdueTasks.length > 0;
+  const hasAlerts = offlineRobots.length > 0 || criticalBattRobots.length > 0 || overdueTasks.length > 0;
+  const hasCriticalAlerts = offlineRobots.length > 0;
 
-  const sortedBattery = useMemo(() => [...robots].sort((a, b) => a.battery - b.battery), [robots]);
+  const batterySorted = useMemo(() => {
+    const order = { 'Critical': 0, 'Low': 1, 'Good': 2, 'Excellent': 3 };
+    return [...robots].sort((a, b) => {
+      const aOff = a.status === 'Offline';
+      const bOff = b.status === 'Offline';
+      if (aOff && !bOff) return -1;
+      if (!aOff && bOff) return 1;
+      const aLabel = a.battery < 20 ? 'Critical' : a.battery < 50 ? 'Low' : a.battery < 80 ? 'Good' : 'Excellent';
+      const bLabel = b.battery < 20 ? 'Critical' : b.battery < 50 ? 'Low' : b.battery < 80 ? 'Good' : 'Excellent';
+      return order[aLabel] - order[bLabel];
+    });
+  }, [robots]);
 
-  const taskTypes = ['Irrigation', 'Fertilizer', 'Inspection', 'Maintenance'];
-  const taskColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'];
-  const taskTypeData = taskTypes.map((t, i) => ({
-    name: t, count: tasks.filter((x) => x.type === t).length, color: taskColors[i],
-  }));
-  const maxTaskTypeCount = Math.max(...taskTypeData.map((t) => t.count), 1);
+  const robotsNeedAttention = robots.filter((r) => r.status === 'Offline' || r.battery < 50);
+
+  const pendingTasks = tasks.filter((t) => t.status === 'Pending');
+  const inProgressTasks = tasks.filter((t) => t.status === 'In Progress');
+  const completedTasks = tasks.filter((t) => t.status === 'Completed');
 
   const highCount = tasks.filter((t) => t.priority === 'High').length;
   const medCount = tasks.filter((t) => t.priority === 'Medium').length;
   const lowCount = tasks.filter((t) => t.priority === 'Low').length;
-  const maxPriority = Math.max(highCount, medCount, lowCount, 1);
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.status === 'Completed').length;
-  const completionPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const inProgressTypes = useMemo(() => {
+    const counts = {};
+    inProgressTasks.forEach((t) => { counts[t.type] = (counts[t.type] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  }, [inProgressTasks]);
 
-  const [sortBy, setSortBy] = useState('size');
+  const completedThisWeek = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const weekStart = new Date(d.setDate(diff));
+    weekStart.setHours(0, 0, 0, 0);
+    return completedTasks.filter((t) => {
+      const due = new Date(t.dueDate);
+      const completed = new Date(due.getTime() + 86400000 * 2);
+      return completed >= weekStart;
+    }).length;
+  }, [completedTasks]);
+
+  const overdueTaskRows = useMemo(() => {
+    return overdueTasks.map((t) => {
+      const daysLate = Math.floor((now - new Date(t.dueDate).getTime()) / 86400000);
+      return { ...t, daysLate };
+    }).sort((a, b) => b.daysLate - a.daysLate).slice(0, 5);
+  }, [overdueTasks, now]);
+
   const farmAreaAcres = useMemo(() => {
     return farms.map((f) => {
       const seed = f.name.length + (f.location || '').length;
@@ -120,18 +176,10 @@ export default function Analytics() {
       return { ...f, acres: parseFloat(computeTriangleAreaAcres(p1, p2, p3)) };
     });
   }, [farms]);
+
   const totalArea = farmAreaAcres.reduce((s, f) => s + f.acres, 0);
   const activeArea = farmAreaAcres.filter((f) => f.status === 'Active').reduce((s, f) => s + f.acres, 0);
   const idleArea = farmAreaAcres.filter((f) => f.status !== 'Active').reduce((s, f) => s + f.acres, 0);
-  const maxFarmArea = Math.max(...farmAreaAcres.map((f) => f.acres), 1);
-
-  const sortedFarms = useMemo(() => {
-    const f = [...farmAreaAcres];
-    if (sortBy === 'size') f.sort((a, b) => b.acres - a.acres);
-    else if (sortBy === 'status') f.sort((a, b) => b.status.localeCompare(a.status));
-    else f.sort((a, b) => a.owner.localeCompare(b.owner));
-    return f;
-  }, [farmAreaAcres, sortBy]);
 
   const cropFrequency = useMemo(() => {
     const counts = {};
@@ -142,11 +190,12 @@ export default function Analytics() {
     });
     return Object.entries(counts).map(([name, count]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
-      count, emoji: cropEmojis[name] || '🌱',
+      count,
     })).sort((a, b) => b.count - a.count);
   }, [farms]);
-  const mostGrown = cropFrequency.length > 0 ? cropFrequency[0] : null;
+
   const maxCropCount = cropFrequency.length > 0 ? cropFrequency[0].count : 1;
+  const mostGrown = cropFrequency.length > 0 ? cropFrequency[0] : null;
 
   const mostDiverseFarm = useMemo(() => {
     let best = null, max = 0;
@@ -157,16 +206,9 @@ export default function Analytics() {
     return best ? { name: best.name, count: max } : null;
   }, [farms]);
 
-  const employeeActivity = useMemo(() => {
-    const counts = {};
-    entries.forEach((e) => {
-      const name = e.userName || 'Unknown';
-      counts[name] = (counts[name] || 0) + 1;
-    });
-    return Object.entries(counts).map(([name, actions]) => ({ name, actions })).sort((a, b) => b.actions - a.actions);
-  }, [entries]);
-  const maxActivity = employeeActivity.length > 0 ? employeeActivity[0].actions : 1;
-  const recentEntries = useMemo(() => entries.slice(0, 5), [entries]);
+  const recentEntries = useMemo(() => entries.slice(0, 6), [entries]);
+
+  const cropBubbleColors = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#EF4444', '#6366F1', '#14B8A6', '#84CC16', '#F97316'];
 
   return (
     <>
@@ -175,373 +217,581 @@ export default function Analytics() {
         <div className="text-sm text-text-secondary mt-1">Command center — deeper insights not shown on the Dashboard</div>
       </div>
 
-      <GlowCard className="glass-card rounded-2xl mb-6" style={{ contentVisibility: 'auto' }}>
-        <div className="p-5">
-          <div className="flex items-center gap-1 mb-3">
-            <AlertTriangle size={16} color={hasAlerts ? '#EF4444' : '#10B981'} />
-            <span className="text-sm font-semibold text-primary">System Alerts</span>
-            {hasAlerts && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>Needs attention</span>}
-          </div>
-          {!hasAlerts ? (
-            <div className="px-4 py-3 rounded-xl text-[12px] font-medium" style={{ background: 'rgba(16,185,129,0.08)', color: '#10B981' }}>
-              ✓ All Systems Normal — No alerts at this time
+      <div className="mb-6" style={{
+        borderRadius: '16px', overflow: 'hidden',
+        borderLeft: `4px solid ${!hasAlerts ? '#10B981' : hasCriticalAlerts ? '#EF4444' : '#F59E0B'}`,
+        background: '#ffffff',
+        boxShadow: '0 2px 12px rgba(46,125,50,0.08)',
+        border: '1px solid rgba(76,175,80,0.15)',
+        borderLeftWidth: '4px',
+      }}>
+        {!hasAlerts ? (
+          <div style={{ padding: '24px 28px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(16,185,129,0.06)' }}>
+            <CheckCircle size={28} color="#10B981" />
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#10B981' }}>All Systems Normal</div>
+              <div style={{ fontSize: '12px', color: '#5A7A5A' }}>No alerts at this time</div>
             </div>
-          ) : (
-            <>
-              <div className="flex flex-wrap gap-3 mb-4">
-                {offlineRobots.length > 0 && (
-                  <div onClick={() => navigate('/admin/robots')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(239,68,68,0.1)' }}>
-                    <span className="w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
-                    <span className="text-lg font-extrabold" style={{ color: '#EF4444' }}>{offlineRobots.length}</span>
-                    <span className="text-[11px] font-semibold" style={{ color: '#EF4444' }}>Robots Offline</span>
-                  </div>
-                )}
-                {lowBattRobots.length > 0 && (
-                  <div onClick={() => navigate('/admin/robots')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(245,158,11,0.1)' }}>
-                    <span className="w-2 h-2 rounded-full" style={{ background: '#F59E0B' }} />
-                    <span className="text-lg font-extrabold" style={{ color: '#F59E0B' }}>{lowBattRobots.length}</span>
-                    <span className="text-[11px] font-semibold" style={{ color: '#F59E0B' }}>Low Battery</span>
-                  </div>
-                )}
-                {overdueTasks.length > 0 && (
-                  <div onClick={() => navigate('/admin/tasks')} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(239,68,68,0.08)' }}>
-                    <AlertCircle size={16} color="#EF4444" />
-                    <span className="text-lg font-extrabold" style={{ color: '#EF4444' }}>{overdueTasks.length}</span>
-                    <span className="text-[11px] font-semibold" style={{ color: '#EF4444' }}>Overdue Tasks</span>
-                  </div>
-                )}
-              </div>
-              {offlineRobots.length > 0 && (
-                <div className="mb-2">
-                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Offline Robots</div>
-                  {offlineRobots.map((r) => (
-                    <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#EF4444' }} />
-                      <span className="text-[12px] font-semibold text-primary">{r.name}</span>
-                      <span className="text-[10px] text-text-secondary">· Offline · Assigned: {r.farm}</span>
-                      <span className="text-[10px] font-medium shrink-0 ml-auto" style={{ color: '#EF4444' }}>View Robot</span>
-                    </Clickable>
-                  ))}
-                </div>
-              )}
-              {lowBattRobots.length > 0 && (
-                <div className="mb-2">
-                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Low Battery Robots</div>
-                  {lowBattRobots.map((r) => (
-                    <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#F59E0B' }} />
-                      <span className="text-[12px] font-semibold text-primary">{r.name}</span>
-                      <span className="text-[10px] text-text-secondary">· {r.battery}% battery · Assigned: {r.farm}</span>
-                      <span className="text-[10px] font-semibold shrink-0 ml-auto" style={{ color: '#F59E0B' }}>View Robot</span>
-                    </Clickable>
-                  ))}
-                </div>
-              )}
-              {overdueTasks.length > 0 && (
-                <div className="mb-1">
-                  <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Overdue Tasks</div>
-                  {overdueTasks.slice(0, 5).map((t) => {
-                    const days = Math.floor((now - new Date(t.dueDate).getTime()) / 86400000);
-                    return (
-                      <Clickable key={t.id} onClick={() => navigate('/admin/tasks')} showArrow>
-                        <AlertCircle size={12} color="#EF4444" className="shrink-0" />
-                        <span className="text-[12px] font-semibold text-primary">{t.title}</span>
-                        <span className="text-[10px] text-text-secondary">· {t.assignedTo} · {t.farm}</span>
-                        <span className="text-[10px] font-medium shrink-0 ml-auto" style={{ color: '#EF4444' }}>{days}d overdue</span>
-                      </Clickable>
-                    );
-                  })}
-                  {overdueTasks.length > 5 && (
-                    <div className="text-[10px] font-semibold mt-1 px-2" style={{ color: '#D97706' }}>+{overdueTasks.length - 5} more overdue tasks</div>
-                  )}
-                </div>
-              )}
-              <div className="text-[9px] text-text-secondary italic mt-3">Click any alert to navigate directly to the issue</div>
-            </>
-          )}
-        </div>
-      </GlowCard>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-primary">Robot Battery Health</span>
-            <span className="text-[10px] text-text-secondary">Click any robot to view details →</span>
           </div>
-          <div className="text-[10px] text-text-secondary mb-3">Full fleet — sorted by battery (lowest first)</div>
-          <div className="space-y-2">
-            {sortedBattery.map((r) => {
-              const barColor = r.battery < 20 ? '#EF4444' : r.battery < 50 ? '#F59E0B' : '#10B981';
-              const statusLabel = r.battery < 20 ? '⚠ CRITICAL' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
+        ) : (
+          <div style={{ padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <AlertTriangle size={18} color={hasCriticalAlerts ? '#EF4444' : '#F59E0B'} />
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>System Alerts</span>
+              {hasCriticalAlerts && (
+                <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', marginLeft: 'auto' }}>Needs attention</span>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              <div onClick={() => navigate('/admin/robots')} style={{
+                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
+                background: offlineRobots.length > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(0,0,0,0.02)',
+                border: `1px solid ${offlineRobots.length > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(0,0,0,0.04)'}`,
+                transition: 'all 0.2s ease',
+                opacity: offlineRobots.length > 0 ? 1 : 0.4,
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = offlineRobots.length > 0 ? '0 4px 16px rgba(239,68,68,0.2)' : 'none'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: '32px', fontWeight: 900, color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', lineHeight: 1 }}>{offlineRobots.length}</div>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '4px' }}>Robots Offline</div>
+                <div style={{ fontSize: '9px', color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
+                  {offlineRobots.length > 0 ? 'Tap to fix →' : '✓ Clear'}
+                </div>
+              </div>
+              <div onClick={() => navigate('/admin/robots')} style={{
+                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
+                background: criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.08)' : 'rgba(0,0,0,0.02)',
+                border: `1px solid ${criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.2)' : 'rgba(0,0,0,0.04)'}`,
+                transition: 'all 0.2s ease',
+                opacity: criticalBattRobots.length > 0 ? 1 : 0.4,
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = criticalBattRobots.length > 0 ? '0 4px 16px rgba(245,158,11,0.2)' : 'none'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: '32px', fontWeight: 900, color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', lineHeight: 1 }}>{criticalBattRobots.length}</div>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', marginTop: '4px' }}>Critical Battery</div>
+                <div style={{ fontSize: '9px', color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
+                  {criticalBattRobots.length > 0 ? 'Tap to fix →' : '✓ Clear'}
+                </div>
+              </div>
+              <div onClick={() => navigate('/admin/tasks')} style={{
+                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
+                background: overdueTasks.length > 0 ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.02)',
+                border: `1px solid ${overdueTasks.length > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.04)'}`,
+                transition: 'all 0.2s ease',
+                opacity: overdueTasks.length > 0 ? 1 : 0.4,
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = overdueTasks.length > 0 ? '0 4px 16px rgba(239,68,68,0.15)' : 'none'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: '32px', fontWeight: 900, color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', lineHeight: 1 }}>{overdueTasks.length}</div>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '4px' }}>Overdue Tasks</div>
+                <div style={{ fontSize: '9px', color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
+                  {overdueTasks.length > 0 ? 'Tap to fix →' : '✓ Clear'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Fleet — Battery Status</span>
+            <span style={{ fontSize: '10px', color: '#5A7A5A' }}>Click any robot to view details →</span>
+          </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Battery health across the fleet</div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '12px',
+          }} className="battery-grid">
+            {batterySorted.map((r) => {
+              const isOffline = r.status === 'Offline';
+              const statusLabel = isOffline ? 'Offline'
+                : r.battery >= 80 ? '🟢 Excellent'
+                : r.battery >= 50 ? '🟢 Good'
+                : r.battery >= 20 ? '🟡 Low'
+                : '🔴 Critical ⚠';
+              const labelColor = isOffline ? '#9CA3AF'
+                : r.battery >= 50 ? '#10B981'
+                : r.battery >= 20 ? '#F59E0B'
+                : '#EF4444';
               return (
-                <Clickable key={r.id} onClick={() => navigate('/admin/robots')} showArrow>
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: barColor }} />
-                  <span className="text-[12px] font-semibold text-primary min-w-[90px]">{r.name}</span>
-                  <div className="flex-1 max-w-[120px] h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${r.battery}%`, background: barColor }} />
-                  </div>
-                  <span className="text-[11px] font-bold min-w-[32px] text-right" style={{ color: barColor }}>{r.battery}%</span>
-                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded shrink-0" style={{
-                    background: r.battery < 20 ? 'rgba(239,68,68,0.1)' : r.battery < 50 ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
-                    color: barColor,
-                  }}>{statusLabel}</span>
-                </Clickable>
+                <div key={r.id} onClick={() => navigate('/admin/robots')} style={{
+                  padding: '14px 12px', borderRadius: '12px', cursor: 'pointer',
+                  background: '#ffffff',
+                  border: '1px solid rgba(76,175,80,0.12)',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(26,46,26,0.12)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#111827', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
+                  <BatteryIcon battery={r.battery} status={r.status} />
+                  {!isOffline && (
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: labelColor }}>{r.battery}%</div>
+                  )}
+                  <div style={{ fontSize: '10px', fontWeight: 600, color: labelColor, marginTop: '4px' }}>{statusLabel}</div>
+                  <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.farm}</div>
+                </div>
               );
             })}
           </div>
-          <div onClick={() => navigate('/admin/robots')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#F59E0B' }}>
-            {robots.filter((r) => r.battery < 50).length} robots need charging soon →
-          </div>
-        </GlowCard>
-
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-primary">Task Analysis</span>
-            <span className="text-[10px] text-text-secondary">Click any item to view tasks →</span>
-          </div>
-          <div className="text-[10px] text-text-secondary mb-3">Breakdown by type and priority</div>
-          <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">By Type</div>
-          <div className="space-y-1.5 mb-3">
-            {taskTypeData.map((t) => (
-              <Clickable key={t.name} onClick={() => navigate('/admin/tasks')} showArrow>
-                <span className="text-[11px] font-semibold text-primary min-w-[80px]">{t.name}</span>
-                <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${(t.count / maxTaskTypeCount) * 100}%`, background: t.color }} />
-                </div>
-                <span className="text-[11px] font-bold text-primary min-w-[18px] text-right">{t.count}</span>
-                <span className="text-[10px] text-text-secondary shrink-0">tasks</span>
-              </Clickable>
-            ))}
-          </div>
-          <div className="pt-2 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-            <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-2">By Priority</div>
-            <div className="space-y-1.5">
-              {[
-                { name: 'High', count: highCount, color: '#EF4444', emoji: '🔴' },
-                { name: 'Medium', count: medCount, color: '#F59E0B', emoji: '🟡' },
-                { name: 'Low', count: lowCount, color: '#10B981', emoji: '🟢' },
-              ].map((p) => (
-                <Clickable key={p.name} onClick={() => navigate('/admin/tasks')} showArrow>
-                  <span className="text-[11px]">{p.emoji}</span>
-                  <span className="text-[11px] font-semibold text-primary min-w-[50px]">{p.name}</span>
-                  <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(p.count / maxPriority) * 100}%`, background: p.color }} />
-                  </div>
-                  <span className="text-[11px] font-bold text-primary min-w-[36px] text-right">{p.count} tasks</span>
-                </Clickable>
-              ))}
-            </div>
-          </div>
-          <div onClick={() => navigate('/admin/tasks')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#2e7d2e' }}>
-            {totalTasks} total tasks · {completionPct}% completion rate →
+          <div onClick={() => navigate('/admin/robots')} style={{
+            marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
+            color: robotsNeedAttention.length > 0 ? '#F59E0B' : '#10B981',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            {robotsNeedAttention.length} of {robots.length} robots need attention →
           </div>
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-primary">Farm Portfolio</span>
-            <div className="flex gap-1">
-              {['size', 'status', 'owner'].map((s) => (
-                <button key={s} onClick={() => setSortBy(s)}
-                  style={{ padding: '2px 8px', fontSize: '9px', fontWeight: 600, border: 'none', borderRadius: '4px', cursor: 'pointer', background: sortBy === s ? '#142E1C' : 'rgba(0,0,0,0.04)', color: sortBy === s ? '#FFFFFF' : '#5A7A5A', textTransform: 'uppercase', letterSpacing: '0.03em', transition: 'all 0.15s ease' }}>
-                  {s} ↕
-                </button>
+      <div className="mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5">
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Task Operations Pipeline</span>
+          </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '20px' }}>Live task flow across all farms</div>
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr',
+            gap: '8px', alignItems: 'stretch',
+          }} className="pipeline-grid">
+            <div style={{
+              padding: '16px', borderRadius: '12px', textAlign: 'center',
+              background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)',
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#D97706', marginBottom: '8px' }}>Pending</div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#F59E0B', lineHeight: 1 }}>{pendingTasks.length}</div>
+              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>High: {highCount}</div>
+                <div style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>Medium: {medCount}</div>
+                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>Low: {lowCount}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
+              <div style={{ fontSize: '20px', color: 'rgba(0,0,0,0.15)', fontWeight: 300 }}>──►</div>
+            </div>
+
+            <div style={{
+              padding: '16px', borderRadius: '12px', textAlign: 'center',
+              background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)',
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2563EB', marginBottom: '8px' }}>In Progress</div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#3B82F6', lineHeight: 1 }}>{inProgressTasks.length}</div>
+              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {inProgressTypes.length > 0 ? inProgressTypes.map(([type, count]) => (
+                  <div key={type} style={{ fontSize: '10px', color: '#3B82F6', fontWeight: 600 }}>{type}: {count}</div>
+                )) : <div style={{ fontSize: '10px', color: '#9CA3AF' }}>No active tasks</div>}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
+              <div style={{ fontSize: '20px', color: 'rgba(0,0,0,0.15)', fontWeight: 300 }}>──►</div>
+            </div>
+
+            <div style={{
+              padding: '16px', borderRadius: '12px', textAlign: 'center',
+              background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)',
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#059669', marginBottom: '8px' }}>Completed</div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#10B981', lineHeight: 1 }}>{completedTasks.length}</div>
+              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>This week: {completedThisWeek}</div>
+                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>On time: {completedTasks.length}</div>
+                <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>Late: 0</div>
+              </div>
+            </div>
+          </div>
+
+          {overdueTasks.length > 0 ? (
+            <div style={{
+              marginTop: '14px', padding: '12px 14px', borderRadius: '10px',
+              background: 'rgba(239,68,68,0.06)',
+              border: '1px solid rgba(239,68,68,0.12)',
+            }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#EF4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangle size={14} color="#EF4444" />
+                {overdueTasks.length} {overdueTasks.length === 1 ? 'task is' : 'tasks are'} overdue:
+              </div>
+              {overdueTaskRows.map((t) => (
+                <div key={t.id} onClick={() => navigate('/admin/tasks')} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '6px 8px', borderRadius: '6px', cursor: 'pointer',
+                  fontSize: '11px', transition: 'background 0.15s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
+                  <span style={{ color: '#5A7A5A', fontSize: '10px' }}>{t.assignedTo}</span>
+                  <span style={{ color: '#EF4444', fontWeight: 600, fontSize: '10px', whiteSpace: 'nowrap' }}>{t.daysLate}d late</span>
+                  <ArrowRight size={12} color="#EF4444" style={{ flexShrink: 0, opacity: 0.5 }} />
+                </div>
               ))}
             </div>
+          ) : (
+            <div style={{
+              marginTop: '14px', padding: '10px 14px', borderRadius: '10px',
+              background: 'rgba(16,185,129,0.06)', color: '#10B981',
+              fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <CheckCircle size={14} color="#10B981" />
+              No overdue tasks — all on track
+            </div>
+          )}
+
+          <div onClick={() => navigate('/admin/tasks')} style={{
+            marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
+            color: '#2e7d2e', textAlign: 'center',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            View all tasks →
           </div>
-          <div className="text-[10px] text-text-secondary mb-3">Click any farm to view details →</div>
-          <div className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-lg text-center" style={{ background: 'rgba(76,175,80,0.03)' }}>
+        </GlowCard>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="farm-crop-grid mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5">
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Farm Status Overview</span>
+          </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '14px' }}>Click any farm to view details →</div>
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0',
+            marginBottom: '14px', padding: '10px', borderRadius: '10px',
+            background: 'rgba(76,175,80,0.03)',
+            border: '1px solid rgba(76,175,80,0.08)',
+            textAlign: 'center',
+          }}>
             <div>
-              <div className="text-[15px]">🌍</div>
-              <div className="text-sm font-extrabold text-primary">{totalArea.toFixed(1)}</div>
-              <div className="text-[8px] text-text-secondary">Est. acres</div>
+              <div style={{ fontSize: '13px' }}>🌍</div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{totalArea.toFixed(1)}</div>
+              <div style={{ fontSize: '8px', color: '#5A7A5A' }} title="Based on 3-point boundary approximation">Est. acres</div>
             </div>
-            <div className="border-x" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
-              <div className="text-[15px]">🟢</div>
-              <div className="text-sm font-extrabold text-primary">{activeArea.toFixed(1)}</div>
-              <div className="text-[8px] text-text-secondary">Active</div>
+            <div style={{ borderLeft: '1px solid rgba(0,0,0,0.06)', borderRight: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: '13px' }}>🟢</div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{activeArea.toFixed(1)}</div>
+              <div style={{ fontSize: '8px', color: '#5A7A5A' }}>Active</div>
             </div>
             <div>
-              <div className="text-[15px]">💤</div>
-              <div className="text-sm font-extrabold text-primary">{idleArea.toFixed(1)}</div>
-              <div className="text-[8px] text-text-secondary">Idle</div>
+              <div style={{ fontSize: '13px' }}>💤</div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{idleArea.toFixed(1)}</div>
+              <div style={{ fontSize: '8px', color: '#5A7A5A' }}>Idle</div>
             </div>
           </div>
-          <div className="text-[8px] text-text-secondary mb-3 text-center" title="Based on 3-point boundary approximation">Est. Acres based on 3-point boundary approximation</div>
-          <div className="space-y-1.5 max-h-[280px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-            {sortedFarms.map((f) => {
-              const barW = (f.acres / maxFarmArea) * 100;
+
+          <div style={{ fontSize: '8px', color: '#9CA3AF', marginBottom: '12px', textAlign: 'center' }} title="Based on 3-point boundary approximation">Est. Acres based on 3-point boundary approximation</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {farmAreaAcres.map((f) => {
+              const statusColor = f.status === 'Active' ? '#10B981' : f.status === 'Idle' ? '#F59E0B' : '#EF4444';
               const robotCount = robots.filter((r) => r.farm === f.name).length;
               return (
-                <Clickable key={f.name} onClick={() => navigate('/admin/farms')} showArrow>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: f.status === 'Active' ? '#10B981' : f.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
-                      <span className="text-[12px] font-semibold text-primary truncate">{f.name}</span>
-                      <span className="text-[10px] text-text-secondary truncate">{f.owner}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full mb-0.5" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                      <div className="h-full rounded-full transition-all" style={{ width: `${barW}%`, background: '#4caf50' }} />
-                    </div>
-                    <div className="flex items-center gap-2 text-[9px] text-text-secondary">
-                      <span>{f.location || f.soil}</span>
-                      <span>· {f.acres.toFixed(1)} Est. acres</span>
-                      <span>· {robotCount} robot{robotCount !== 1 ? 's' : ''}</span>
-                    </div>
+                <div key={f.name} onClick={() => navigate('/admin/farms')} style={{
+                  padding: '12px', borderRadius: '10px', cursor: 'pointer',
+                  background: '#ffffff',
+                  border: '1px solid rgba(76,175,80,0.12)',
+                  borderTop: `3px solid ${statusColor}`,
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(26,46,26,0.1)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                  <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '2px' }}>{f.owner}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#111827', marginTop: '6px' }}>Est. {f.acres.toFixed(1)} acres</div>
+                  <div style={{ fontSize: '12px', marginTop: '4px', letterSpacing: '1px' }}>
+                    {Array.from({ length: Math.min(robotCount, 5) }, (_, i) => (
+                      <span key={i} style={{ fontSize: robotCount > 5 && i === 4 ? '9px' : '13px', color: '#5A7A5A' }}>
+                        {robotCount > 5 && i === 4 ? `+${robotCount - 4} more` : '🤖'}
+                      </span>
+                    ))}
+                    {robotCount === 0 && <span style={{ fontSize: '9px', color: '#9CA3AF' }}>No robots</span>}
                   </div>
-                </Clickable>
+                </div>
               );
             })}
           </div>
         </GlowCard>
 
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="text-sm font-semibold text-primary mb-1">Crops Across All Farms</div>
-          <div className="text-[10px] text-text-secondary mb-3">What our farmers are growing</div>
+        <GlowCard className="glass-card rounded-2xl p-5">
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>What Our Farmers Grow</span>
+          </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '14px' }}>Bubble size = number of farms growing this crop</div>
+
           {cropFrequency.length > 0 ? (
             <>
-              <div className="space-y-2">
-                {cropFrequency.slice(0, 5).map((crop, i) => {
-                  const barW = (crop.count / maxCropCount) * 100;
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '8px',
+                alignItems: 'center', justifyContent: 'center',
+                padding: '12px 8px', minHeight: '160px',
+              }}>
+                {cropFrequency.map((crop, i) => {
+                  const ratio = crop.count / Math.max(maxCropCount, 1);
+                  const size = 10 + ratio * 12;
+                  const pad = 6 + ratio * 12;
+                  const color = cropBubbleColors[i % cropBubbleColors.length];
                   return (
-                    <Clickable key={crop.name} onClick={() => navigate('/admin/farms')} showArrow>
-                      <span className="text-[11px] font-bold text-text-secondary min-w-[18px]">#{i + 1}</span>
-                      <span className="text-[13px]">{crop.emoji}</span>
-                      <span className="text-[12px] font-semibold text-primary min-w-[80px]">{crop.name}</span>
-                      <div className="flex-1 h-2.5 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${barW}%`, background: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899'][i % 5] }} />
-                      </div>
-                      <span className="text-[11px] font-bold text-primary min-w-[40px] text-right">{crop.count} farm{crop.count !== 1 ? 's' : ''}</span>
-                    </Clickable>
+                    <div key={crop.name} onClick={() => navigate('/admin/farms')} style={{
+                      display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+                      padding: `${pad}px ${pad * 1.6}px`,
+                      borderRadius: '999px', cursor: 'pointer',
+                      background: `${color}10`,
+                      border: `1px solid ${color}30`,
+                      transition: 'all 0.2s ease',
+                      fontSize: `${size}px`,
+                      fontWeight: 700,
+                      color: color,
+                    }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)';
+                        e.currentTarget.style.boxShadow = `0 4px 14px ${color}30`;
+                        e.currentTarget.style.background = `${color}18`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.background = `${color}10`;
+                      }}
+                      title={`${crop.count} farm${crop.count !== 1 ? 's' : ''} grow ${crop.name}`}
+                    >
+                      <span>{crop.name}</span>
+                      <span style={{ fontSize: `${Math.max(8, size * 0.6)}px`, opacity: 0.75, marginTop: '1px' }}>
+                        {crop.count} farm{crop.count !== 1 ? 's' : ''}
+                      </span>
+                    </div>
                   );
                 })}
               </div>
-              {cropFrequency.length > 5 && (
-                <div className="text-[10px] text-text-secondary mt-1 px-2">and {cropFrequency.length - 5} more crops...</div>
-              )}
-              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                  🏆 Most Grown: {mostGrown ? `${mostGrown.emoji} ${mostGrown.name} (${mostGrown.count} farms)` : '—'}
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                <span onClick={() => navigate('/admin/farms')} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
+                  fontSize: '10px', fontWeight: 600,
+                  background: 'rgba(16,185,129,0.1)', color: '#10B981',
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  🏆 Most Grown: {mostGrown ? `${mostGrown.name} (${mostGrown.count} farms)` : '—'}
                 </span>
-                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(59,130,246,0.1)', color: '#3B82F6' }}>
-                  🌱 {mostDiverseFarm ? `${mostDiverseFarm.name} (${mostDiverseFarm.count} crop types)` : '—'}
+                <span onClick={() => navigate('/admin/farms')} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
+                  fontSize: '10px', fontWeight: 600,
+                  background: 'rgba(59,130,246,0.1)', color: '#3B82F6',
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  🌱 Most Diverse: {mostDiverseFarm ? `${mostDiverseFarm.name} (${mostDiverseFarm.count} crops)` : '—'}
                 </span>
-                <span onClick={() => navigate('/admin/farms')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-all hover:translate-y-[-1px]" style={{ background: 'rgba(139,92,246,0.1)', color: '#8B5CF6' }}>
-                  🔍 {cropFrequency.length} unique crop types
+                <span onClick={() => navigate('/admin/farms')} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
+                  fontSize: '10px', fontWeight: 600,
+                  background: 'rgba(139,92,246,0.1)', color: '#8B5CF6',
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  🔍 {cropFrequency.length} unique crop{cropFrequency.length !== 1 ? 's' : ''}
                 </span>
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-[200px] text-sm text-text-secondary">No crop data available</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '12px', color: '#5A7A5A' }}>No crop data available</div>
           )}
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="team-sensor-grid">
         {isMasterAdmin ? (
-          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-primary">Team Activity</span>
-              <span className="text-[10px] text-text-secondary">Click any employee to view →</span>
+          <GlowCard className="glass-card rounded-2xl p-5">
+            <div style={{ marginBottom: '4px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>System Activity</span>
             </div>
-            {employeeActivity.length > 0 ? (
-              <>
-                <div className="space-y-1.5 mb-3">
-                  {employeeActivity.map((emp, i) => {
-                    const pct = (emp.actions / maxActivity) * 100;
-                    return (
-                      <Clickable key={emp.name} onClick={() => navigate('/admin/employees')} showArrow>
-                        <span className="text-[10px] font-bold text-text-secondary min-w-[16px]">#{i + 1}</span>
-                        <span className="text-[11px] font-semibold text-primary min-w-[100px] truncate">{emp.name}</span>
-                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: i === 0 ? '#10B981' : '#4caf50' }} />
+            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Recent actions across the platform</div>
+
+            {recentEntries.length > 0 ? (
+              <div style={{ position: 'relative', paddingLeft: '24px' }}>
+                <div style={{
+                  position: 'absolute', left: '9px', top: '8px', bottom: '8px',
+                  width: '2px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px',
+                }} />
+                {recentEntries.map((entry) => {
+                  const dotColor = actionDot(entry.action);
+                  return (
+                    <div key={entry.id} onClick={() => navigate('/admin/employees')} style={{
+                      position: 'relative', paddingBottom: '16px', cursor: 'pointer',
+                      paddingLeft: '0', transition: 'all 0.15s ease',
+                      borderRadius: '6px',
+                    }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.04)'; e.currentTarget.style.paddingLeft = '8px'; e.currentTarget.style.paddingRight = '8px'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.paddingLeft = '0'; e.currentTarget.style.paddingRight = '0'; }}
+                    >
+                      <div style={{
+                        position: 'absolute', left: '-17px', top: '4px',
+                        width: '10px', height: '10px', borderRadius: '50%',
+                        background: dotColor,
+                        border: '2px solid #fff',
+                        boxShadow: '0 0 0 2px rgba(0,0,0,0.04)',
+                        zIndex: 1,
+                      }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>{entry.userName}</span>
+                          <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '1px' }}>
+                            {entry.action} <span style={{ fontWeight: 600, color: '#111827' }}>{entry.target}</span>
+                          </div>
                         </div>
-                        <span className="text-[11px] font-bold text-primary min-w-[20px] text-right">{emp.actions}</span>
-                      </Clickable>
-                    );
-                  })}
-                </div>
-                <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Latest</div>
-                <div className="space-y-0.5">
-                  {recentEntries.map((e) => (
-                    <Clickable key={e.id} onClick={() => navigate('/admin/employees')} showArrow>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: actionDot(e.action) }} />
-                      <span className="text-[10px] font-semibold text-primary min-w-[60px] truncate">{e.userName.split(' ')[0]}</span>
-                      <span className="text-[10px] text-text-secondary flex-1 truncate">
-                        {e.action} <span className="font-medium text-primary">{e.target}</span>
-                      </span>
-                      <span className="text-[8px] text-text-secondary shrink-0 whitespace-nowrap">{relativeTime(e.timestamp)}</span>
-                    </Clickable>
-                  ))}
-                </div>
-                <div onClick={() => navigate('/admin/employees')} className="mt-3 pt-3 border-t text-[11px] font-medium cursor-pointer transition-all hover:translate-y-[-1px]" style={{ borderColor: 'rgba(0,0,0,0.05)', color: '#2e7d2e' }}>
-                  View full audit log →
-                </div>
-              </>
+                        <span style={{ fontSize: '9px', color: '#9CA3AF', flexShrink: 0, marginLeft: '8px' }}>{relativeTime(entry.timestamp)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="flex items-center justify-center h-[200px] text-sm text-text-secondary">No activity recorded yet</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '12px', color: '#5A7A5A' }}>No activity recorded yet</div>
             )}
+
+            <div onClick={() => navigate('/admin/employees')} style={{
+              marginTop: '8px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
+              color: '#2e7d2e',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              View full activity log →
+            </div>
           </GlowCard>
         ) : (
-          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-            <div className="text-sm font-semibold text-primary mb-1">Sensor Network</div>
-            <div className="text-[10px] text-text-secondary mb-3">Sensors are assigned per robot — data available once hardware is connected</div>
-            <div className="space-y-2">
+          <GlowCard className="glass-card rounded-2xl p-5">
+            <div style={{ marginBottom: '4px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Sensor Network</span>
+            </div>
+            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Per-robot sensors — live once hardware connected</div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
+              border: '1.5px dashed rgba(0,0,0,0.1)', borderRadius: '12px', padding: '14px',
+            }}>
               {[
-{ icon: Thermometer, name: 'DHT11 — Temperature & Humidity', measure: 'Air temp (°C) and relative humidity (%)' },
-              { icon: Droplets, name: 'Soil Moisture Sensor', measure: 'Soil wetness (0% dry — 100% saturated)' },
-              { icon: Radar, name: 'Ultrasonic Distance Sensor', measure: 'Obstacle detection and distance (cm)' },
-              { icon: MapPin, name: 'WiFi Location Tracker', measure: 'Robot position within farm boundaries' },
-            ].map((s) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.name} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
-                  <Icon size={16} color="#9CA3AF" className="shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold text-primary truncate">{s.name}</div>
-                    <div className="text-[9px] text-text-secondary truncate">{s.measure}</div>
+                { icon: Thermometer, name: 'DHT11', desc: 'Temp & Humidity' },
+                { icon: Droplets, name: 'Soil Moisture', desc: 'Soil wetness sensor' },
+                { icon: Radar, name: 'Ultrasonic', desc: 'Distance detection' },
+                { icon: MapPin, name: 'WiFi Location', desc: 'Position tracker' },
+              ].map((s) => {
+                const Icon = s.icon;
+                return (
+                  <div key={s.name} style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    padding: '14px 10px', borderRadius: '10px',
+                    background: 'rgba(0,0,0,0.02)',
+                    border: '1px solid rgba(0,0,0,0.04)',
+                    textAlign: 'center',
+                  }}>
+                    <Icon size={22} color="#9CA3AF" />
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>{s.name}</div>
+                    <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '2px' }}>{s.desc}</div>
+                    <div style={{
+                      fontSize: '8px', fontWeight: 600, marginTop: '8px',
+                      padding: '3px 8px', borderRadius: '999px',
+                      background: 'rgba(156,163,175,0.1)', color: '#9CA3AF',
+                    }}>
+                      ⏳ Awaiting Connection
+                    </div>
                   </div>
-                  <span className="text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(156,163,175,0.1)', color: '#9CA3AF' }}>
-                    ⏳ Awaiting Connection
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="text-[9px] text-text-secondary italic mt-3">Sensor readings will appear here automatically once robots are connected to the hardware API</div>
-        </GlowCard>
-      )}
+                );
+              })}
+            </div>
+            <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
+              Sensor data appears automatically once robots connect to hardware API
+            </div>
+            {/* // TODO: Replace with real sensor data from hardware API/WebSocket */}
+          </GlowCard>
+        )}
 
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="text-sm font-semibold text-primary mb-1">Sensor Network</div>
-          <div className="text-[10px] text-text-secondary mb-3">Sensors are assigned per robot — data available once hardware is connected</div>
-          <div className="space-y-2">
+        <GlowCard className="glass-card rounded-2xl p-5">
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Sensor Network</span>
+          </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Per-robot sensors — live once hardware connected</div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
+            border: '1.5px dashed rgba(0,0,0,0.1)', borderRadius: '12px', padding: '14px',
+          }}>
             {[
-              { icon: Thermometer, name: 'DHT11 — Temperature & Humidity', measure: 'Air temp (°C) and relative humidity (%)' },
-              { icon: Droplets, name: 'Soil Moisture Sensor', measure: 'Soil wetness (0% dry — 100% saturated)' },
-              { icon: Radar, name: 'Ultrasonic Distance Sensor', measure: 'Obstacle detection and distance (cm)' },
-              { icon: MapPin, name: 'WiFi Location Tracker', measure: 'Robot position within farm boundaries' },
+              { icon: Thermometer, name: 'DHT11', desc: 'Temp & Humidity' },
+              { icon: Droplets, name: 'Soil Moisture', desc: 'Soil wetness sensor' },
+              { icon: Radar, name: 'Ultrasonic', desc: 'Distance detection' },
+              { icon: MapPin, name: 'WiFi Location', desc: 'Position tracker' },
             ].map((s) => {
               const Icon = s.icon;
               return (
-                <div key={s.name} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
-                  <Icon size={16} color="#9CA3AF" className="shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold text-primary truncate">{s.name}</div>
-                    <div className="text-[9px] text-text-secondary truncate">{s.measure}</div>
-                  </div>
-                  <span className="text-[8px] font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(156,163,175,0.1)', color: '#9CA3AF' }}>
+                <div key={s.name} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '14px 10px', borderRadius: '10px',
+                  background: 'rgba(0,0,0,0.02)',
+                  border: '1px solid rgba(0,0,0,0.04)',
+                  textAlign: 'center',
+                }}>
+                  <Icon size={22} color="#9CA3AF" />
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>{s.name}</div>
+                  <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '2px' }}>{s.desc}</div>
+                  <div style={{
+                    fontSize: '8px', fontWeight: 600, marginTop: '8px',
+                    padding: '3px 8px', borderRadius: '999px',
+                    background: 'rgba(156,163,175,0.1)', color: '#9CA3AF',
+                  }}>
                     ⏳ Awaiting Connection
-                  </span>
+                  </div>
                 </div>
               );
             })}
           </div>
-          <div className="text-[9px] text-text-secondary italic mt-3">// TODO: Replace placeholder rows with real sensor data from hardware API/WebSocket once connected</div>
+          <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
+            Sensor data appears automatically once robots connect to hardware API
+          </div>
+          {/* // TODO: Replace with real sensor data from hardware API/WebSocket */}
         </GlowCard>
       </div>
+
+      <style>{`
+        @media (max-width: 1024px) {
+          .battery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .farm-crop-grid { grid-template-columns: 1fr !important; }
+          .team-sensor-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .battery-grid { grid-template-columns: 1fr !important; }
+          .pipeline-grid { grid-template-columns: 1fr !important; }
+          .pipeline-grid > .pipeline-arrow { display: none !important; }
+        }
+      `}</style>
     </>
   );
 }
