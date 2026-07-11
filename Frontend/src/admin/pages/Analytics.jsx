@@ -167,12 +167,21 @@ export default function Analytics() {
     }).sort((a, b) => b.daysLate - a.daysLate).slice(0, 5);
   }, [overdueTasks, now]);
 
+  const hashStr = (s) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return Math.abs(h);
+  };
+
   const farmAreaAcres = useMemo(() => {
     return farms.map((f) => {
-      const seed = f.name.length + (f.location || '').length;
-      const p1 = { lat: 36 + (seed % 8), lng: -(119 + (seed % 5)) };
-      const p2 = { lat: 36 + ((seed * 7) % 8), lng: -(119 + ((seed * 3) % 5)) };
-      const p3 = { lat: 36 + ((seed * 13) % 8), lng: -(119 + ((seed * 11) % 5)) };
+      const h = hashStr(f.name);
+      const baseLat = 36.5 + (h % 100) / 200;
+      const baseLng = -(119.5 + ((h * 7) % 100) / 200);
+      const seedOff = (i) => ((h * (13 + i * 7)) % 500) / 10000;
+      const p1 = { lat: baseLat + seedOff(1), lng: baseLng + seedOff(2) };
+      const p2 = { lat: baseLat + seedOff(3), lng: baseLng + seedOff(4) };
+      const p3 = { lat: baseLat + seedOff(5), lng: baseLng + seedOff(6) };
       return { ...f, acres: parseFloat(computeTriangleAreaAcres(p1, p2, p3)) };
     });
   }, [farms]);
@@ -208,7 +217,7 @@ export default function Analytics() {
 
   const recentEntries = useMemo(() => entries.slice(0, 6), [entries]);
 
-  const cropBubbleColors = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#EF4444', '#6366F1', '#14B8A6', '#84CC16', '#F97316'];
+  const greenPalette = ['#14532D', '#166534', '#15803D', '#16A34A', '#22C55E', '#4ADE80', '#86EFAC', '#BBF7D0', '#DCFCE7', '#F0FDF4'];
 
   return (
     <>
@@ -243,54 +252,35 @@ export default function Analytics() {
               )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-              <div onClick={() => navigate('/admin/robots')} style={{
-                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
-                background: offlineRobots.length > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(0,0,0,0.02)',
-                border: `1px solid ${offlineRobots.length > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(0,0,0,0.04)'}`,
-                transition: 'all 0.2s ease',
-                opacity: offlineRobots.length > 0 ? 1 : 0.4,
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = offlineRobots.length > 0 ? '0 4px 16px rgba(239,68,68,0.2)' : 'none'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div style={{ fontSize: '32px', fontWeight: 900, color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', lineHeight: 1 }}>{offlineRobots.length}</div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '4px' }}>Robots Offline</div>
-                <div style={{ fontSize: '9px', color: offlineRobots.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
-                  {offlineRobots.length > 0 ? 'Tap to fix →' : '✓ Clear'}
-                </div>
-              </div>
-              <div onClick={() => navigate('/admin/robots')} style={{
-                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
-                background: criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.08)' : 'rgba(0,0,0,0.02)',
-                border: `1px solid ${criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.2)' : 'rgba(0,0,0,0.04)'}`,
-                transition: 'all 0.2s ease',
-                opacity: criticalBattRobots.length > 0 ? 1 : 0.4,
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = criticalBattRobots.length > 0 ? '0 4px 16px rgba(245,158,11,0.2)' : 'none'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div style={{ fontSize: '32px', fontWeight: 900, color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', lineHeight: 1 }}>{criticalBattRobots.length}</div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', marginTop: '4px' }}>Critical Battery</div>
-                <div style={{ fontSize: '9px', color: criticalBattRobots.length > 0 ? '#F59E0B' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
-                  {criticalBattRobots.length > 0 ? 'Tap to fix →' : '✓ Clear'}
-                </div>
-              </div>
-              <div onClick={() => navigate('/admin/tasks')} style={{
-                padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
-                background: overdueTasks.length > 0 ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.02)',
-                border: `1px solid ${overdueTasks.length > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.04)'}`,
-                transition: 'all 0.2s ease',
-                opacity: overdueTasks.length > 0 ? 1 : 0.4,
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = overdueTasks.length > 0 ? '0 4px 16px rgba(239,68,68,0.15)' : 'none'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div style={{ fontSize: '32px', fontWeight: 900, color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', lineHeight: 1 }}>{overdueTasks.length}</div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '4px' }}>Overdue Tasks</div>
-                <div style={{ fontSize: '9px', color: overdueTasks.length > 0 ? '#EF4444' : '#9CA3AF', marginTop: '6px', opacity: 0.6 }}>
-                  {overdueTasks.length > 0 ? 'Tap to fix →' : '✓ Clear'}
-                </div>
-              </div>
+              {[
+                { count: offlineRobots.length, label: 'Robots Offline', nav: '/admin/robots',
+                  activeBg: 'rgba(239,68,68,0.08)', activeBorder: 'rgba(239,68,68,0.2)', activeColor: '#EF4444' },
+                { count: criticalBattRobots.length, label: 'Critical Battery', nav: '/admin/robots',
+                  activeBg: 'rgba(245,158,11,0.08)', activeBorder: 'rgba(245,158,11,0.2)', activeColor: '#F59E0B' },
+                { count: overdueTasks.length, label: 'Overdue Tasks', nav: '/admin/tasks',
+                  activeBg: 'rgba(239,68,68,0.06)', activeBorder: 'rgba(239,68,68,0.15)', activeColor: '#EF4444' },
+              ].map((b) => {
+                const isActive = b.count > 0;
+                return (
+                  <div key={b.label} onClick={() => navigate(b.nav)} style={{
+                    padding: '18px 12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
+                    background: isActive ? b.activeBg : '#F9FAFB',
+                    border: `1px solid ${isActive ? b.activeBorder : '#E5E7EB'}`,
+                    transition: 'all 0.2s ease',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    minHeight: '120px',
+                  }}
+                    onMouseEnter={(e) => { if (isActive) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${b.activeColor}20`; } }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <div style={{ fontSize: '34px', fontWeight: 900, color: isActive ? b.activeColor : '#9CA3AF', lineHeight: 1 }}>{b.count}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: isActive ? b.activeColor : '#9CA3AF', marginTop: '6px' }}>{b.label}</div>
+                    <div style={{ fontSize: '9px', color: isActive ? b.activeColor : '#22C55E', marginTop: '8px', fontWeight: 500 }}>
+                      {isActive ? 'Tap to fix →' : '✓ Clear'}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -380,37 +370,37 @@ export default function Analytics() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
-              <div style={{ fontSize: '20px', color: 'rgba(0,0,0,0.15)', fontWeight: 300 }}>──►</div>
+              <div style={{ fontSize: '20px', color: '#2e7d2e', fontWeight: 300, opacity: 0.3 }}>──►</div>
             </div>
 
             <div style={{
               padding: '16px', borderRadius: '12px', textAlign: 'center',
-              background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)',
+              background: 'rgba(134,239,172,0.15)', border: '1px solid rgba(134,239,172,0.3)',
             }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2563EB', marginBottom: '8px' }}>In Progress</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: '#3B82F6', lineHeight: 1 }}>{inProgressTasks.length}</div>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#16A34A', marginBottom: '8px' }}>In Progress</div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#16A34A', lineHeight: 1 }}>{inProgressTasks.length}</div>
               <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {inProgressTypes.length > 0 ? inProgressTypes.map(([type, count]) => (
-                  <div key={type} style={{ fontSize: '10px', color: '#3B82F6', fontWeight: 600 }}>{type}: {count}</div>
+                  <div key={type} style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>{type}: {count}</div>
                 )) : <div style={{ fontSize: '10px', color: '#9CA3AF' }}>No active tasks</div>}
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
-              <div style={{ fontSize: '20px', color: 'rgba(0,0,0,0.15)', fontWeight: 300 }}>──►</div>
+              <div style={{ fontSize: '20px', color: '#2e7d2e', fontWeight: 300, opacity: 0.3 }}>──►</div>
             </div>
 
             <div style={{
               padding: '16px', borderRadius: '12px', textAlign: 'center',
-              background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)',
+              background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.2)',
             }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#059669', marginBottom: '8px' }}>Completed</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: '#10B981', lineHeight: 1 }}>{completedTasks.length}</div>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#14532D', marginBottom: '8px' }}>Completed</div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#16A34A', lineHeight: 1 }}>{completedTasks.length}</div>
               <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>This week: {completedThisWeek}</div>
-                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>On time: {completedTasks.length}</div>
+                <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>This week: {completedThisWeek}</div>
+                <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>On time: {completedTasks.length}</div>
                 <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>Late: 0</div>
               </div>
             </div>
@@ -500,13 +490,14 @@ export default function Analytics() {
 
           <div style={{ fontSize: '8px', color: '#9CA3AF', marginBottom: '12px', textAlign: 'center' }} title="Based on 3-point boundary approximation">Est. Acres based on 3-point boundary approximation</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {farmAreaAcres.map((f) => {
               const statusColor = f.status === 'Active' ? '#10B981' : f.status === 'Idle' ? '#F59E0B' : '#EF4444';
+              const statusDot = f.status === 'Active' ? '🟢' : f.status === 'Idle' ? '🟡' : '🔴';
               const robotCount = robots.filter((r) => r.farm === f.name).length;
               return (
                 <div key={f.name} onClick={() => navigate('/admin/farms')} style={{
-                  padding: '12px', borderRadius: '10px', cursor: 'pointer',
+                  padding: '14px', borderRadius: '10px', cursor: 'pointer',
                   background: '#ffffff',
                   border: '1px solid rgba(76,175,80,0.12)',
                   borderTop: `3px solid ${statusColor}`,
@@ -515,16 +506,26 @@ export default function Analytics() {
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(26,46,26,0.1)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
-                  <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '2px' }}>{f.owner}</div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#111827', marginTop: '6px' }}>Est. {f.acres.toFixed(1)} acres</div>
-                  <div style={{ fontSize: '12px', marginTop: '4px', letterSpacing: '1px' }}>
-                    {Array.from({ length: Math.min(robotCount, 5) }, (_, i) => (
-                      <span key={i} style={{ fontSize: robotCount > 5 && i === 4 ? '9px' : '13px', color: '#5A7A5A' }}>
-                        {robotCount > 5 && i === 4 ? `+${robotCount - 4} more` : '🤖'}
-                      </span>
-                    ))}
-                    {robotCount === 0 && <span style={{ fontSize: '9px', color: '#9CA3AF' }}>No robots</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <span style={{ fontSize: '11px' }}>{statusDot}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#9CA3AF', marginLeft: '17px' }}>{f.owner}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '8px', marginLeft: '17px' }}>
+                    <span style={{ fontSize: '15px', fontWeight: 800, color: '#16A34A' }}>{f.acres.toFixed(1)}</span>
+                    <span style={{ fontSize: '9px', color: '#9CA3AF' }}>Est. Acres</span>
+                  </div>
+                  <div style={{ marginTop: '6px', marginLeft: '17px' }}>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center',
+                      padding: '2px 8px', borderRadius: '4px',
+                      fontSize: '9px', fontWeight: 600,
+                      background: robotCount > 0 ? 'rgba(76,175,80,0.1)' : 'transparent',
+                      color: robotCount > 0 ? '#2e7d2e' : '#9CA3AF',
+                      fontStyle: robotCount === 0 ? 'italic' : 'normal',
+                    }}>
+                      {robotCount > 0 ? `${robotCount} robot${robotCount !== 1 ? 's' : ''}` : 'No robots'}
+                    </span>
                   </div>
                 </div>
               );
@@ -547,35 +548,36 @@ export default function Analytics() {
               }}>
                 {cropFrequency.map((crop, i) => {
                   const ratio = crop.count / Math.max(maxCropCount, 1);
-                  const size = 10 + ratio * 12;
-                  const pad = 6 + ratio * 12;
-                  const color = cropBubbleColors[i % cropBubbleColors.length];
+                  const size = 11 + ratio * 9;
+                  const pad = 8 + ratio * 12;
+                  const isLarge = ratio > 0.6;
+                  const isMedium = ratio > 0.3;
+                  const colorIdx = isLarge ? 0 : isMedium ? 2 : 5;
+                  const bg = greenPalette[9 - colorIdx];
+                  const textColor = isLarge ? '#ffffff' : greenPalette[colorIdx >= 3 ? 2 : 0];
                   return (
                     <div key={crop.name} onClick={() => navigate('/admin/farms')} style={{
                       display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-                      padding: `${pad}px ${pad * 1.6}px`,
+                      padding: `${pad}px ${pad * 1.8}px`,
                       borderRadius: '999px', cursor: 'pointer',
-                      background: `${color}10`,
-                      border: `1px solid ${color}30`,
+                      background: bg,
                       transition: 'all 0.2s ease',
                       fontSize: `${size}px`,
-                      fontWeight: 700,
-                      color: color,
+                      fontWeight: isLarge ? 700 : 600,
+                      color: textColor,
                     }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)';
-                        e.currentTarget.style.boxShadow = `0 4px 14px ${color}30`;
-                        e.currentTarget.style.background = `${color}18`;
+                        e.currentTarget.style.boxShadow = `0 4px 14px rgba(22,163,74,0.3)`;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
                         e.currentTarget.style.boxShadow = 'none';
-                        e.currentTarget.style.background = `${color}10`;
                       }}
                       title={`${crop.count} farm${crop.count !== 1 ? 's' : ''} grow ${crop.name}`}
                     >
                       <span>{crop.name}</span>
-                      <span style={{ fontSize: `${Math.max(8, size * 0.6)}px`, opacity: 0.75, marginTop: '1px' }}>
+                      <span style={{ fontSize: `${Math.max(8, size * 0.55)}px`, opacity: isLarge ? 0.85 : 0.7, marginTop: '1px' }}>
                         {crop.count} farm{crop.count !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -583,43 +585,26 @@ export default function Analytics() {
                 })}
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                <span onClick={() => navigate('/admin/farms')} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
-                  fontSize: '10px', fontWeight: 600,
-                  background: 'rgba(16,185,129,0.1)', color: '#10B981',
-                  transition: 'all 0.2s ease',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  🏆 Most Grown: {mostGrown ? `${mostGrown.name} (${mostGrown.count} farms)` : '—'}
-                </span>
-                <span onClick={() => navigate('/admin/farms')} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
-                  fontSize: '10px', fontWeight: 600,
-                  background: 'rgba(59,130,246,0.1)', color: '#3B82F6',
-                  transition: 'all 0.2s ease',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  🌱 Most Diverse: {mostDiverseFarm ? `${mostDiverseFarm.name} (${mostDiverseFarm.count} crops)` : '—'}
-                </span>
-                <span onClick={() => navigate('/admin/farms')} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer',
-                  fontSize: '10px', fontWeight: 600,
-                  background: 'rgba(139,92,246,0.1)', color: '#8B5CF6',
-                  transition: 'all 0.2s ease',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  🔍 {cropFrequency.length} unique crop{cropFrequency.length !== 1 ? 's' : ''}
-                </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(76,175,80,0.08)' }}>
+                {[
+                  { icon: '🏆', label: 'Most Grown: ' + (mostGrown ? `${mostGrown.name} (${mostGrown.count} farms)` : '—') },
+                  { icon: '🌱', label: 'Most Diverse: ' + (mostDiverseFarm ? `${mostDiverseFarm.name} (${mostDiverseFarm.count} crops)` : '—') },
+                  { icon: '🔍', label: `${cropFrequency.length} unique crop${cropFrequency.length !== 1 ? 's' : ''}` },
+                ].map((chip) => (
+                  <span key={chip.icon} onClick={() => navigate('/admin/farms')} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    padding: '5px 11px', borderRadius: '6px', cursor: 'pointer',
+                    fontSize: '10px', fontWeight: 600,
+                    background: 'rgba(76,175,80,0.1)', color: '#2e7d2e',
+                    border: '1px solid rgba(76,175,80,0.15)',
+                    transition: 'all 0.2s ease',
+                  }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; }}
+                  >
+                    {chip.icon} {chip.label}
+                  </span>
+                ))}
               </div>
             </>
           ) : (
@@ -675,7 +660,13 @@ export default function Analytics() {
                 })}
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '12px', color: '#5A7A5A' }}>No activity recorded yet</div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '160px', gap: '8px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(76,175,80,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d2e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>No activity recorded yet</div>
+                <div style={{ fontSize: '10px', color: '#9CA3AF' }}>Actions will appear here as the system is used</div>
+              </div>
             )}
 
             <div onClick={() => navigate('/admin/employees')} style={{
