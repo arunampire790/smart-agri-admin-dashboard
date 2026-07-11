@@ -70,35 +70,6 @@ function actionDot(action) {
   return '#9CA3AF';
 }
 
-function BatteryIcon({ battery, status }) {
-  const isOffline = status === 'Offline';
-  const fillColor = battery >= 50 ? '#10B981' : battery >= 20 ? '#F59E0B' : '#EF4444';
-  const isEmpty = isOffline || battery === 0;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', margin: '8px 0' }}>
-      <div style={{
-        width: '80px', height: '36px', borderRadius: '6px',
-        border: `2px solid ${isEmpty ? '#D1D5DB' : fillColor}`,
-        padding: '2px', position: 'relative', background: isEmpty ? '#F9FAFB' : 'transparent',
-        display: 'flex', alignItems: 'center',
-      }}>
-        <div style={{
-          height: 'calc(100% - 0px)', width: isEmpty ? '0%' : `${Math.min(battery, 100)}%`,
-          borderRadius: '3px',
-          background: isEmpty ? 'transparent' : fillColor,
-          transition: 'width 0.5s ease',
-        }} />
-      </div>
-      <div style={{
-        width: '5px', height: '14px', borderRadius: '0 3px 3px 0',
-        background: isEmpty ? '#D1D5DB' : fillColor,
-        border: `1px solid ${isEmpty ? '#D1D5DB' : fillColor}`,
-        borderLeft: 'none',
-      }} />
-    </div>
-  );
-}
-
 export default function Analytics() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -174,15 +145,17 @@ export default function Analytics() {
   };
 
   const farmAreaAcres = useMemo(() => {
-    return farms.map((f) => {
-      const h = hashStr(f.name);
+    return farms.map((f, idx) => {
+      const h = hashStr(f.name + idx);
       const baseLat = 36.5 + (h % 100) / 200;
       const baseLng = -(119.5 + ((h * 7) % 100) / 200);
-      const seedOff = (i) => ((h * (13 + i * 7)) % 500) / 10000;
-      const p1 = { lat: baseLat + seedOff(1), lng: baseLng + seedOff(2) };
-      const p2 = { lat: baseLat + seedOff(3), lng: baseLng + seedOff(4) };
-      const p3 = { lat: baseLat + seedOff(5), lng: baseLng + seedOff(6) };
-      return { ...f, acres: parseFloat(computeTriangleAreaAcres(p1, p2, p3)) };
+      const off = (i) => ((h * (13 + i * 7)) % 150) / 20000;
+      const p1 = { lat: baseLat + off(1), lng: baseLng + off(2) };
+      const p2 = { lat: baseLat + off(3), lng: baseLng + off(4) };
+      const p3 = { lat: baseLat + off(5), lng: baseLng + off(6) };
+      let area = parseFloat(computeTriangleAreaAcres(p1, p2, p3));
+      if (area < 10 || area > 1000) area = 80 + (h % 420);
+      return { ...f, acres: area };
     });
   }, [farms]);
 
@@ -217,8 +190,6 @@ export default function Analytics() {
 
   const recentEntries = useMemo(() => entries.slice(0, 6), [entries]);
 
-  const greenPalette = ['#14532D', '#166534', '#15803D', '#16A34A', '#22C55E', '#4ADE80', '#86EFAC', '#BBF7D0', '#DCFCE7', '#F0FDF4'];
-
   return (
     <>
       <div className="mb-6">
@@ -226,115 +197,81 @@ export default function Analytics() {
         <div className="text-sm text-text-secondary mt-1">Command center — deeper insights not shown on the Dashboard</div>
       </div>
 
-      <div className="mb-6" style={{
-        borderRadius: '16px', overflow: 'hidden',
-        borderLeft: `4px solid ${!hasAlerts ? '#10B981' : hasCriticalAlerts ? '#EF4444' : '#F59E0B'}`,
-        background: '#ffffff',
-        boxShadow: '0 2px 12px rgba(46,125,50,0.08)',
-        border: '1px solid rgba(76,175,80,0.15)',
-        borderLeftWidth: '4px',
-      }}>
-        {!hasAlerts ? (
-          <div style={{ padding: '24px 28px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(16,185,129,0.06)' }}>
-            <CheckCircle size={28} color="#10B981" />
+      {!hasAlerts ? (
+        <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(76,175,80,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle size={18} color="#2e7d2e" />
+            </div>
             <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#10B981' }}>All Systems Normal</div>
-              <div style={{ fontSize: '12px', color: '#5A7A5A' }}>No alerts at this time</div>
+              <div className="text-sm font-semibold" style={{ color: '#2e7d2e' }}>All Systems Normal</div>
+              <div className="text-xs text-text-secondary mt-0.5">No alerts at this time</div>
             </div>
           </div>
-        ) : (
-          <div style={{ padding: '20px 24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <AlertTriangle size={18} color={hasCriticalAlerts ? '#EF4444' : '#F59E0B'} />
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>System Alerts</span>
-              {hasCriticalAlerts && (
-                <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', marginLeft: 'auto' }}>Needs attention</span>
-              )}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-              {[
-                { count: offlineRobots.length, label: 'Robots Offline', nav: '/admin/robots',
-                  activeBg: 'rgba(239,68,68,0.08)', activeBorder: 'rgba(239,68,68,0.2)', activeColor: '#EF4444' },
-                { count: criticalBattRobots.length, label: 'Critical Battery', nav: '/admin/robots',
-                  activeBg: 'rgba(245,158,11,0.08)', activeBorder: 'rgba(245,158,11,0.2)', activeColor: '#F59E0B' },
-                { count: overdueTasks.length, label: 'Overdue Tasks', nav: '/admin/tasks',
-                  activeBg: 'rgba(239,68,68,0.06)', activeBorder: 'rgba(239,68,68,0.15)', activeColor: '#EF4444' },
-              ].map((b) => {
-                const isActive = b.count > 0;
-                return (
-                  <div key={b.label} onClick={() => navigate(b.nav)} style={{
-                    padding: '18px 12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
-                    background: isActive ? b.activeBg : '#F9FAFB',
-                    border: `1px solid ${isActive ? b.activeBorder : '#E5E7EB'}`,
-                    transition: 'all 0.2s ease',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    minHeight: '120px',
-                  }}
-                    onMouseEnter={(e) => { if (isActive) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${b.activeColor}20`; } }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  >
-                    <div style={{ fontSize: '34px', fontWeight: 900, color: isActive ? b.activeColor : '#9CA3AF', lineHeight: 1 }}>{b.count}</div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: isActive ? b.activeColor : '#9CA3AF', marginTop: '6px' }}>{b.label}</div>
-                    <div style={{ fontSize: '9px', color: isActive ? b.activeColor : '#22C55E', marginTop: '8px', fontWeight: 500 }}>
-                      {isActive ? 'Tap to fix →' : '✓ Clear'}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+        </GlowCard>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {[
+            { count: offlineRobots.length, label: 'Robots Offline', nav: '/admin/robots', iconBg: offlineRobots.length > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(156,163,175,0.12)', iconColor: offlineRobots.length > 0 ? '#DC2626' : '#9CA3AF', numColor: offlineRobots.length > 0 ? '#DC2626' : '#111827' },
+            { count: criticalBattRobots.length, label: 'Critical Battery', nav: '/admin/robots', iconBg: criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(156,163,175,0.12)', iconColor: criticalBattRobots.length > 0 ? '#D97706' : '#9CA3AF', numColor: criticalBattRobots.length > 0 ? '#D97706' : '#111827' },
+            { count: overdueTasks.length, label: 'Overdue Tasks', nav: '/admin/tasks', iconBg: overdueTasks.length > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(156,163,175,0.12)', iconColor: overdueTasks.length > 0 ? '#DC2626' : '#9CA3AF', numColor: overdueTasks.length > 0 ? '#DC2626' : '#111827' },
+          ].map((b) => (
+            <GlowCard key={b.label} onClick={() => navigate(b.nav)} className="glass-card rounded-2xl p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-semibold text-text-secondary mb-1">{b.label}</div>
+                  <div className="text-3xl font-extrabold" style={{ color: b.numColor }}>{b.count}</div>
+                </div>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: b.iconBg, flexShrink: 0 }}>
+                  <AlertTriangle size={18} color={b.iconColor} />
+                </div>
+              </div>
+            </GlowCard>
+          ))}
+        </div>
+      )}
 
       <div className="mb-6">
         <GlowCard className="glass-card rounded-2xl p-5">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Fleet — Battery Status</span>
-            <span style={{ fontSize: '10px', color: '#5A7A5A' }}>Click any robot to view details →</span>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-semibold text-primary">Robot Fleet — Battery Status</span>
+            <span className="text-[10px] text-text-secondary">Click any robot to view details →</span>
           </div>
-          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Battery health across the fleet</div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '12px',
-          }} className="battery-grid">
+          <div className="text-[10px] text-text-secondary mb-4">Battery health across the fleet</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }} className="battery-grid">
             {batterySorted.map((r) => {
               const isOffline = r.status === 'Offline';
-              const statusLabel = isOffline ? 'Offline'
-                : r.battery >= 80 ? '🟢 Excellent'
-                : r.battery >= 50 ? '🟢 Good'
-                : r.battery >= 20 ? '🟡 Low'
-                : '🔴 Critical ⚠';
-              const labelColor = isOffline ? '#9CA3AF'
-                : r.battery >= 50 ? '#10B981'
-                : r.battery >= 20 ? '#F59E0B'
-                : '#EF4444';
+              const barColor = isOffline ? '#D1D5DB' : r.battery >= 60 ? '#22C55E' : r.battery >= 30 ? '#F59E0B' : '#EF4444';
+              const dotColor = isOffline ? '#EF4444' : r.status === 'Active' ? '#4caf50' : '#F59E0B';
+              const statusTextColor = isOffline ? '#991B1B' : r.status === 'Active' ? '#065F46' : '#92400E';
               return (
-                <div key={r.id} onClick={() => navigate('/admin/robots')} style={{
-                  padding: '14px 12px', borderRadius: '12px', cursor: 'pointer',
-                  background: '#ffffff',
-                  border: '1px solid rgba(76,175,80,0.12)',
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(26,46,26,0.12)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                >
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#111827', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                  <BatteryIcon battery={r.battery} status={r.status} />
-                  {!isOffline && (
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: labelColor }}>{r.battery}%</div>
+                <GlowCard key={r.id} onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-4" style={{ textAlign: 'center' }}>
+                  <div className="text-sm font-semibold text-primary truncate">{r.name}</div>
+                  <div className="text-[10px] text-text-secondary mt-0.5 truncate">{r.farm}</div>
+                  {isOffline ? (
+                    <div className="text-[11px] font-semibold mt-3" style={{ color: '#991B1B' }}>Offline</div>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-extrabold mt-2" style={{ color: barColor }}>{r.battery}%</div>
+                      <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <div style={{ width: '48px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                          <div className="h-full rounded-full" style={{ width: `${r.battery}%`, background: barColor }} />
+                        </div>
+                      </div>
+                    </>
                   )}
-                  <div style={{ fontSize: '10px', fontWeight: 600, color: labelColor, marginTop: '4px' }}>{statusLabel}</div>
-                  <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.farm}</div>
-                </div>
+                  <div className="flex items-center justify-center gap-1.5 mt-2" style={{ fontSize: '11px', fontWeight: 600, color: statusTextColor }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+                    <span>{r.status}</span>
+                  </div>
+                </GlowCard>
               );
             })}
           </div>
           <div onClick={() => navigate('/admin/robots')} style={{
-            marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
             fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
-            color: robotsNeedAttention.length > 0 ? '#F59E0B' : '#10B981',
+            color: robotsNeedAttention.length > 0 ? '#D97706' : '#2e7d2e',
           }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -346,106 +283,79 @@ export default function Analytics() {
 
       <div className="mb-6">
         <GlowCard className="glass-card rounded-2xl p-5">
-          <div style={{ marginBottom: '4px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Task Operations Pipeline</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '20px' }}>Live task flow across all farms</div>
+          <div className="text-sm font-semibold text-primary mb-1">Task Operations Pipeline</div>
+          <div className="text-[10px] text-text-secondary mb-5">Live task flow across all farms</div>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr',
-            gap: '8px', alignItems: 'stretch',
-          }} className="pipeline-grid">
-            <div style={{
-              padding: '16px', borderRadius: '12px', textAlign: 'center',
-              background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)',
-            }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#D97706', marginBottom: '8px' }}>Pending</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: '#F59E0B', lineHeight: 1 }}>{pendingTasks.length}</div>
-              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>High: {highCount}</div>
-                <div style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>Medium: {medCount}</div>
-                <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>Low: {lowCount}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
-              <div style={{ fontSize: '20px', color: '#2e7d2e', fontWeight: 300, opacity: 0.3 }}>──►</div>
-            </div>
-
-            <div style={{
-              padding: '16px', borderRadius: '12px', textAlign: 'center',
-              background: 'rgba(134,239,172,0.15)', border: '1px solid rgba(134,239,172,0.3)',
-            }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#16A34A', marginBottom: '8px' }}>In Progress</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: '#16A34A', lineHeight: 1 }}>{inProgressTasks.length}</div>
-              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {inProgressTypes.length > 0 ? inProgressTypes.map(([type, count]) => (
-                  <div key={type} style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>{type}: {count}</div>
-                )) : <div style={{ fontSize: '10px', color: '#9CA3AF' }}>No active tasks</div>}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
-              <div style={{ fontSize: '20px', color: '#2e7d2e', fontWeight: 300, opacity: 0.3 }}>──►</div>
-            </div>
-
-            <div style={{
-              padding: '16px', borderRadius: '12px', textAlign: 'center',
-              background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.2)',
-            }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#14532D', marginBottom: '8px' }}>Completed</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: '#16A34A', lineHeight: 1 }}>{completedTasks.length}</div>
-              <div style={{ fontSize: '9px', color: '#5A7A5A', marginBottom: '10px' }}>tasks</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>This week: {completedThisWeek}</div>
-                <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 600 }}>On time: {completedTasks.length}</div>
-                <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>Late: 0</div>
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '10px', alignItems: 'stretch' }} className="pipeline-grid">
+            {[
+              { key: 'Pending', count: pendingTasks.length, labelColor: '#D97706', tabColor: '#D97706', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(245,158,11,0.15)',
+                details: (
+                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-danger-bg text-danger-text">High {highCount}</span>
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-warning-bg text-warning-text">Medium {medCount}</span>
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">Low {lowCount}</span>
+                  </div>
+                ) },
+              { key: 'In Progress', count: inProgressTasks.length, labelColor: '#16A34A', tabColor: '#2e7d2e', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(76,175,80,0.15)',
+                details: (
+                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                    {inProgressTypes.length > 0 ? inProgressTypes.map(([type, ct]) => (
+                      <span key={type} className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: 'rgba(76,175,80,0.1)', color: '#2e7d2e' }}>{type} {ct}</span>
+                    )) : <span className="text-[10px] text-text-secondary">No active tasks</span>}
+                  </div>
+                ) },
+              { key: 'Completed', count: completedTasks.length, labelColor: '#2e7d2e', tabColor: '#2e7d2e', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(76,175,80,0.15)',
+                details: (
+                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">This week {completedThisWeek}</span>
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">On time {completedTasks.length}</span>
+                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-danger-bg text-danger-text">Late 0</span>
+                  </div>
+                ) },
+            ].map((col, i) => (
+              <>
+                {i > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px' }}>
+                    <div style={{ fontSize: '16px', color: '#D1D5DB', fontWeight: 300 }}>→</div>
+                  </div>
+                )}
+                <div key={col.key} style={{ padding: '16px', borderRadius: '12px', textAlign: 'center', background: col.bg, border: col.border }}>
+                  <div className="text-sm font-medium pb-1.5 mb-2" style={{ color: col.tabColor, borderBottom: '2px solid', borderColor: col.tabColor, display: 'inline-block' }}>{col.key}</div>
+                  <div className="text-3xl font-extrabold text-primary mt-1">{col.count}</div>
+                  <div className="text-[9px] text-text-secondary mb-1">tasks</div>
+                  {col.details}
+                </div>
+              </>
+            ))}
           </div>
 
           {overdueTasks.length > 0 ? (
-            <div style={{
-              marginTop: '14px', padding: '12px 14px', borderRadius: '10px',
-              background: 'rgba(239,68,68,0.06)',
-              border: '1px solid rgba(239,68,68,0.12)',
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#EF4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <AlertTriangle size={14} color="#EF4444" />
-                {overdueTasks.length} {overdueTasks.length === 1 ? 'task is' : 'tasks are'} overdue:
+            <div className="mt-3" style={{ padding: '12px 14px', borderRadius: '8px', background: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.15)' }}>
+              <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5" style={{ color: '#b91c1c' }}>
+                <AlertTriangle size={14} color="#b91c1c" />
+                {overdueTasks.length} {overdueTasks.length === 1 ? 'task is' : 'tasks are'} overdue
               </div>
               {overdueTaskRows.map((t) => (
-                <div key={t.id} onClick={() => navigate('/admin/tasks')} style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '6px 8px', borderRadius: '6px', cursor: 'pointer',
-                  fontSize: '11px', transition: 'background 0.15s ease',
-                }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
+                <div key={t.id} onClick={() => navigate('/admin/tasks')} className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors" style={{ fontSize: '11px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,48,0.06)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
-                  <span style={{ color: '#5A7A5A', fontSize: '10px' }}>{t.assignedTo}</span>
-                  <span style={{ color: '#EF4444', fontWeight: 600, fontSize: '10px', whiteSpace: 'nowrap' }}>{t.daysLate}d late</span>
-                  <ArrowRight size={12} color="#EF4444" style={{ flexShrink: 0, opacity: 0.5 }} />
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#b91c1c', flexShrink: 0 }} />
+                  <span className="font-semibold text-primary flex-1 truncate">{t.title}</span>
+                  <span className="text-text-secondary text-[10px]">{t.assignedTo}</span>
+                  <span className="text-xs font-semibold shrink-0" style={{ color: '#b91c1c' }}>{t.daysLate}d late</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{
-              marginTop: '14px', padding: '10px 14px', borderRadius: '10px',
-              background: 'rgba(16,185,129,0.06)', color: '#10B981',
-              fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px',
-            }}>
-              <CheckCircle size={14} color="#10B981" />
+            <div className="mt-3 flex items-center gap-2 text-[11px] font-semibold" style={{ color: '#2e7d2e', padding: '10px 14px', borderRadius: '8px', background: 'rgba(76,175,80,0.08)' }}>
+              <CheckCircle size={14} color="#2e7d2e" />
               No overdue tasks — all on track
             </div>
           )}
 
           <div onClick={() => navigate('/admin/tasks')} style={{
-            marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
             fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
             color: '#2e7d2e', textAlign: 'center',
           }}
@@ -492,9 +402,10 @@ export default function Analytics() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {farmAreaAcres.map((f) => {
-              const statusColor = f.status === 'Active' ? '#10B981' : f.status === 'Idle' ? '#F59E0B' : '#EF4444';
-              const statusDot = f.status === 'Active' ? '🟢' : f.status === 'Idle' ? '🟡' : '🔴';
+              const statusColor = f.status === 'Active' ? '#4caf50' : f.status === 'Idle' ? '#F59E0B' : '#EF4444';
+              const statusTextColor = f.status === 'Active' ? '#065F46' : f.status === 'Idle' ? '#92400E' : '#991B1B';
               const robotCount = robots.filter((r) => r.farm === f.name).length;
+              const assignedRobot = robots.find((r) => r.farm === f.name);
               return (
                 <div key={f.name} onClick={() => navigate('/admin/farms')} style={{
                   padding: '14px', borderRadius: '10px', cursor: 'pointer',
@@ -506,26 +417,18 @@ export default function Analytics() {
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(26,46,26,0.1)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                    <span style={{ fontSize: '11px' }}>{statusDot}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                  <div className="text-sm font-semibold text-primary truncate">{f.name}</div>
+                  <div className="text-[10px] text-text-secondary mt-0.5">{f.owner}</div>
+                  <div className="flex items-center gap-1.5 mt-2" style={{ fontSize: '11px', fontWeight: 600, color: statusTextColor }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
+                    <span>{f.status}</span>
                   </div>
-                  <div style={{ fontSize: '9px', color: '#9CA3AF', marginLeft: '17px' }}>{f.owner}</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '8px', marginLeft: '17px' }}>
-                    <span style={{ fontSize: '15px', fontWeight: 800, color: '#16A34A' }}>{f.acres.toFixed(1)}</span>
-                    <span style={{ fontSize: '9px', color: '#9CA3AF' }}>Est. Acres</span>
+                  <div className="mt-2">
+                    <div className="text-[9px] text-text-secondary">Est. Acres</div>
+                    <div className="text-base font-extrabold text-primary">{f.acres.toFixed(1)}</div>
                   </div>
-                  <div style={{ marginTop: '6px', marginLeft: '17px' }}>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      padding: '2px 8px', borderRadius: '4px',
-                      fontSize: '9px', fontWeight: 600,
-                      background: robotCount > 0 ? 'rgba(76,175,80,0.1)' : 'transparent',
-                      color: robotCount > 0 ? '#2e7d2e' : '#9CA3AF',
-                      fontStyle: robotCount === 0 ? 'italic' : 'normal',
-                    }}>
-                      {robotCount > 0 ? `${robotCount} robot${robotCount !== 1 ? 's' : ''}` : 'No robots'}
-                    </span>
+                  <div className="text-[9px] text-text-secondary mt-1.5">
+                    {assignedRobot ? assignedRobot.id : 'No robot assigned'}
                   </div>
                 </div>
               );
@@ -548,39 +451,26 @@ export default function Analytics() {
               }}>
                 {cropFrequency.map((crop, i) => {
                   const ratio = crop.count / Math.max(maxCropCount, 1);
-                  const size = 11 + ratio * 9;
-                  const pad = 8 + ratio * 12;
-                  const isLarge = ratio > 0.6;
-                  const isMedium = ratio > 0.3;
-                  const colorIdx = isLarge ? 0 : isMedium ? 2 : 5;
-                  const bg = greenPalette[9 - colorIdx];
-                  const textColor = isLarge ? '#ffffff' : greenPalette[colorIdx >= 3 ? 2 : 0];
+                  const isLarge = ratio > 0.65;
+                  const isMedium = ratio > 0.35;
+                  const size = isLarge ? '13px' : isMedium ? '11px' : '10px';
+                  const px = isLarge ? 14 : isMedium ? 10 : 8;
+                  const bg = isLarge ? '#166534' : isMedium ? '#22C55E' : '#DCFCE7';
+                  const textColor = isLarge ? '#ffffff' : isMedium ? '#ffffff' : '#166534';
+                  const bdr = isLarge ? '1px solid #166534' : isMedium ? '1px solid #22C55E' : '1px solid #BBF7D0';
                   return (
-                    <div key={crop.name} onClick={() => navigate('/admin/farms')} style={{
-                      display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-                      padding: `${pad}px ${pad * 1.8}px`,
-                      borderRadius: '999px', cursor: 'pointer',
-                      background: bg,
-                      transition: 'all 0.2s ease',
-                      fontSize: `${size}px`,
-                      fontWeight: isLarge ? 700 : 600,
-                      color: textColor,
+                    <span key={crop.name} onClick={() => navigate('/admin/farms')} className="pill inline-flex flex-col items-center cursor-pointer transition-all" style={{
+                      padding: `${px}px ${px * 2}px`, borderRadius: '999px',
+                      background: bg, color: textColor, border: bdr,
+                      fontSize: size, fontWeight: 600, lineHeight: 1.2, gap: '2px',
                     }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)';
-                        e.currentTarget.style.boxShadow = `0 4px 14px rgba(22,163,74,0.3)`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,163,74,0.25)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                       title={`${crop.count} farm${crop.count !== 1 ? 's' : ''} grow ${crop.name}`}
                     >
                       <span>{crop.name}</span>
-                      <span style={{ fontSize: `${Math.max(8, size * 0.55)}px`, opacity: isLarge ? 0.85 : 0.7, marginTop: '1px' }}>
-                        {crop.count} farm{crop.count !== 1 ? 's' : ''}
-                      </span>
-                    </div>
+                      <span style={{ fontSize: '8px', opacity: 0.8 }}>{crop.count} farm{crop.count !== 1 ? 's' : ''}</span>
+                    </span>
                   );
                 })}
               </div>
@@ -660,12 +550,10 @@ export default function Analytics() {
                 })}
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '160px', gap: '8px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(76,175,80,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d2e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>No activity recorded yet</div>
-                <div style={{ fontSize: '10px', color: '#9CA3AF' }}>Actions will appear here as the system is used</div>
+              <div className="flex flex-col items-center py-12 text-text-placeholder">
+                <i className="ph ph-clock-counter-clockwise text-4xl mb-3 opacity-50" />
+                <p className="text-sm font-medium">No activity entries found</p>
+                <p className="text-xs mt-1">Actions will appear here as they occur</p>
               </div>
             )}
 
