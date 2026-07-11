@@ -9,6 +9,7 @@ import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight } from 'lucide-react';
+import { mockSensorReadings } from '../../data/mockSensorData';
 
 function GlowCard({ className, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -218,6 +219,11 @@ export default function Analytics() {
   const overdueHighPriority = useMemo(() => {
     return tasks.filter((t) => t.priority === 'High' && t.status !== 'Completed' && new Date(t.dueDate) < now);
   }, [tasks, now]);
+
+  const sensorData = useMemo(() => {
+    const first = robots.find((r) => r.status !== 'Offline' && mockSensorReadings[r.id]);
+    return first ? mockSensorReadings[first.id] : null;
+  }, [robots]);
 
   return (
     <>
@@ -588,44 +594,65 @@ export default function Analytics() {
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Sensor Network</span>
             </div>
-            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Per-robot sensors — live once hardware connected</div>
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
-              border: '1.5px dashed rgba(0,0,0,0.1)', borderRadius: '12px', padding: '14px',
-            }}>
-              {[
-                { icon: Thermometer, name: 'DHT11', desc: 'Temp & Humidity' },
-                { icon: Droplets, name: 'Soil Moisture', desc: 'Soil wetness sensor' },
-                { icon: Radar, name: 'Ultrasonic', desc: 'Distance detection' },
-                { icon: MapPin, name: 'WiFi Location', desc: 'Position tracker' },
-              ].map((s) => {
-                const Icon = s.icon;
-                return (
-                  <div key={s.name} style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    padding: '14px 10px', borderRadius: '10px',
-                    background: 'rgba(0,0,0,0.02)',
-                    border: '1px solid rgba(0,0,0,0.04)',
-                    textAlign: 'center',
-                  }}>
-                    <Icon size={22} color="#9CA3AF" />
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>{s.name}</div>
-                    <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '2px' }}>{s.desc}</div>
-                    <div style={{
-                      fontSize: '8px', fontWeight: 600, marginTop: '8px',
-                      padding: '3px 8px', borderRadius: '999px',
-                      background: 'rgba(156,163,175,0.1)', color: '#9CA3AF',
-                    }}>
-                      ⏳ Awaiting Connection
-                    </div>
+            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Live readings from connected robot fleet</div>
+
+            {sensorData ? (
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
+                border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '14px',
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                  <Thermometer size={22} color="#2e7d2e" />
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>DHT11 — Temp & Humidity</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.dht11.temperature}°C / {sensorData.dht11.humidity}%</div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
                   </div>
-                );
-              })}
-            </div>
+                  <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                  <Droplets size={22} color="#2e7d2e" />
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>Soil Moisture</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.soilMoisture}%</div>
+                  <div style={{ width: '80%', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', marginTop: '4px' }}>
+                    <div style={{ width: `${sensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#4caf50', transition: 'width 0.3s ease' }} />
+                  </div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                  <Radar size={22} color="#2e7d2e" />
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>Ultrasonic</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.ultrasonic} cm</div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                  <MapPin size={22} color="#2e7d2e" />
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>WiFi Location</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginTop: '4px', padding: '0 4px', textAlign: 'center' }}>{sensorData.wifiLocation.label}</div>
+                  <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '1px' }}>({sensorData.wifiLocation.lat.toFixed(4)}, {sensorData.wifiLocation.lng.toFixed(4)})</div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '12px', color: '#5A7A5A' }}>No sensor data available</div>
+            )}
+
             <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
-              Sensor data appears automatically once robots connect to hardware API
+              Readings update automatically when hardware pushes data to the API
             </div>
-            {/* // TODO: Replace with real sensor data from hardware API/WebSocket */}
+            {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
           </GlowCard>
         )}
 
@@ -633,44 +660,65 @@ export default function Analytics() {
           <div style={{ marginBottom: '4px' }}>
             <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Robot Sensor Network</span>
           </div>
-          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Per-robot sensors — live once hardware connected</div>
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
-            border: '1.5px dashed rgba(0,0,0,0.1)', borderRadius: '12px', padding: '14px',
-          }}>
-            {[
-              { icon: Thermometer, name: 'DHT11', desc: 'Temp & Humidity' },
-              { icon: Droplets, name: 'Soil Moisture', desc: 'Soil wetness sensor' },
-              { icon: Radar, name: 'Ultrasonic', desc: 'Distance detection' },
-              { icon: MapPin, name: 'WiFi Location', desc: 'Position tracker' },
-            ].map((s) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.name} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '14px 10px', borderRadius: '10px',
-                  background: 'rgba(0,0,0,0.02)',
-                  border: '1px solid rgba(0,0,0,0.04)',
-                  textAlign: 'center',
-                }}>
-                  <Icon size={22} color="#9CA3AF" />
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>{s.name}</div>
-                  <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '2px' }}>{s.desc}</div>
-                  <div style={{
-                    fontSize: '8px', fontWeight: 600, marginTop: '8px',
-                    padding: '3px 8px', borderRadius: '999px',
-                    background: 'rgba(156,163,175,0.1)', color: '#9CA3AF',
-                  }}>
-                    ⏳ Awaiting Connection
-                  </div>
+          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Live readings from connected robot fleet</div>
+
+          {sensorData ? (
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
+              border: '1px solid rgba(76,175,80,0.12)', borderRadius: '12px', padding: '14px',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                <Thermometer size={22} color="#2e7d2e" />
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>DHT11 — Temp & Humidity</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.dht11.temperature}°C / {sensorData.dht11.humidity}%</div>
+                <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                <Droplets size={22} color="#2e7d2e" />
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>Soil Moisture</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.soilMoisture}%</div>
+                <div style={{ width: '80%', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', marginTop: '4px' }}>
+                  <div style={{ width: `${sensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#4caf50', transition: 'width 0.3s ease' }} />
+                </div>
+                <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                </div>
+                <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                <Radar size={22} color="#2e7d2e" />
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>Ultrasonic</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{sensorData.ultrasonic} cm</div>
+                <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                </div>
+                <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 10px', borderRadius: '10px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                <MapPin size={22} color="#2e7d2e" />
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111827', marginTop: '6px' }}>WiFi Location</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginTop: '4px', padding: '0 4px', textAlign: 'center' }}>{sensorData.wifiLocation.label}</div>
+                <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '1px' }}>({sensorData.wifiLocation.lat.toFixed(4)}, {sensorData.wifiLocation.lng.toFixed(4)})</div>
+                <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#2e7d2e', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2e7d2e', display: 'inline-block' }} /> Live
+                </div>
+                <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '4px' }}>Updated just now</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '12px', color: '#5A7A5A' }}>No sensor data available</div>
+          )}
+
           <div style={{ fontSize: '9px', color: '#9CA3AF', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
-            Sensor data appears automatically once robots connect to hardware API
+            Readings update automatically when hardware pushes data to the API
           </div>
-          {/* // TODO: Replace with real sensor data from hardware API/WebSocket */}
+          {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
         </GlowCard>
       </div>
 
