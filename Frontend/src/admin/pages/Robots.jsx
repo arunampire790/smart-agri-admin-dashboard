@@ -42,7 +42,7 @@ const statusOpts = {
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const labelClass = "text-xs font-medium text-primary";
-const submitBtnClass = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
+
 
 function Select({ options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -156,7 +156,7 @@ function FormFields({ form, setForm, errors, userNames }) {
 
 export default function Robots() {
   const navigate = useNavigate();
-  const { robots, addRobot, updateRobot, removeRobot } = useRobots();
+  const { robots, updateRobot, removeRobot } = useRobots();
   const { users } = useUsers();
   const { farms, addFarm, updateFarm } = useFarms();
   const { currentUser } = useAuth();
@@ -164,14 +164,12 @@ export default function Robots() {
   const defaultOwner = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
   const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
-  const openAdd = () => { setForm({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' }); setErrors({}); setShowAddModal(true); };
   const openEdit = (robot) => { setForm({ name: robot.name, id: robot.id, model: robot.model, owner: robot.owner || '', farm: robot.farm, status: robot.status }); setErrors({}); setEditRobot(robot); };
   const openDelete = (robot) => setDeleteRobot(robot);
 
@@ -181,17 +179,6 @@ export default function Robots() {
     if (!form.id.trim()) errs.id = 'Robot ID is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  };
-
-  const handleAdd = (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    addRobot({ name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, owner: form.owner, battery: 100, status: form.status, stCls: statusOpts[form.status].stCls });
-    const targetFarm = farms.find((f) => f.name === form.farm);
-    if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
-    else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Model: ${form.model}, Farm: ${form.farm}` });
-    setShowAddModal(false);
   };
 
   const handleEdit = (e) => {
@@ -233,7 +220,6 @@ export default function Robots() {
           <div className="text-2xl font-bold text-primary">Robot Management</div>
           <div className="text-sm text-text-secondary mt-1">Monitor and control agricultural robots</div>
         </div>
-        <button onClick={openAdd} className={submitBtnClass}><i className="ph ph-plus" /> Add Robot</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -351,55 +337,6 @@ export default function Robots() {
           </tbody>
         </table>
       </div>
-
-      {showAddModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <i className="ph ph-robot text-white text-lg" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New Robot</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Register a new agricultural robot.</div>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
-              ><i className="ph ph-x text-lg" /></button>
-            </div>
-
-            <form onSubmit={handleAdd}>
-              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)}
-                  style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  Cancel
-                </button>
-                <button type="submit"
-                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
-                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-                >
-                  <i className="ph ph-check" /> Add Robot
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {editRobot && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditRobot(null)}>
