@@ -6,8 +6,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('admin123');
   const navigate = useNavigate();
 
-  // Forgot Password flow state
-  const [flowStep, setFlowStep] = useState('login'); // 'login' | 'email' | 'code' | 'reset' | 'success'
+  const [flowStep, setFlowStep] = useState('login');
   const [resetEmail, setResetEmail] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
@@ -38,7 +37,6 @@ export default function AdminLogin() {
     setPasswordError('');
   };
 
-  // TODO: Replace with real backend API call once backend is added
   const handleSendCode = () => {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setGeneratedCode(code);
@@ -63,7 +61,6 @@ export default function AdminLogin() {
     }
   };
 
-  // TODO: Replace with real backend API call once backend is added
   const handleVerifyCode = () => {
     const entered = codeDigits.join('');
     if (entered === generatedCode) {
@@ -76,7 +73,6 @@ export default function AdminLogin() {
     }
   };
 
-  // TODO: Replace with real backend API call once backend is added
   const handleResetPassword = () => {
     if (newPassword.length < 8) {
       setPasswordError('Password must be at least 8 characters.');
@@ -91,304 +87,249 @@ export default function AdminLogin() {
 
   const closeFlow = () => setFlowStep('login');
 
-  const inputClasses = "text-sm outline-none w-full";
   const inputStyle = {
-    padding: '11px 14px',
-    borderRadius: 10,
-    border: '1px solid rgba(0, 0, 0, 0.12)',
-    background: '#ffffff',
-    color: '#111827',
-    fontSize: 14,
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  };
-  const loginInputStyle = {
-    ...inputStyle,
-    background: 'rgba(255, 255, 255, 0.07)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    color: '#ffffff',
     width: '100%',
-  };
-  const modalInputStyle = {
-    padding: '10px 14px',
-    borderRadius: 12,
-    border: '1px solid rgba(76,175,80,0.25)',
-    background: '#ffffff',
-    color: '#1a2e1a',
-    fontSize: 14,
     boxSizing: 'border-box',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
+    padding: '10px 14px',
+    borderRadius: 10,
+    border: '1px solid #d1d5db',
+    background: '#ffffff',
+    color: '#1a1a1a',
+    fontSize: 14,
+    outline: 'none',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
   };
-  const modalLabelStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    fontSize: '11px',
-    fontWeight: 600,
-    color: '#5a7a5a',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    marginBottom: '6px',
-  };
-  const labelClasses = "text-xs font-medium mb-1";
-  const labelStyle = { color: '#374151' };
 
-  const [cardHovered, setCardHovered] = useState(false);
+  const inputFocus = (e) => {
+    e.target.style.borderColor = '#2e7d2e';
+    e.target.style.boxShadow = '0 0 0 3px rgba(46,125,50,0.1)';
+  };
+
+  const inputBlur = (e) => {
+    e.target.style.borderColor = '#d1d5db';
+    e.target.style.boxShadow = 'none';
+  };
+
+  const inputHover = (e) => {
+    if (document.activeElement !== e.target) {
+      e.target.style.borderColor = '#9ca3af';
+    }
+  };
+
+  const inputLeave = (e) => {
+    if (document.activeElement !== e.target) {
+      e.target.style.borderColor = '#d1d5db';
+    }
+  };
+
+  const primaryBtn = {
+    width: '100%',
+    padding: '12px',
+    border: 'none',
+    borderRadius: 10,
+    background: '#1a3a2a',
+    color: '#ffffff',
+    fontWeight: 600,
+    fontSize: 15,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  };
+
+  const primaryBtnEnter = (e) => {
+    if (!e.currentTarget.disabled) {
+      e.currentTarget.style.background = '#2e7d2e';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(26,58,42,0.25)';
+      e.currentTarget.style.transform = 'translateY(-1px)';
+    }
+  };
+
+  const primaryBtnLeave = (e) => {
+    e.currentTarget.style.background = '#1a3a2a';
+    e.currentTarget.style.boxShadow = 'none';
+    e.currentTarget.style.transform = 'translateY(0)';
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{ background: '#1a2e1a' }}
-    >
-      <style>{`.admin-login-modal input::placeholder { color: #9CA3AF; } @keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(76,175,80,0.3)}50%{box-shadow:0 0 16px rgba(76,175,80,0.5)}}`}</style>
-      <div className="absolute pointer-events-none" style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(46,125,50,0.6) 0%, transparent 70%)', filter: 'blur(80px)', opacity: 0.6, top: '-100px', left: '-100px', zIndex: 0 }} />
-      <div className="absolute pointer-events-none" style={{ width: '450px', height: '450px', background: 'radial-gradient(circle, rgba(76,175,80,0.5) 0%, transparent 70%)', filter: 'blur(90px)', opacity: 0.5, top: '-80px', right: '-80px', zIndex: 0 }} />
-      <div className="absolute pointer-events-none" style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(46,125,50,0.4) 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.4, bottom: '-100px', right: '-50px', zIndex: 0 }} />
-
-      {/* Login Card */}
-      <div onMouseEnter={() => setCardHovered(true)} onMouseLeave={() => setCardHovered(false)} className="p-10" style={{
-        width: '420px',
-        background: 'rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: 20,
-        boxShadow: cardHovered ? '0 12px 40px rgba(26,46,26,0.3)' : '0 8px 40px rgba(0,0,0,0.5)',
-        position: 'relative',
-        zIndex: 10,
-        overflow: 'hidden',
-        transition: 'box-shadow 0.3s ease',
-      }}>
-        <div className="text-center mb-0" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="flex justify-center mb-6">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-base" style={{ background: '#2e7d2e', transition: 'transform 0.2s ease', cursor: 'default' }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <i className="ph ph-sprout" />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f5f0' }}>
+      <div style={{ width: '400px', maxWidth: 'calc(100vw - 32px)' }}>
+        <div style={{ background: '#ffffff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.06)', padding: '32px 36px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className="ph ph-sprout" style={{ color: '#fff', fontSize: 22 }} />
+              </div>
             </div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>Smart Agriculture</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4, marginBottom: 28 }}>Admin Panel · Sign in to continue</div>
           </div>
-          <div style={{ color: '#ffffff', fontSize: '26px', fontWeight: 700 }}>Smart Agriculture</div>
-          <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginTop: '6px' }}>Admin Panel · Sign in to continue</div>
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com" style={inputStyle}
+                onFocus={inputFocus} onBlur={inputBlur}
+                onMouseEnter={inputHover} onMouseLeave={inputLeave}
+              />
+            </div>
+
+            <div style={{ marginBottom: 0 }}>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••" style={inputStyle}
+                onFocus={inputFocus} onBlur={inputBlur}
+                onMouseEnter={inputHover} onMouseLeave={inputLeave}
+              />
+            </div>
+
+            <div style={{ textAlign: 'right', marginTop: 6, marginBottom: 20 }}>
+              <button type="button" onClick={openForgotPassword}
+                className="bg-none border-none p-0 cursor-pointer"
+                style={{ color: '#2e7d2e', fontSize: 13, fontWeight: 500, transition: 'color 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
+              >Forgot Password?</button>
+            </div>
+
+            <button type="submit" style={primaryBtn}
+              onMouseEnter={primaryBtnEnter}
+              onMouseLeave={primaryBtnLeave}
+            >Sign in</button>
+          </form>
+
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)' }}>
+            <span style={{ color: '#374151', fontWeight: 600, fontSize: 13 }}>Demo:</span>
+            <span style={{ color: '#6b7280', fontSize: 13, marginLeft: 4 }}>admin@smartagri.com / admin123</span>
+          </div>
         </div>
-
-        <div style={{ borderBottom: '1px solid rgba(76,175,80,0.3)', margin: '16px 0' }} />
-
-        <form onSubmit={handleLogin} style={{ position: 'relative', zIndex: 1 }}>
-          <div className="flex flex-col mb-5">
-            <label style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} style={loginInputStyle}
-              placeholder="Enter your email"
-              onFocus={(e) => { e.target.style.borderColor = 'rgba(76,175,80,0.8)'; e.target.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.15)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.boxShadow = 'none'; }}
-              onMouseEnter={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(76,175,80,0.4)'; e.target.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.06)'; } }}
-              onMouseLeave={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.boxShadow = 'none'; } }}
-            />
-          </div>
-          <div className="flex flex-col mb-5">
-            <label style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClasses} style={loginInputStyle}
-              placeholder="Enter your password"
-              onFocus={(e) => { e.target.style.borderColor = 'rgba(76,175,80,0.8)'; e.target.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.15)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.boxShadow = 'none'; }}
-              onMouseEnter={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(76,175,80,0.4)'; e.target.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.06)'; } }}
-              onMouseLeave={(e) => { if (document.activeElement !== e.target) { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.boxShadow = 'none'; } }}
-            />
-          </div>
-          <div className="mb-4 text-right">
-            <button type="button" onClick={openForgotPassword}
-              className="bg-none border-none p-0 cursor-pointer font-medium"
-              style={{ color: 'rgba(76,175,80,0.8)', fontSize: '13px', transition: 'color 0.2s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(76,175,80,0.8)'; }}
-            >Forgot Password?</button>
-          </div>
-          <button type="submit"
-            style={{
-              background: '#2e7d2e',
-              border: 'none', borderRadius: 10, padding: '13px', width: '100%',
-              color: '#ffffff', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: '8px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; e.currentTarget.style.filter = 'brightness(1.08)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.filter = 'brightness(1)'; }}
-          >
-            Sign in
-          </button>
-          <div className="mt-4" style={{ background: 'rgba(76,175,80,0.08)', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '8px', padding: '10px 14px' }}>
-            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>
-              <strong style={{ color: 'rgba(255,255,255,0.6)' }}>Demo:</strong> admin@smartagri.com / admin123
-            </div>
-          </div>
-        </form>
       </div>
 
       {/* Forgot Password Flow Overlay */}
       {flowStep !== 'login' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={closeFlow}>
-          <div className="admin-login-modal relative z-10 w-[420px] max-w-[calc(100vw-32px)]" onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              borderRadius: 24,
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto',
-              padding: '28px',
-            }}>
-
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(26,46,26,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={closeFlow}>
+          <div className="relative z-10" onClick={(e) => e.stopPropagation()}
+            style={{ width: '420px', maxWidth: 'calc(100vw - 32px)', background: '#ffffff', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.15)', padding: '28px 32px', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
               <div>
-                <div className="text-lg font-bold" style={{ color: '#111827' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#1a1a1a' }}>
                   {flowStep === 'email' && 'Reset Password'}
                   {flowStep === 'code' && 'Check Your Email'}
                   {flowStep === 'reset' && 'Create New Password'}
                   {flowStep === 'success' && 'Password Reset'}
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: '#4B5563' }}>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2, marginBottom: 20 }}>
                   {flowStep === 'email' && 'Enter your email to receive a reset code'}
                   {flowStep === 'code' && 'Enter the 6-digit code sent to your email'}
                   {flowStep === 'reset' && 'Your new password must be at least 8 characters'}
                   {flowStep === 'success' && 'Your password has been reset successfully'}
                 </div>
               </div>
-              <button type="button" onClick={closeFlow}
-                style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.transform = 'scale(1)'; }}
+              <button type="button" onClick={closeFlow} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#6b7280', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#1a1a1a'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
 
-            {/* Step 2 — Enter Email */}
             {flowStep === 'email' && (
               <div>
-                <div className="flex flex-col mb-5">
-                  <label style={modalLabelStyle}>Email Address</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email Address</label>
                   <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="Enter your email" className={inputClasses}
-                    style={modalInputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
+                    placeholder="Enter your email" style={inputStyle}
+                    onFocus={inputFocus} onBlur={inputBlur}
+                    onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
                 </div>
-                <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
-                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
+                <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Send Code</button>
               </div>
             )}
 
-            {/* Step 3 — Enter Code */}
             {flowStep === 'code' && (
               <div>
-                <div className="mb-4 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(16,185,129,0.08)', color: '#065F46', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <div style={{ marginBottom: 4, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)', fontSize: 13, color: '#374151' }}>
                   A verification code has been sent to <strong>{resetEmail || 'your email'}</strong>.
                 </div>
-                <div className="mb-5 p-3 rounded-xl text-xs text-center" style={{ background: 'rgba(255,255,255,0.35)', color: '#8E8E93' }}>
-                  Demo Code: <strong style={{ color: '#1C1C1E' }} className="tracking-wider text-sm">{generatedCode}</strong>
+                <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: '#f0f5f0', fontSize: 13, color: '#6b7280' }}>
+                  Demo Code: <strong style={{ color: '#1a1a1a', letterSpacing: '0.1em' }}>{generatedCode}</strong>
                 </div>
-                <div className="flex flex-col mb-5">
-                  <label style={modalLabelStyle}>Verification Code</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Verification Code</label>
                   <div className="flex justify-center gap-2">
                     {codeDigits.map((digit, i) => (
                       <input key={i} type="text" inputMode="numeric" maxLength={1} value={digit}
                         ref={(el) => { codeInputRefs.current[i] = el; }}
                         onChange={(e) => handleDigitChange(i, e.target.value)}
                         onKeyDown={(e) => handleDigitKeyDown(i, e)}
-                        className="w-10 h-12 text-center text-sm font-semibold outline-none"
                         style={{
-                          borderRadius: 12,
-                          border: '1px solid #D1D5DB',
-                          background: 'rgba(255,255,255,0.5)',
-                          color: '#1C1C1E',
-                          transition: 'border-color 0.2s, box-shadow 0.2s',
+                          width: 40, height: 44, textAlign: 'center', fontSize: 14, fontWeight: 600,
+                          borderRadius: 10, border: '1px solid #d1d5db', background: '#ffffff', color: '#1a1a1a',
+                          outline: 'none', transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                         }}
-                        onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
+                        onFocus={(e) => { e.target.style.borderColor = '#2e7d2e'; e.target.style.boxShadow = '0 0 0 3px rgba(46,125,50,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
                       />
                     ))}
                   </div>
-                  {codeError && <span className="text-xs text-center mt-1" style={{ color: '#DC2626' }}>{codeError}</span>}
+                  {codeError && <div style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', marginTop: 4 }}>{codeError}</div>}
                 </div>
-                <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
-                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
+                <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Verify Code</button>
               </div>
             )}
 
-            {/* Step 5 — Reset Password */}
             {flowStep === 'reset' && (
               <div>
-                <div className="flex flex-col mb-3">
-                  <label style={modalLabelStyle}>New Password</label>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>New Password</label>
                   <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password" className={inputClasses}
-                    style={modalInputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
+                    placeholder="Enter new password" style={inputStyle}
+                    onFocus={inputFocus} onBlur={inputBlur}
+                    onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
                 </div>
-                <div className="flex flex-col mb-5">
-                  <label style={modalLabelStyle}>Confirm New Password</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Confirm New Password</label>
                   <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password" className={inputClasses}
-                    style={modalInputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = '#D1D5DB'; e.target.style.boxShadow = 'none'; }}
+                    placeholder="Confirm new password" style={inputStyle}
+                    onFocus={inputFocus} onBlur={inputBlur}
+                    onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
-                  {passwordError && <span className="text-xs mt-1" style={{ color: '#DC2626' }}>{passwordError}</span>}
+                  {passwordError && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 4 }}>{passwordError}</div>}
                 </div>
-                <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; } }}
-                  onMouseUp={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; } }}
+                <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Reset Password</button>
               </div>
             )}
 
-            {/* Step 6 — Success */}
             {flowStep === 'success' && (
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)' }}>
-                    <i className="ph ph-check text-2xl" style={{ color: '#10B981' }} />
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(46,125,50,0.1)' }}>
+                    <i className="ph ph-check text-2xl" style={{ color: '#2e7d2e' }} />
                   </div>
                 </div>
-                <div className="text-sm mb-6" style={{ color: '#8E8E93' }}>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>
                   Your password has been reset successfully. You can now sign in with your new password.
                 </div>
-                <button type="button" onClick={closeFlow}
-                  className="w-full border-none rounded-xl py-2.5 text-sm font-semibold cursor-pointer"
-                  style={{ background: '#10B981', color: '#fff', borderRadius: '12px', transition: 'all 0.2s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
-                  onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+                <button type="button" onClick={closeFlow} style={primaryBtn}
+                  onMouseEnter={primaryBtnEnter}
+                  onMouseLeave={primaryBtnLeave}
                 >Back to Sign In</button>
               </div>
             )}
 
-            {/* Back link for non-success steps */}
             {flowStep !== 'success' && (
-              <div className="text-center mt-4">
-                <button type="button" onClick={closeFlow}
-                  className="bg-none border-none p-0 text-xs cursor-pointer font-medium"
-                  style={{ color: '#374151', transition: 'color 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#059669'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; }}
+              <div className="text-center" style={{ marginTop: 16 }}>
+                <button type="button" onClick={closeFlow} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#2e7d2e', transition: 'color 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
                 >Back to Sign In</button>
               </div>
             )}
