@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sprout } from 'lucide-react';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@smartagri.com');
@@ -90,10 +91,10 @@ export default function AdminLogin() {
   const inputStyle = {
     width: '100%',
     boxSizing: 'border-box',
-    padding: '10px 14px',
+    padding: '11px 14px',
     borderRadius: 10,
-    border: '1px solid #d1d5db',
-    background: '#ffffff',
+    border: '1.5px solid #d1d5db',
+    background: '#fafafa',
     color: '#1a1a1a',
     fontSize: 14,
     outline: 'none',
@@ -102,12 +103,14 @@ export default function AdminLogin() {
 
   const inputFocus = (e) => {
     e.target.style.borderColor = '#2e7d2e';
-    e.target.style.boxShadow = '0 0 0 3px rgba(46,125,50,0.1)';
+    e.target.style.boxShadow = '0 0 0 3px rgba(46,125,50,0.12)';
+    e.target.style.background = '#ffffff';
   };
 
   const inputBlur = (e) => {
     e.target.style.borderColor = '#d1d5db';
     e.target.style.boxShadow = 'none';
+    e.target.style.background = '#fafafa';
   };
 
   const inputHover = (e) => {
@@ -138,7 +141,7 @@ export default function AdminLogin() {
   const primaryBtnEnter = (e) => {
     if (!e.currentTarget.disabled) {
       e.currentTarget.style.background = '#2e7d2e';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(26,58,42,0.25)';
+      e.currentTarget.style.boxShadow = '0 4px 16px rgba(26,58,42,0.3)';
       e.currentTarget.style.transform = 'translateY(-1px)';
     }
   };
@@ -151,13 +154,12 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f5f0' }}>
-      <div style={{ width: '400px', maxWidth: 'calc(100vw - 32px)' }}>
-        <div style={{ background: '#ffffff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.06)', padding: '32px 36px' }}>
+      <style>{`.login-input::placeholder { color: #9ca3af; font-size: 14px; }`}</style>
+      <div style={{ width: '420px', maxWidth: 'calc(100vw - 32px)' }}>
+        <div style={{ background: '#ffffff', borderRadius: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.04), 0 10px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.06)', padding: '40px 40px 36px' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="ph ph-sprout" style={{ color: '#fff', fontSize: 22 }} />
-              </div>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Sprout size={24} color="#ffffff" strokeWidth={2} />
             </div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>Smart Agriculture</div>
             <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4, marginBottom: 28 }}>Admin Panel · Sign in to continue</div>
@@ -167,16 +169,16 @@ export default function AdminLogin() {
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com" style={inputStyle}
+                placeholder="your@email.com" className="login-input" style={inputStyle}
                 onFocus={inputFocus} onBlur={inputBlur}
                 onMouseEnter={inputHover} onMouseLeave={inputLeave}
               />
             </div>
 
-            <div style={{ marginBottom: 0 }}>
+            <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Password</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••" style={inputStyle}
+                placeholder="••••••••" className="login-input" style={inputStyle}
                 onFocus={inputFocus} onBlur={inputBlur}
                 onMouseEnter={inputHover} onMouseLeave={inputLeave}
               />
@@ -197,7 +199,7 @@ export default function AdminLogin() {
             >Sign in</button>
           </form>
 
-          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)' }}>
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.18)' }}>
             <span style={{ color: '#374151', fontWeight: 600, fontSize: 13 }}>Demo:</span>
             <span style={{ color: '#6b7280', fontSize: 13, marginLeft: 4 }}>admin@smartagri.com / admin123</span>
           </div>
