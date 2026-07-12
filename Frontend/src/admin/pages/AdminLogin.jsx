@@ -93,8 +93,8 @@ export default function AdminLogin() {
     boxSizing: 'border-box',
     padding: '11px 14px',
     borderRadius: 10,
-    border: '1.5px solid #d1d5db',
-    background: '#fafafa',
+    border: '1.5px solid #d1fae5',
+    background: '#f9fafb',
     color: '#1a1a1a',
     fontSize: 14,
     outline: 'none',
@@ -108,20 +108,20 @@ export default function AdminLogin() {
   };
 
   const inputBlur = (e) => {
-    e.target.style.borderColor = '#d1d5db';
+    e.target.style.borderColor = '#d1fae5';
     e.target.style.boxShadow = 'none';
-    e.target.style.background = '#fafafa';
+    e.target.style.background = '#f9fafb';
   };
 
   const inputHover = (e) => {
     if (document.activeElement !== e.target) {
-      e.target.style.borderColor = '#9ca3af';
+      e.target.style.borderColor = '#6ee7b7';
     }
   };
 
   const inputLeave = (e) => {
     if (document.activeElement !== e.target) {
-      e.target.style.borderColor = '#d1d5db';
+      e.target.style.borderColor = '#d1fae5';
     }
   };
 
@@ -130,7 +130,7 @@ export default function AdminLogin() {
     padding: '12px',
     border: 'none',
     borderRadius: 10,
-    background: '#1a3a2a',
+    background: 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)',
     color: '#ffffff',
     fontWeight: 600,
     fontSize: 15,
@@ -140,25 +140,25 @@ export default function AdminLogin() {
 
   const primaryBtnEnter = (e) => {
     if (!e.currentTarget.disabled) {
-      e.currentTarget.style.background = '#2e7d2e';
-      e.currentTarget.style.boxShadow = '0 4px 16px rgba(26,58,42,0.3)';
+      e.currentTarget.style.background = 'linear-gradient(180deg, #3d7a4d 0%, #2d5a3d 100%)';
+      e.currentTarget.style.boxShadow = '0 6px 20px rgba(26,58,42,0.35)';
       e.currentTarget.style.transform = 'translateY(-1px)';
     }
   };
 
   const primaryBtnLeave = (e) => {
-    e.currentTarget.style.background = '#1a3a2a';
+    e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)';
     e.currentTarget.style.boxShadow = 'none';
     e.currentTarget.style.transform = 'translateY(0)';
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f5f0' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8f0e8 0%, #d4e6d4 40%, #e0ede0 100%)' }}>
       <style>{`.login-input::placeholder { color: #9ca3af; font-size: 14px; }`}</style>
       <div style={{ width: '420px', maxWidth: 'calc(100vw - 32px)' }}>
-        <div style={{ background: '#ffffff', borderRadius: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.04), 0 10px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.06)', padding: '40px 40px 36px' }}>
+        <div style={{ background: '#ffffff', borderRadius: 20, boxShadow: '0 2px 4px rgba(0,0,0,0.04), 0 12px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(26,58,42,0.08)', border: '1px solid rgba(255,255,255,0.9)', padding: '44px 40px 36px' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 4px 16px rgba(46,125,50,0.25)' }}>
               <Sprout size={24} color="#ffffff" strokeWidth={2} />
             </div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>Smart Agriculture</div>
@@ -196,12 +196,14 @@ export default function AdminLogin() {
             <button type="submit" style={primaryBtn}
               onMouseEnter={primaryBtnEnter}
               onMouseLeave={primaryBtnLeave}
+              onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(26,58,42,0.2)'; }}
+              onMouseUp={(e) => { primaryBtnEnter(e); }}
             >Sign in</button>
           </form>
 
-          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.18)' }}>
-            <span style={{ color: '#374151', fontWeight: 600, fontSize: 13 }}>Demo:</span>
-            <span style={{ color: '#6b7280', fontSize: 13, marginLeft: 4 }}>admin@smartagri.com / admin123</span>
+          <div style={{ marginTop: 16, padding: '10px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
+            <span style={{ color: '#166534', fontWeight: 700, fontSize: 13 }}>Demo:</span>
+            <span style={{ color: '#15803d', fontSize: 13, marginLeft: 4 }}>admin@smartagri.com / admin123</span>
           </div>
         </div>
       </div>
@@ -244,7 +246,7 @@ export default function AdminLogin() {
                 </div>
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
-                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Send Code</button>
               </div>
             )}
@@ -279,7 +281,7 @@ export default function AdminLogin() {
                 </div>
                 <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
-                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Verify Code</button>
               </div>
             )}
@@ -305,7 +307,7 @@ export default function AdminLogin() {
                 </div>
                 <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
-                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = '#1a3a2a'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                  onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >Reset Password</button>
               </div>
             )}
