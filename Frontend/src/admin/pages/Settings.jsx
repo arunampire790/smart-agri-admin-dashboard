@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 
 const Toggle = ({ checked, onChange }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
@@ -76,87 +76,6 @@ function DangerZoneRow({ label, sublabel, buttonText, onClick }) {
   );
 }
 
-function SettingsDropdown({ options, value, onChange, placeholder }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{
-          background: '#f9fafb',
-          border: '1.5px solid #e5e7eb',
-          borderRadius: 10,
-          color: '#1a1a1a',
-          fontSize: 14,
-          height: 40,
-          padding: '0 36px 0 14px',
-          width: '100%',
-          outline: 'none',
-          boxSizing: 'border-box',
-          cursor: 'pointer',
-          textAlign: 'left',
-          position: 'relative',
-          transition: 'all 0.15s ease',
-          boxShadow: open ? '0 0 0 3px rgba(46,125,50,0.1)' : 'none',
-          borderColor: open ? '#2e7d2e' : '#e5e7eb',
-        }}
-        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9ca3af'; }}
-        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#e5e7eb'; }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = '#2e7d2e'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(46,125,50,0.1)'; }}
-        onBlur={(e) => { if (!open) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; } }}
-      >
-        <span style={{ color: value ? '#1a1a1a' : '#9ca3af' }}>{value || placeholder}</span>
-        <i className="ph ph-caret-down" style={{
-          position: 'absolute', right: 12, top: '50%',
-          transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`,
-          color: '#6b7280', fontSize: 12, transition: 'transform 0.2s ease',
-        }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: 4,
-          background: '#ffffff',
-          border: '1px solid rgba(0,0,0,0.06)',
-          borderRadius: 12,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          overflow: 'hidden',
-        }}>
-          {options.map((opt) => {
-            const selected = opt === value;
-            return (
-              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
-                style={{
-                  padding: '12px 14px', fontSize: 14,
-                  color: selected ? '#2e7d2e' : '#1a1a1a',
-                  background: selected ? 'rgba(46,125,50,0.08)' : 'transparent',
-                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                onMouseEnter={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'rgba(46,125,50,0.06)'; e.currentTarget.style.color = '#2e7d2e'; }
-                }}
-                onMouseLeave={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1a1a1a'; }
-                }}
-              >
-                <span>{opt}</span>
-                {selected && <span style={{ color: '#2e7d2e', fontSize: 14, fontWeight: 600 }}>✓</span>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function Settings() {
   const [firstName, setFirstName] = useState('Admin');
   const [lastName, setLastName] = useState('User');
@@ -170,13 +89,6 @@ export default function Settings() {
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
-
-  const [autoAssign, setAutoAssign] = useState(true);
-  const [autoSched, setAutoSched] = useState(true);
-  const [cloudBackup, setCloudBackup] = useState(false);
-  const [offlineAlerts, setOfflineAlerts] = useState(true);
-  const [lowBattery, setLowBattery] = useState(20);
-  const [dataRetention, setDataRetention] = useState('90 days');
 
   const inputStyle = {
     background: '#f9fafb',
@@ -358,46 +270,6 @@ export default function Settings() {
             onClick={() => { /* update password */ }}
           >Update Password</button>
         </div>
-      </SettingsSection>
-
-      {/* System Settings */}
-      <SettingsSection title="System Settings" subtitle="Configure automation and data preferences">
-        <SettingsRow label="Auto-assign Tasks" sublabel="Automatically assign tasks to available robots">
-          <Toggle checked={autoAssign} onChange={() => setAutoAssign((p) => !p)} />
-        </SettingsRow>
-        <SettingsRow label="Auto-scheduling" sublabel="Schedule tasks based on weather and soil conditions">
-          <Toggle checked={autoSched} onChange={() => setAutoSched((p) => !p)} />
-        </SettingsRow>
-        <SettingsRow label="Cloud Backup" sublabel="Auto-backup farm data to cloud daily">
-          <Toggle checked={cloudBackup} onChange={() => setCloudBackup((p) => !p)} />
-        </SettingsRow>
-        <SettingsRow label="Robot Offline Alerts" sublabel="Send alerts when a robot goes offline">
-          <Toggle checked={offlineAlerts} onChange={() => setOfflineAlerts((p) => !p)} />
-        </SettingsRow>
-        <SettingsRow label="Low Battery Threshold" sublabel="Alert when robot battery drops below" noBorder={false}>
-          <div style={{ width: 100 }}>
-            <div style={{ position: 'relative' }}>
-              <input type="number" value={lowBattery} onChange={(e) => setLowBattery(Math.min(100, Math.max(0, Number(e.target.value))))}
-                style={{
-                  ...inputStyle,
-                  paddingRight: 30,
-                }}
-                onFocus={inputFocus} onBlur={inputBlur}
-                onMouseEnter={inputHover} onMouseLeave={inputLeave}
-              />
-              <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#6b7280' }}>%</span>
-            </div>
-          </div>
-        </SettingsRow>
-        <SettingsRow label="Data Retention Period" sublabel="Keep activity log entries for" noBorder>
-          <div style={{ width: 140 }}>
-            <SettingsDropdown
-              options={['30 days', '60 days', '90 days', '1 year']}
-              value={dataRetention}
-              onChange={setDataRetention}
-            />
-          </div>
-        </SettingsRow>
       </SettingsSection>
 
       {/* Danger Zone */}
