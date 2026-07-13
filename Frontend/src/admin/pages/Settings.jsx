@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { Trash2, RotateCcw } from 'lucide-react';
+import { useActivityLog } from '../../context/ActivityLogContext';
 
 const Toggle = ({ checked, onChange }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
@@ -44,14 +47,14 @@ function SettingsRow({ label, sublabel, children, noBorder }) {
   );
 }
 
-function DangerZoneRow({ label, sublabel, buttonText, onClick }) {
+function DangerZoneRow({ label, sublabel, buttonText, onClick, noBorder }) {
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '14px 0',
-      borderBottom: '1px solid rgba(0,0,0,0.05)',
+      borderBottom: noBorder ? 'none' : '1px solid rgba(239,68,68,0.08)',
     }}>
       <div>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>{label}</div>
@@ -77,6 +80,8 @@ function DangerZoneRow({ label, sublabel, buttonText, onClick }) {
 }
 
 export default function Settings() {
+  const { clearLog } = useActivityLog();
+
   const [firstName, setFirstName] = useState('Admin');
   const [lastName, setLastName] = useState('User');
   const [profileEmail, setProfileEmail] = useState('admin@smartagri.com');
@@ -89,6 +94,38 @@ export default function Settings() {
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+
+  const [showClearDialog, setShowClearDialog] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((message) => {
+    setToast(message);
+  }, []);
+
+  const handleClearLog = () => {
+    clearLog();
+    setShowClearDialog(false);
+    showToast('Activity log cleared successfully');
+  };
+
+  const handleResetSettings = () => {
+    setEmailNotif(true);
+    setTaskAssign(true);
+    setRobotAlerts(true);
+    setCurrentPw('');
+    setNewPw('');
+    setConfirmPw('');
+    setShowResetDialog(false);
+    showToast('Settings reset to defaults');
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   const inputStyle = {
     background: '#f9fafb',
@@ -271,15 +308,81 @@ export default function Settings() {
           label="Clear Activity Log"
           sublabel="Permanently delete all audit log entries"
           buttonText="Clear Log"
-          onClick={() => { /* clear activity log */ }}
+          onClick={() => setShowClearDialog(true)}
         />
         <DangerZoneRow
           label="Reset All Settings"
           sublabel="Restore all settings to their default values"
           buttonText="Reset"
-          onClick={() => { /* reset settings */ }}
+          onClick={() => setShowResetDialog(true)}
+          noBorder
         />
       </SettingsSection>
+
+      {/* Clear Activity Log Dialog */}
+      {showClearDialog && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          onClick={() => setShowClearDialog(false)}
+        >
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
+          >
+            <div className="text-lg font-bold text-primary mb-2">Clear Activity Log?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              This will permanently delete all audit log entries. This action cannot be undone.
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowClearDialog(false)}
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none"
+              >Cancel</button>
+              <button onClick={handleClearLog}
+                style={{ background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 8, padding: '8px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                className="transition-all duration-150 active:scale-[0.97] hover:scale-[1.04]"
+              ><Trash2 size={14} /> Clear Log</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Reset All Settings Dialog */}
+      {showResetDialog && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          onClick={() => setShowResetDialog(false)}
+        >
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
+          >
+            <div className="text-lg font-bold text-primary mb-2">Reset All Settings?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              This will restore all notification and security settings to their default values. Your profile information will not be affected.
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowResetDialog(false)}
+                className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none"
+              >Cancel</button>
+              <button onClick={handleResetSettings}
+                style={{ background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 8, padding: '8px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                className="transition-all duration-150 active:scale-[0.97] hover:scale-[1.04]"
+              ><RotateCcw size={14} /> Reset Settings</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 200,
+          background: '#1a3a2a', color: '#ffffff',
+          borderRadius: 8, padding: '10px 16px',
+          fontSize: 13, fontWeight: 500,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        }}>{toast}</div>
+      )}
     </>
   );
 }

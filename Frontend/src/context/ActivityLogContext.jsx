@@ -11,13 +11,18 @@ export function ActivityLogProvider({ children }) {
     setEntries(getActivityLog());
   }, []);
 
+  const clearLog = useCallback(() => {
+    localStorage.removeItem('smartAgri_activityLog');
+    setEntries([]);
+  }, []);
+
   useEffect(() => {
     intervalRef.current = setInterval(refresh, 5000);
     return () => clearInterval(intervalRef.current);
   }, [refresh]);
 
   return (
-    <ActivityLogContext.Provider value={{ entries, refresh }}>
+    <ActivityLogContext.Provider value={{ entries, refresh, clearLog }}>
       {children}
     </ActivityLogContext.Provider>
   );
