@@ -256,14 +256,7 @@ export default function Settings() {
         <div style={{ fontSize: 12, fontStyle: 'italic', color: '#6b7280', marginBottom: 16 }}>
           Passwords must be at least 8 characters
         </div>
-        <SettingsRow label="Two-Factor Authentication" sublabel="Require an extra step at login" noBorder>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ background: 'rgba(107,114,128,0.1)', color: '#6b7280', borderRadius: 20, fontSize: 11, padding: '2px 8px', whiteSpace: 'nowrap' }}>Coming Soon</span>
-            <div style={{ opacity: 0.4, pointerEvents: 'none' }}>
-              <Toggle checked={false} onChange={() => {}} />
-            </div>
-          </div>
-        </SettingsRow>
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" style={btnStyle}
             onMouseEnter={btnEnter} onMouseLeave={btnLeave}
