@@ -5,11 +5,8 @@ import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Do
 import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 
-function GlowCard({ className, style: outerStyle, onClick, children, isActive }) {
+function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
-  const activeStyle = isActive
-    ? { border: '2px solid #2e7d2e', boxShadow: '0 4px 16px rgba(46,125,50,0.2)', transform: 'translateY(-2px)' }
-    : {};
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -18,16 +15,11 @@ function GlowCard({ className, style: outerStyle, onClick, children, isActive })
       className={className}
       style={{
         ...outerStyle,
-        ...activeStyle,
         cursor: onClick ? 'pointer' : undefined,
         transition: 'all 0.25s ease',
-        transform: isHovered ? 'translateY(-3px)' : isActive ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: isHovered
-          ? '0 8px 24px rgba(26,46,26,0.15)'
-          : isActive
-            ? '0 4px 16px rgba(46,125,50,0.2)'
-            : '0 2px 8px rgba(0,0,0,0.05)',
-        border: isActive ? '2px solid #2e7d2e' : '1px solid rgba(0,0,0,0.06)',
+        transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 8px rgba(0,0,0,0.05)',
+        border: '1px solid rgba(0,0,0,0.06)',
       }}
     >
       {children}
@@ -330,7 +322,7 @@ export default function RobotAssignment() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <GlowCard isActive={activeCard === 'total'} onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Robots</div>
@@ -341,18 +333,7 @@ export default function RobotAssignment() {
             </div>
           </div>
         </GlowCard>
-        <GlowCard isActive={activeCard === 'assigned'} onClick={() => handleCardClick('assigned', 'Assigned')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Assigned</div>
-              <div className="text-3xl font-extrabold text-primary">{assigned}</div>
-            </div>
-            <div style={greenIconContainer}>
-              <UserCheck size={18} color="#2e7d2e" />
-            </div>
-          </div>
-        </GlowCard>
-        <GlowCard isActive={activeCard === 'available'} onClick={() => handleCardClick('available', 'Available')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard onClick={() => handleCardClick('available', 'Available')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Available</div>
@@ -363,7 +344,18 @@ export default function RobotAssignment() {
             </div>
           </div>
         </GlowCard>
-        <GlowCard isActive={activeCard === 'attention'} onClick={() => handleCardClick('attention', 'NeedsAttention')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard onClick={() => handleCardClick('assigned', 'Assigned')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold text-secondary mb-2">Assigned</div>
+              <div className="text-3xl font-extrabold text-primary">{assigned}</div>
+            </div>
+            <div style={greenIconContainer}>
+              <UserCheck size={18} color="#2e7d2e" />
+            </div>
+          </div>
+        </GlowCard>
+        <GlowCard onClick={() => handleCardClick('attention', 'NeedsAttention')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Needs Attention</div>
