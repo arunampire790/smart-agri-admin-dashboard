@@ -116,6 +116,7 @@ export default function RobotAssignment() {
   const [showEditModal, setShowEditModal] = useState(null);
   const [genForm, setGenForm] = useState({ model: 'AB-X1000', notes: '' });
   const [editForm, setEditForm] = useState({ farmer: '', status: '' });
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const total = robots.length;
   const assigned = robots.filter((r) => r.status === 'Assigned' || r.status === 'Active').length;
@@ -355,7 +356,7 @@ export default function RobotAssignment() {
             </tr>
           </thead>
           <tbody>
-            {sortedHistory.map((h, i) => (
+            {(showAllHistory ? sortedHistory : sortedHistory.slice(0, 5)).map((h, i) => (
               <tr key={i}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -370,6 +371,15 @@ export default function RobotAssignment() {
             ))}
           </tbody>
         </table>
+        <div className="mt-3 text-center">
+          <button type="button" onClick={() => setShowAllHistory(!showAllHistory)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500, transition: 'color 0.15s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
+          >
+            {showAllHistory ? 'Show less \u2191' : `View all ${sortedHistory.length} entries \u2192`}
+          </button>
+        </div>
       </div>
 
       {/* Generate Robot Modal */}
