@@ -118,7 +118,6 @@ export default function Farms() {
     if (!form.name.trim()) errs.name = 'Farm name is required';
     if (!form.location.trim()) errs.location = 'Location is required';
     if (!form.owner.trim()) errs.owner = 'Owner is required';
-    if (!form.status) errs.status = 'Status is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -446,29 +445,6 @@ export default function Farms() {
                       <Bot size={12} style={{ color: '#9CA3AF' }} /> Assigned Robot
                     </div>
                     <Select options={robotIds} value={form.robot} onChange={(v) => setForm({ ...form, robot: v })} placeholder="Select robot" />
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Activity size={12} style={{ color: '#9CA3AF' }} /> Status
-                    </div>
-                    <div className="flex gap-2">
-                      {statusOpts.map((opt) => (
-                        <button key={opt} type="button"
-                          onClick={() => setForm({ ...form, status: opt })}
-                          style={{ flex: 1, padding: '8px 0', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer',
-                            border: form.status === opt ? '2px solid #4caf50' : '1px solid #D1D5DB',
-                            background: form.status === opt ? 'rgba(76,175,80,0.1)' : '#FFFFFF',
-                            color: form.status === opt ? '#2e7d2e' : '#4B5563',
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#9CA3AF'; e.currentTarget.style.background = '#F9FAFB'; } }}
-                          onMouseLeave={(e) => { if (form.status !== opt) { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = '#FFFFFF'; } }}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                    {errors.status && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.status}</span>}
                   </div>
                 </div>
               </div>
