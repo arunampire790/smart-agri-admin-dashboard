@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
-import { QrCode, User, CheckCircle, AlertTriangle, Bot, Pencil, Trash2, X } from 'lucide-react';
+import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Download, Printer, FileText, Activity } from 'lucide-react';
 import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 
@@ -59,12 +59,12 @@ function Select({ options, value, onChange, placeholder }) {
 
 const statusBadge = (status) => {
   const map = {
-    Active: { dot: '#4caf50', text: '#2e7d2e' },
-    Assigned: { dot: '#22C55E', text: '#166534' },
-    Available: { dot: '#9CA3AF', text: '#6B7280' },
-    Maintenance: { dot: '#F59E0B', text: '#D97706' },
-    Inactive: { dot: '#EF4444', text: '#DC2626' },
-    Lost: { dot: '#DC2626', text: '#991B1B' },
+    Active: { dot: '#16a34a', text: '#16a34a' },
+    Assigned: { dot: '#2e7d2e', text: '#2e7d2e' },
+    Available: { dot: '#6b7280', text: '#6b7280' },
+    Maintenance: { dot: '#f97316', text: '#f97316' },
+    Inactive: { dot: '#dc2626', text: '#dc2626' },
+    Lost: { dot: '#ef4444', text: '#ef4444' },
   };
   const c = map[status] || { dot: '#9CA3AF', text: '#6B7280' };
   return (
@@ -77,11 +77,14 @@ const statusBadge = (status) => {
 
 const actionPill = (action) => {
   const map = {
-    Assigned: { bg: 'rgba(76,175,80,0.12)', color: '#2e7d2e' },
+    Generated: { bg: 'rgba(76,175,80,0.12)', color: '#2e7d2e' },
+    Available: { bg: 'rgba(107,114,128,0.1)', color: '#6b7280' },
+    Assigned: { bg: 'rgba(46,125,50,0.1)', color: '#2e7d2e' },
     Reassigned: { bg: 'rgba(59,130,246,0.12)', color: '#1d4ed8' },
-    Maintenance: { bg: 'rgba(245,158,11,0.12)', color: '#D97706' },
-    Deactivated: { bg: 'rgba(239,68,68,0.12)', color: '#DC2626' },
-    Available: { bg: 'rgba(156,163,175,0.12)', color: '#6B7280' },
+    Unassigned: { bg: 'rgba(107,114,128,0.1)', color: '#6b7280' },
+    Maintenance: { bg: 'rgba(249,115,22,0.1)', color: '#f97316' },
+    Deactivated: { bg: 'rgba(239,68,68,0.1)', color: '#dc2626' },
+    Deleted: { bg: 'rgba(239,68,68,0.1)', color: '#dc2626' },
   };
   const c = map[action] || { bg: 'rgba(156,163,175,0.12)', color: '#6B7280' };
   return (
@@ -115,8 +118,9 @@ export default function RobotAssignment() {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
   const [showEditModal, setShowEditModal] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [genForm, setGenForm] = useState({ model: 'AB-X1000', notes: '' });
-  const [editForm, setEditForm] = useState({ farmer: '', status: '' });
+  const [editForm, setEditForm] = useState({ farmer: '', status: '', model: '', notes: '' });
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [qrCodes, setQrCodes] = useState({});
   const [qrLoading, setQrLoading] = useState(true);
@@ -157,15 +161,22 @@ export default function RobotAssignment() {
   }, [history]);
 
   const openGenerate = () => {
-    // TODO: Replace with real backend API call
-    const nextId = `ROB-${String(robots.length + 1).padStart(4, '0')}`;
+    const maxId = robots.reduce((max, r) => {
+      const num = parseInt(r.id.replace('ROB-', ''), 10);
+      return num > max ? num : max;
+    }, 0);
+    const nextId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
     setGenForm({ model: 'AB-X1000', notes: '' });
     setShowGenerateModal(true);
   };
 
   const handleGenerate = (e) => {
     e.preventDefault();
-    const nextId = `ROB-${String(robots.length + 1).padStart(4, '0')}`;
+    const maxId = robots.reduce((max, r) => {
+      const num = parseInt(r.id.replace('ROB-', ''), 10);
+      return num > max ? num : max;
+    }, 0);
+    const nextId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
     const newRobot = {
       id: nextId,
       model: genForm.model,
@@ -174,30 +185,53 @@ export default function RobotAssignment() {
       registered: new Date().toISOString().slice(0, 10),
     };
     setRobots([...robots, newRobot]);
-    setHistory([{ robotId: nextId, action: 'Available', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    setHistory([{ robotId: nextId, action: 'Generated', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
     setShowGenerateModal(false);
-    // TODO: Replace with real backend API call
   };
 
   const openEdit = (robot) => {
-    setEditForm({ farmer: robot.farmer || '', status: robot.status });
+    setEditForm({ farmer: robot.farmer || '', status: robot.status, model: robot.model, notes: '' });
     setShowEditModal(robot);
   };
 
   const handleEditSave = (e) => {
     e.preventDefault();
+    if (!showEditModal) return;
+    const prevFarmer = showEditModal.farmer;
+    const newFarmer = editForm.farmer || null;
+    const prevStatus = showEditModal.status;
+    let newStatus = editForm.status;
+
+    // Auto-set to Assigned if farmer is selected and status was Available
+    if (newFarmer && newStatus === 'Available') {
+      newStatus = 'Assigned';
+    }
+    // If farmer was unassigned (empty string), treat as removing assignment
+    let historyAction;
+    if (prevFarmer && !newFarmer) {
+      // Removing assignment
+      newStatus = 'Available';
+      historyAction = 'Unassigned';
+    } else if (prevFarmer !== newFarmer && newFarmer) {
+      historyAction = 'Reassigned';
+    } else if (!prevFarmer && newFarmer) {
+      historyAction = 'Assigned';
+    } else {
+      // Status change only
+      historyAction = newStatus;
+    }
+
     setRobots(robots.map((r) =>
       r.id === showEditModal.id
-        ? { ...r, farmer: editForm.farmer || null, status: editForm.status }
+        ? { ...r, farmer: newFarmer, status: newStatus, model: editForm.model }
         : r
     ));
-    setHistory([{ robotId: showEditModal.id, action: editForm.status, farmer: editForm.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    setHistory([{ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
     setShowEditModal(null);
-    // TODO: Replace with real backend API call
   };
 
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') { setShowGenerateModal(false); setShowQRModal(null); setShowEditModal(null); } };
+    const handleKey = (e) => { if (e.key === 'Escape') { setShowGenerateModal(false); setShowQRModal(null); setShowEditModal(null); setDeleteTarget(null); } };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, []);
@@ -208,7 +242,6 @@ export default function RobotAssignment() {
       const errors = {};
       for (const robot of robots) {
         try {
-          // TODO: Replace Robot ID string with a secure token from backend once available
           codes[robot.id] = await QRCodeLib.toDataURL(robot.id, {
             width: 200,
             errorCorrectionLevel: 'M',
@@ -230,7 +263,7 @@ export default function RobotAssignment() {
     if (!qrCodes[robotId]) return;
     const link = document.createElement('a');
     link.href = qrCodes[robotId];
-    link.download = `${robotId}-qr.png`;
+    link.download = `${robotId}-QR.png`;
     link.click();
   };
 
@@ -241,6 +274,19 @@ export default function RobotAssignment() {
       win.document.write(`<img src="${qrCodes[robotId]}" style="display:block;margin:40px auto;max-width:90vw" onload="window.print();window.close()" />`);
       win.document.close();
     }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    setRobots(robots.filter((r) => r.id !== deleteTarget.id));
+    setHistory([{ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    setDeleteTarget(null);
+  };
+
+  const greenIconContainer = {
+    width: '42px', height: '42px', borderRadius: '10px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(46,125,50,0.1)',
   };
 
   return (
@@ -261,8 +307,8 @@ export default function RobotAssignment() {
               <div className="text-xs font-semibold text-secondary mb-2">Total Robots</div>
               <div className="text-3xl font-extrabold text-primary">{total}</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(107,114,128,0.12)' }}>
-              <Bot size={18} color="#6B7280" />
+            <div style={greenIconContainer}>
+              <Bot size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -272,8 +318,8 @@ export default function RobotAssignment() {
               <div className="text-xs font-semibold text-secondary mb-2">Assigned</div>
               <div className="text-3xl font-extrabold text-primary">{assigned}</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(46,125,50,0.12)' }}>
-              <User size={18} color="#2e7d2e" />
+            <div style={greenIconContainer}>
+              <UserCheck size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -283,8 +329,8 @@ export default function RobotAssignment() {
               <div className="text-xs font-semibold text-secondary mb-2">Available</div>
               <div className="text-3xl font-extrabold text-primary">{available}</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.12)' }}>
-              <CheckCircle size={18} color="#3b82f6" />
+            <div style={greenIconContainer}>
+              <CheckCircle size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -294,8 +340,8 @@ export default function RobotAssignment() {
               <div className="text-xs font-semibold text-secondary mb-2">Needs Attention</div>
               <div className="text-3xl font-extrabold text-primary">{needsAttention}</div>
             </div>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.12)' }}>
-              <AlertTriangle size={18} color="#F59E0B" />
+            <div style={greenIconContainer}>
+              <AlertTriangle size={18} color="#f97316" />
             </div>
           </div>
         </GlowCard>
@@ -312,8 +358,16 @@ export default function RobotAssignment() {
           {tabs.map((tab) => (
             <div
               key={tab.key}
-              className={`pb-2 text-sm cursor-pointer border-b-2 -mb-px transition-colors ${activeTab === tab.key ? 'text-brand border-brand font-medium' : 'text-text-secondary border-transparent'}`}
               onClick={() => setActiveTab(tab.key)}
+              style={{
+                paddingBottom: '8px', fontSize: '13px', cursor: 'pointer',
+                borderBottom: activeTab === tab.key ? '2px solid #2e7d2e' : '2px solid transparent',
+                marginBottom: '-1px', transition: 'color 0.15s ease, border-color 0.15s ease',
+                color: activeTab === tab.key ? '#2e7d2e' : '#6b7280',
+                fontWeight: activeTab === tab.key ? 600 : 400,
+              }}
+              onMouseEnter={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = '#1a3a2a'; }}
+              onMouseLeave={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = '#6b7280'; }}
             >
               {tab.label}
             </div>
@@ -327,12 +381,12 @@ export default function RobotAssignment() {
             <thead>
               <tr>
                 <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 120 }}>Robot ID</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 90 }}>QR Code</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Farmer Assigned</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 130 }}>Model</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 75 }}>QR Code</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 180 }}>Farmer Assigned</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 110 }}>Model</th>
                 <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 140 }}>Status</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 140 }}>Registered</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 90 }}>Actions</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 120 }}>Registered</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 80 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -358,7 +412,7 @@ export default function RobotAssignment() {
                       />
                     )}
                   </td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 0 }}>
                     {r.farmer
                       ? <span className="font-medium text-primary">{r.farmer}</span>
                       : <span className="italic text-text-secondary">— Unassigned —</span>
@@ -372,10 +426,7 @@ export default function RobotAssignment() {
                       <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <Pencil size={18} />
                       </button>
-                      <button title="Remove" onClick={() => {
-                        setRobots(robots.filter((x) => x.id !== r.id));
-                        setHistory([{ robotId: r.id, action: 'Deactivated', farmer: r.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
-                      }} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                      <button title="Delete Robot" onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -433,8 +484,8 @@ export default function RobotAssignment() {
       {/* Generate Robot Modal */}
       {showGenerateModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowGenerateModal(false)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+          <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)] border border-white/50" onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -462,7 +513,7 @@ export default function RobotAssignment() {
                       <Bot size={12} style={{ color: '#9CA3AF' }} /> Robot ID
                     </div>
                     <div style={{ position: 'relative' }}>
-                      <input value={`ROB-${String(robots.length + 1).padStart(4, '0')}`} disabled
+                      <input value={`ROB-${String(Math.max(...robots.map(r => parseInt(r.id.replace('ROB-', ''), 10)), 0) + 1).padStart(4, '0')}`} disabled
                         style={{ ...inputBase, background: '#F3F4F6', color: '#6B7280', cursor: 'not-allowed' }}
                       />
                       <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '10px', color: '#9CA3AF' }}>Auto-generated</span>
@@ -476,7 +527,7 @@ export default function RobotAssignment() {
                   </div>
                   <div style={{ gridColumn: 'span 2' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-note" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Notes
+                      <FileText size={12} style={{ color: '#9CA3AF' }} /> Notes
                     </div>
                     <input value={genForm.notes} onChange={(e) => setGenForm({ ...genForm, notes: e.target.value })} placeholder="Optional notes"
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
@@ -509,12 +560,12 @@ export default function RobotAssignment() {
       {/* View QR Code Modal */}
       {showQRModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowQRModal(null)}>
-          <div className="w-[400px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', width: '400px', maxWidth: 'calc(100vw-32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <QrCode size={20} color="#ffffff" />
+                  <Download size={20} color="#ffffff" />
                 </div>
                 <div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>QR Code — {showQRModal.id}</div>
@@ -536,41 +587,42 @@ export default function RobotAssignment() {
               )}
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginTop: '16px' }}>{showQRModal.id}</div>
               <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || '— Unassigned —'}</div>
+              <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{showQRModal.model} &middot; {showQRModal.status}</div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
               <button type="button" onClick={() => handleDownloadQR(showQRModal.id)}
-                style={{ background: 'transparent', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
-                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              ><i className="ph ph-download" /> Download QR</button>
+                style={{ background: '#2e7d2e', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              ><Download size={14} /> Download QR</button>
               <button type="button" onClick={() => handlePrintQR(showQRModal.id)}
                 style={{ background: 'transparent', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
                 onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                 onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              ><i className="ph ph-printer" /> Print QR</button>
+              ><Printer size={14} /> Print QR</button>
             </div>
           </div>
         </div>,
         document.body
       )}
 
-      {/* Edit Assignment Modal */}
+      {/* Edit Robot Assignment Modal */}
       {showEditModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowEditModal(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+          <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Pencil size={20} color="#ffffff" />
+                  <UserCheck size={20} color="#ffffff" />
                 </div>
                 <div>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit Robot Assignment</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Reassign or update this robot's status</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{showEditModal.id}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowEditModal(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -581,33 +633,37 @@ export default function RobotAssignment() {
             <form onSubmit={handleEditSave}>
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                  <Pencil size={15} color="#4caf50" />
+                  <Activity size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assignment Details</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Robot ID
+                      <User size={12} style={{ color: '#9CA3AF' }} /> Farmer
                     </div>
-                    <div style={{ ...inputBase, background: '#F3F4F6', color: '#6B7280', cursor: 'not-allowed', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: '14px', height: '40px' }}>{showEditModal.id}</div>
+                    <Select options={farmerNames.length ? ['', ...farmerNames] : ['']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder="Select a farmer" />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} style={{ color: '#9CA3AF' }} /> Current Farmer
-                    </div>
-                    <div style={{ ...inputBase, background: '#F3F4F6', color: '#6B7280', cursor: 'not-allowed', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: '14px', height: '40px' }}>{showEditModal.farmer || '— Unassigned —'}</div>
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} style={{ color: '#9CA3AF' }} /> Assign To
-                    </div>
-                    <Select options={farmerNames.length ? farmerNames : ['—']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder="Select farmer" />
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-circle" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Status
+                      <Activity size={12} style={{ color: '#9CA3AF' }} /> Status
                     </div>
                     <Select options={statusOptions} value={editForm.status} onChange={(v) => setEditForm({ ...editForm, status: v })} placeholder="Select status" />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Model
+                    </div>
+                    <input value={editForm.model} onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
+                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <FileText size={12} style={{ color: '#9CA3AF' }} /> Notes
+                    </div>
+                    <input value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Optional notes"
+                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                    />
                   </div>
                 </div>
               </div>
@@ -628,6 +684,35 @@ export default function RobotAssignment() {
                 ><i className="ph ph-check" /> Save Assignment</button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Robot Confirmation Modal */}
+      {deleteTarget && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setDeleteTarget(null)}>
+          <div className="rounded-[16px] p-6 shadow-[0_8px_40px_rgba(0,0,0,0.15)] w-[400px]" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff' }}>
+            <div className="text-lg font-bold text-primary mb-2">Delete Robot?</div>
+            <div className="text-sm text-text-secondary mb-6">
+              Are you sure you want to delete <strong className="text-primary font-medium">{deleteTarget.id}</strong>? This action cannot be undone.
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteTarget(null)}
+                style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >Cancel</button>
+              <button onClick={handleDeleteConfirm}
+                style={{ background: '#FEE2E2', color: '#DC2626', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FCA5A5'; e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(220,38,38,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
+              ><Trash2 size={14} /> Delete Robot</button>
+            </div>
           </div>
         </div>,
         document.body
