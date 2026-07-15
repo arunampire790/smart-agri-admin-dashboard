@@ -323,25 +323,25 @@ export default function RobotAssignment() {
         {filteredRobots.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No robots found matching your criteria.</div>
         ) : (
-          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
+          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: 120 }} />
-              <col style={{ width: 80 }} />
-              <col />
-              <col style={{ width: 100 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: '25%' }} />
               <col style={{ width: 130 }} />
-              <col style={{ width: 120 }} />
-              <col style={{ width: 80 }} />
+              <col style={{ width: 140 }} />
+              <col style={{ width: 140 }} />
+              <col style={{ width: 90 }} />
             </colgroup>
             <thead>
               <tr>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Robot ID</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>QR Code</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farmer Assigned</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Model</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Status</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Registered</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Actions</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Robot ID</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>QR Code</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Farmer Assigned</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Model</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Status</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Registered</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -351,33 +351,33 @@ export default function RobotAssignment() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-5 py-3 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.id}</td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                  <td className="px-5 py-3 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{r.id}</td>
+                  <td className="px-5 py-3 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
                     {qrLoading ? (
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6' }} />
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6', margin: '0 auto' }} />
                     ) : qrErrors[r.id] ? (
                       <span className="text-[11px] text-danger-text">⚠ Failed to generate</span>
                     ) : (
                       <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
                         title={`View QR Code for ${r.id}`}
                         onClick={() => setShowQRModal(r)}
-                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease' }}
+                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease', margin: '0 auto' }}
                         onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
                       />
                     )}
                   </td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
                     {r.farmer
                       ? <span className="font-medium text-primary">{r.farmer}</span>
                       : <span className="italic text-text-secondary">— Unassigned —</span>
                     }
                   </td>
-                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.model}</td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{statusBadge(r.status)}</td>
-                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.registered}</td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <div className="flex gap-3 items-center">
+                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>{r.model}</td>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{statusBadge(r.status)}</td>
+                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{r.registered}</td>
+                  <td className="px-5 py-3 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
+                    <div className="flex gap-3 items-center justify-center">
                       <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <Pencil size={18} />
                       </button>
