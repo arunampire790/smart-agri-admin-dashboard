@@ -4,6 +4,7 @@ import { useUsers } from '../../context/UserContext';
 import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Download, Printer, FileText, Activity } from 'lucide-react';
 import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
+import UserProfileModal from '../components/UserProfileModal';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -117,6 +118,7 @@ export default function RobotAssignment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeCard, setActiveCard] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
   const [showEditModal, setShowEditModal] = useState(null);
@@ -440,7 +442,11 @@ export default function RobotAssignment() {
                   </td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.farmer
-                      ? <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{r.farmer}</span>
+                      ? <span onClick={() => { const found = users.find(u => u.name === r.farmer); if (found) setProfileUser(found); }}
+                          style={{ cursor: 'pointer', fontWeight: 600, color: '#1a1a1a', transition: 'color 0.15s ease' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#1a1a1a'; }}
+                        >{r.farmer}</span>
                       : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
                     }
                   </td>
@@ -753,6 +759,7 @@ export default function RobotAssignment() {
         </div>,
         document.body
       )}
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }
