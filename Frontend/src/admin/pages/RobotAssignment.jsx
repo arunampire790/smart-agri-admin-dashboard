@@ -70,7 +70,7 @@ const statusBadge = (status) => {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.dot, display: 'inline-block', flexShrink: 0 }} />
-      <span style={{ fontSize: '13px', fontWeight: 500, color: c.text }}>{status}</span>
+      <span style={{ fontSize: '14px', fontWeight: 500, color: c.text }}>{status}</span>
     </span>
   );
 };
@@ -354,13 +354,13 @@ export default function RobotAssignment() {
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by ID, farmer, or status..." aria-label="Search robots" className={glassInput} />
         </div>
 
-        <div className="flex gap-6 mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+        <div className="flex mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           {tabs.map((tab) => (
             <div
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               style={{
-                paddingBottom: '8px', fontSize: '13px', cursor: 'pointer',
+                padding: '8px 4px', fontSize: '14px', cursor: 'pointer', marginRight: '20px',
                 borderBottom: activeTab === tab.key ? '2px solid #2e7d2e' : '2px solid transparent',
                 marginBottom: '-1px', transition: 'color 0.15s ease, border-color 0.15s ease',
                 color: activeTab === tab.key ? '#2e7d2e' : '#6b7280',
@@ -380,13 +380,13 @@ export default function RobotAssignment() {
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
             <thead>
               <tr>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 120 }}>Robot ID</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 75 }}>QR Code</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 180 }}>Farmer Assigned</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 110 }}>Model</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 140 }}>Status</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 120 }}>Registered</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 80 }}>Actions</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>Robot ID</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>QR Code</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>Farmer Assigned</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>Model</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>Status</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>Registered</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -396,38 +396,52 @@ export default function RobotAssignment() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-5 py-3 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{r.id}</td>
-                  <td className="px-5 py-3 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>{r.id}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {qrLoading ? (
                       <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6', margin: '0 auto' }} />
                     ) : qrErrors[r.id] ? (
-                      <span className="text-[11px] text-danger-text">⚠ Failed to generate</span>
+                      <span style={{ fontSize: '13px', color: '#DC2626' }}>⚠ Failed</span>
                     ) : (
                       <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
                         title={`View QR Code for ${r.id}`}
                         onClick={() => setShowQRModal(r)}
-                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease', margin: '0 auto' }}
+                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', margin: '0 auto' }}
                         onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
                       />
                     )}
                   </td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 0 }}>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.farmer
-                      ? <span className="font-medium text-primary">{r.farmer}</span>
-                      : <span className="italic text-text-secondary">— Unassigned —</span>
+                      ? <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{r.farmer}</span>
+                      : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
                     }
                   </td>
-                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>{r.model}</td>
-                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{statusBadge(r.status)}</td>
-                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>{r.registered}</td>
-                  <td className="px-5 py-3 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.12)', verticalAlign: 'middle' }}>
-                    <div className="flex gap-3 items-center justify-center">
-                      <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <Pencil size={18} />
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.model}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {statusBadge(r.status)}
+                  </td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.registered}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div className="flex items-center justify-center" style={{ gap: '12px' }}>
+                      <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#1a1a1a'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                      >
+                        <Pencil size={16} />
                       </button>
-                      <button title="Delete Robot" onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
-                        <Trash2 size={18} />
+                      <button title="Delete Robot" onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#DC2626'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
