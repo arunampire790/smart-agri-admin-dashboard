@@ -12,7 +12,7 @@ export default function AdminLayout() {
   const [employeesOpen, setEmployeesOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
-  const isRobotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors';
+  const isRobotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors' || location.pathname === '/admin/robot-assignment';
   const isEmployeesActive = location.pathname === '/admin/employees' || location.pathname === '/admin/activity-log';
 
   const navItemBase = {
@@ -132,17 +132,28 @@ export default function AdminLayout() {
                 }}
               />
             </div>
-            {robotsOpen && (
-              <div
-                onClick={() => navigate('/admin/sensors')}
-                className={isActive('/admin/sensors') ? 'nav-active-indicator' : undefined}
-                style={isActive('/admin/sensors') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
-                onMouseEnter={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
-                onMouseLeave={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
-              >
-                Robot Sensor Details
-              </div>
-            )}
+              {robotsOpen && (
+                <>
+                  <div
+                    onClick={() => navigate('/admin/sensors')}
+                    className={isActive('/admin/sensors') ? 'nav-active-indicator' : undefined}
+                    style={isActive('/admin/sensors') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
+                    onMouseEnter={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
+                    onMouseLeave={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
+                  >
+                    Robot Sensor Details
+                  </div>
+                  <div
+                    onClick={() => navigate('/admin/robot-assignment')}
+                    className={isActive('/admin/robot-assignment') ? 'nav-active-indicator' : undefined}
+                    style={isActive('/admin/robot-assignment') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
+                    onMouseEnter={(e) => { if (!isActive('/admin/robot-assignment')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
+                    onMouseLeave={(e) => { if (!isActive('/admin/robot-assignment')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
+                  >
+                    Robot Assignment
+                  </div>
+                </>
+              )}
           </div>
 
           <div

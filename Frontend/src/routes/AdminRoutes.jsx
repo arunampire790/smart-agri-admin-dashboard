@@ -11,6 +11,7 @@ import Analytics from '../admin/pages/Analytics';
 import Settings from '../admin/pages/Settings';
 import Employees from '../admin/pages/Employees';
 import SensorsDetails from '../admin/pages/SensorsDetails';
+import RobotAssignment from '../admin/pages/RobotAssignment';
 import ActivityLog from '../admin/components/ActivityLog';
 
 export default function AdminRoutes() {
@@ -27,6 +28,7 @@ export default function AdminRoutes() {
         <Route path="settings" element={<Settings />} />
         <Route path="employees" element={<Employees />} />
         <Route path="sensors" element={<SensorsDetails />} />
+        <Route path="robot-assignment" element={<RobotAssignment />} />
         <Route path="activity-log" element={<ActivityLog />} />
       </Route>
     </Routes>
