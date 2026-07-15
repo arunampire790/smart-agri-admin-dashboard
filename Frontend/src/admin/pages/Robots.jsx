@@ -32,13 +32,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
 
 const models = ['AB-X1000', 'AB-X2000', 'AB-X3000'];
 const farmNames = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm', 'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch'];
-const statuses = ['Active', 'Idle', 'Offline'];
-
-const statusOpts = {
-  Active: { stCls: 'bg-brand-light text-brand-dark pill' },
-  Idle: { stCls: 'bg-warning-bg text-warning-text pill' },
-  Offline: { stCls: 'bg-danger-bg text-danger-text pill' },
-};
+const statuses = ['Active', 'Idle', 'Offline', 'Maintenance'];
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const labelClass = "text-xs font-medium text-primary";
@@ -133,9 +127,9 @@ function FormFields({ form, setForm, errors, userNames }) {
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-            <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Owner
+            <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Farmer
           </div>
-          <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="No users available" />
+          <Select options={userNames} value={form.farmer} onChange={(v) => setForm({ ...form, farmer: v })} placeholder="No users available" />
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -156,21 +150,21 @@ function FormFields({ form, setForm, errors, userNames }) {
 
 export default function Robots() {
   const navigate = useNavigate();
-  const { robots, updateRobot, removeRobot } = useRobots();
+  const { robots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const { users } = useUsers();
   const { farms, addFarm, updateFarm } = useFarms();
   const { currentUser } = useAuth();
   const userNames = users.length ? users.map((u) => u.name) : [];
-  const defaultOwner = userNames.length ? userNames[0] : '';
+  const defaultFarmer = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
-  const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', owner: defaultOwner, farm: 'Green Valley Farm', status: 'Idle' });
+  const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farmer: defaultFarmer, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
-  const openEdit = (robot) => { setForm({ name: robot.name, id: robot.id, model: robot.model, owner: robot.owner || '', farm: robot.farm, status: robot.status }); setErrors({}); setEditRobot(robot); };
+  const openEdit = (robot) => { setForm({ name: robot.name, id: robot.id, model: robot.model, farmer: robot.farmer || '', farm: robot.farm, status: robot.status }); setErrors({}); setEditRobot(robot); };
   const openDelete = (robot) => setDeleteRobot(robot);
 
   const validate = () => {
@@ -184,22 +178,24 @@ export default function Robots() {
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    updateRobot(editRobot, { name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, owner: form.owner, status: form.status, stCls: statusOpts[form.status].stCls });
+    updateRobot(editRobot, { name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, farmer: form.farmer, status: form.status });
     const targetFarm = farms.find((f) => f.name === form.farm);
-    if (targetFarm) { updateFarm(targetFarm, { owner: form.owner }); }
-    else { addFarm({ name: form.farm, owner: form.owner, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
+    if (targetFarm) { updateFarm(targetFarm, { owner: form.farmer }); }
+    else { addFarm({ name: form.farm, owner: form.farmer, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Status: ${form.status}` });
     setEditRobot(null);
   };
 
   const handleDelete = () => {
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Robot', target: deleteRobot.name, details: `ID: ${deleteRobot.id}` });
+    addHistoryEntry({ robotId: deleteRobot.id, action: 'Deleted', farmer: deleteRobot.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     removeRobot(deleteRobot); setDeleteRobot(null);
   };
 
   const active = robots.filter((r) => r.status === 'Active').length;
   const idle = robots.filter((r) => r.status === 'Idle').length;
-  const offline = robots.filter((r) => r.status === 'Offline').length;
+  const maintenance = robots.filter((r) => r.status === 'Maintenance').length;
+  const offline = robots.filter((r) => r.status === 'Offline' || r.status === 'Inactive' || r.status === 'Lost').length;
 
   const filteredRobots = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
@@ -207,7 +203,7 @@ export default function Robots() {
     return robots.filter((r) =>
       (r.name || '').toLowerCase().includes(term) ||
       (r.id || '').toLowerCase().includes(term) ||
-      (r.owner || '').toLowerCase().includes(term) ||
+      (r.farmer || '').toLowerCase().includes(term) ||
       (r.farm || '').toLowerCase().includes(term) ||
       (r.model || '').toLowerCase().includes(term)
     );
@@ -251,7 +247,7 @@ export default function Robots() {
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Maintenance</div>
-              <div className="text-3xl font-extrabold text-primary">0</div>
+              <div className="text-3xl font-extrabold text-primary">{maintenance}</div>
               <div className="text-[10px] text-text-secondary mt-1">N/A</div>
             </div>
             <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -276,7 +272,7 @@ export default function Robots() {
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by name, ID, owner, farm, or model..." aria-label="Search robots" className={inputClass} />
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by name, ID, farmer, farm, or model..." aria-label="Search robots" className={inputClass} />
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
           <colgroup>
@@ -290,7 +286,7 @@ export default function Robots() {
             <col style={{ width: '8%' }} />
           </colgroup>
           <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Owner</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Actions</th></tr>
+            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Name</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>ID</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farmer</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Farm</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Model</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Battery</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Status</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Actions</th></tr>
           </thead>
           <tbody>
             {filteredRobots.length === 0 ? (
@@ -304,11 +300,15 @@ export default function Robots() {
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <span onClick={() => { const u = users.find((x) => x.name === r.owner); if (u) setProfileUser(u); }}
-                    style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
-                  >{r.owner}</span>
+                  {r.farmer ? (
+                    <span onClick={() => { const u = users.find((x) => x.name === r.farmer); if (u) setProfileUser(u); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    >{r.farmer}</span>
+                  ) : (
+                    <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
+                  )}
                 </td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.farm}</td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
@@ -321,8 +321,10 @@ export default function Robots() {
                   </div>
                 </td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: r.status === 'Active' ? '#065F46' : r.status === 'Idle' ? '#92400E' : '#991B1B' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Idle' ? '#F59E0B' : '#EF4444', flexShrink: 0 }} />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600,
+                    color: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#92400E' : r.status === 'Maintenance' ? '#92400E' : r.status === 'Inactive' ? '#991B1B' : '#991B1B' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%',
+                      background: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#F59E0B' : r.status === 'Maintenance' ? '#f97316' : r.status === 'Inactive' ? '#dc2626' : '#ef4444', flexShrink: 0 }} />
                     {r.status}
                   </span>
                 </td>

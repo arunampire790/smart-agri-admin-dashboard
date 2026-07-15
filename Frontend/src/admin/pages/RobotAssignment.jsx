@@ -1,8 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
+import { useRobots } from '../../context/RobotContext';
 import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Download, Printer, FileText, Activity } from 'lucide-react';
-import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
+import { modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 import UserProfileModal from '../components/UserProfileModal';
 
@@ -111,10 +112,8 @@ const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 
 export default function RobotAssignment() {
   const { users } = useUsers();
+  const { robots, history, addRobot, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
-
-  const [robots, setRobots] = useState(mockRobots);
-  const [history, setHistory] = useState(mockHistory);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeCard, setActiveCard] = useState(null);
@@ -201,14 +200,17 @@ export default function RobotAssignment() {
     const nextId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
     const newRobot = {
       id: nextId,
+      name: `Robot ${nextId}`,
       model: genForm.model,
       farmer: null,
       status: 'Available',
+      farm: '',
+      battery: 0,
       registered: new Date().toISOString().slice(0, 10),
       notes: genForm.notes,
     };
-    setRobots([...robots, newRobot]);
-    setHistory([{ robotId: nextId, action: 'Generated', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    addRobot(newRobot);
+    addHistoryEntry({ robotId: nextId, action: 'Generated', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setShowGenerateModal(false);
   };
 
@@ -244,12 +246,8 @@ export default function RobotAssignment() {
       historyAction = newStatus;
     }
 
-    setRobots(robots.map((r) =>
-      r.id === showEditModal.id
-        ? { ...r, farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes }
-        : r
-    ));
-    setHistory([{ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    updateRobot(showEditModal, { farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes });
+    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setShowEditModal(null);
   };
 
@@ -301,8 +299,8 @@ export default function RobotAssignment() {
 
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
-    setRobots(robots.filter((r) => r.id !== deleteTarget.id));
-    setHistory([{ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
+    removeRobot(deleteTarget);
+    addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setDeleteTarget(null);
   };
 
@@ -455,6 +453,9 @@ export default function RobotAssignment() {
                   </td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {statusBadge(r.status)}
+                    {(r.status === 'Active' || r.status === 'Assigned') && r.battery > 0 && (
+                      <span style={{ fontSize: '12px', color: '#9CA3AF', marginLeft: '8px' }}>🔋{r.battery}%</span>
+                    )}
                   </td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.registered}</span>
