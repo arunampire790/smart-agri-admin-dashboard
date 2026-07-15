@@ -5,8 +5,11 @@ import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Do
 import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 
-function GlowCard({ className, style: outerStyle, onClick, children }) {
+function GlowCard({ className, style: outerStyle, onClick, children, isActive }) {
   const [isHovered, setIsHovered] = useState(false);
+  const activeStyle = isActive
+    ? { border: '2px solid #2e7d2e', boxShadow: '0 4px 16px rgba(46,125,50,0.2)', transform: 'translateY(-2px)' }
+    : {};
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -15,10 +18,16 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
       className={className}
       style={{
         ...outerStyle,
+        ...activeStyle,
         cursor: onClick ? 'pointer' : undefined,
         transition: 'all 0.25s ease',
-        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
+        transform: isHovered ? 'translateY(-3px)' : isActive ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered
+          ? '0 8px 24px rgba(26,46,26,0.15)'
+          : isActive
+            ? '0 4px 16px rgba(46,125,50,0.2)'
+            : '0 2px 8px rgba(0,0,0,0.05)',
+        border: isActive ? '2px solid #2e7d2e' : '1px solid rgba(0,0,0,0.06)',
       }}
     >
       {children}
@@ -114,7 +123,8 @@ export default function RobotAssignment() {
   const [robots, setRobots] = useState(mockRobots);
   const [history, setHistory] = useState(mockHistory);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeCard, setActiveCard] = useState(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
   const [showEditModal, setShowEditModal] = useState(null);
@@ -131,6 +141,19 @@ export default function RobotAssignment() {
   const available = robots.filter((r) => r.status === 'Available').length;
   const needsAttention = robots.filter((r) => r.status === 'Maintenance' || r.status === 'Lost' || r.status === 'Inactive').length;
 
+  const handleCardClick = (card, filter) => {
+    setActiveCard(card);
+    setActiveFilter(filter);
+  };
+
+  const handleTabClick = (key) => {
+    setActiveCard(null);
+    const map = { all: 'All', available: 'Available', assigned: 'Assigned', active: 'Active', maintenance: 'Maintenance', lost: 'Lost' };
+    setActiveFilter(map[key] || key);
+  };
+
+  const activeTabKey = activeFilter === 'NeedsAttention' ? null : activeFilter.toLowerCase();
+
   const tabs = useMemo(() => [
     { key: 'all', label: `All (${total})` },
     { key: 'available', label: `Available (${robots.filter(r => r.status === 'Available').length})` },
@@ -142,8 +165,12 @@ export default function RobotAssignment() {
 
   const filteredRobots = useMemo(() => {
     let result = robots;
-    if (activeTab !== 'all') {
-      result = result.filter((r) => r.status.toLowerCase() === activeTab);
+    if (activeFilter === 'NeedsAttention') {
+      result = result.filter((r) => ['Maintenance', 'Lost', 'Inactive'].includes(r.status));
+    } else if (activeFilter === 'Assigned') {
+      result = result.filter((r) => r.farmer !== null && r.farmer !== '');
+    } else if (activeFilter !== 'All') {
+      result = result.filter((r) => r.status === activeFilter);
     }
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
@@ -155,7 +182,7 @@ export default function RobotAssignment() {
       );
     }
     return result;
-  }, [robots, activeTab, searchTerm]);
+  }, [robots, activeFilter, searchTerm]);
 
   const sortedHistory = useMemo(() => {
     return [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -303,7 +330,7 @@ export default function RobotAssignment() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard isActive={activeCard === 'total'} onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Total Robots</div>
@@ -314,7 +341,7 @@ export default function RobotAssignment() {
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard isActive={activeCard === 'assigned'} onClick={() => handleCardClick('assigned', 'Assigned')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Assigned</div>
@@ -325,7 +352,7 @@ export default function RobotAssignment() {
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard isActive={activeCard === 'available'} onClick={() => handleCardClick('available', 'Available')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Available</div>
@@ -336,7 +363,7 @@ export default function RobotAssignment() {
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+        <GlowCard isActive={activeCard === 'attention'} onClick={() => handleCardClick('attention', 'NeedsAttention')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">Needs Attention</div>
@@ -352,28 +379,31 @@ export default function RobotAssignment() {
       {/* Robot Registry Table */}
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
-          <div className="text-sm font-semibold text-primary mb-3">All Robots ({total})</div>
+          <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by ID, farmer, or status..." aria-label="Search robots" className={glassInput} />
         </div>
 
         <div className="flex mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-          {tabs.map((tab) => (
-            <div
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '8px 4px', fontSize: '14px', cursor: 'pointer', marginRight: '20px',
-                borderBottom: activeTab === tab.key ? '2px solid #2e7d2e' : '2px solid transparent',
-                marginBottom: '-1px', transition: 'color 0.15s ease, border-color 0.15s ease',
-                color: activeTab === tab.key ? '#2e7d2e' : '#6b7280',
-                fontWeight: activeTab === tab.key ? 600 : 400,
-              }}
-              onMouseEnter={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = '#1a3a2a'; }}
-              onMouseLeave={(e) => { if (activeTab !== tab.key) e.currentTarget.style.color = '#6b7280'; }}
-            >
-              {tab.label}
-            </div>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = activeTabKey === tab.key;
+            return (
+              <div
+                key={tab.key}
+                onClick={() => handleTabClick(tab.key)}
+                style={{
+                  padding: '8px 4px', fontSize: '14px', cursor: 'pointer', marginRight: '20px',
+                  borderBottom: isActive ? '2px solid #2e7d2e' : '2px solid transparent',
+                  marginBottom: '-1px', transition: 'color 0.15s ease, border-color 0.15s ease',
+                  color: isActive ? '#2e7d2e' : '#6b7280',
+                  fontWeight: isActive ? 600 : 400,
+                }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = '#1a3a2a'; }}
+                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = '#6b7280'; }}
+              >
+                {tab.label}
+              </div>
+            );
+          })}
         </div>
 
         {filteredRobots.length === 0 ? (
