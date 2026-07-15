@@ -77,7 +77,7 @@ const statusBadge = (status) => {
 
 const actionPill = (action) => {
   const map = {
-    Generated: { bg: 'rgba(76,175,80,0.12)', color: '#2e7d2e' },
+    Generated: { bg: 'rgba(59,130,246,0.1)', color: '#3b82f6' },
     Available: { bg: 'rgba(107,114,128,0.1)', color: '#6b7280' },
     Assigned: { bg: 'rgba(46,125,50,0.1)', color: '#2e7d2e' },
     Reassigned: { bg: 'rgba(59,130,246,0.12)', color: '#1d4ed8' },
@@ -127,9 +127,9 @@ export default function RobotAssignment() {
   const [qrErrors, setQrErrors] = useState({});
 
   const total = robots.length;
-  const assigned = robots.filter((r) => r.status === 'Assigned' || r.status === 'Active').length;
+  const assigned = robots.filter((r) => r.farmer !== null && r.farmer !== '').length;
   const available = robots.filter((r) => r.status === 'Available').length;
-  const needsAttention = robots.filter((r) => r.status === 'Maintenance' || r.status === 'Lost').length;
+  const needsAttention = robots.filter((r) => r.status === 'Maintenance' || r.status === 'Lost' || r.status === 'Inactive').length;
 
   const tabs = useMemo(() => [
     { key: 'all', label: `All (${total})` },
@@ -150,7 +150,8 @@ export default function RobotAssignment() {
       result = result.filter((r) =>
         r.id.toLowerCase().includes(q) ||
         (r.farmer || '').toLowerCase().includes(q) ||
-        r.status.toLowerCase().includes(q)
+        r.status.toLowerCase().includes(q) ||
+        (r.model || '').toLowerCase().includes(q)
       );
     }
     return result;
@@ -183,6 +184,7 @@ export default function RobotAssignment() {
       farmer: null,
       status: 'Available',
       registered: new Date().toISOString().slice(0, 10),
+      notes: genForm.notes,
     };
     setRobots([...robots, newRobot]);
     setHistory([{ robotId: nextId, action: 'Generated', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
@@ -190,7 +192,7 @@ export default function RobotAssignment() {
   };
 
   const openEdit = (robot) => {
-    setEditForm({ farmer: robot.farmer || '', status: robot.status, model: robot.model, notes: '' });
+    setEditForm({ farmer: robot.farmer || '', status: robot.status, model: robot.model, notes: robot.notes || '' });
     setShowEditModal(robot);
   };
 
@@ -198,7 +200,7 @@ export default function RobotAssignment() {
     e.preventDefault();
     if (!showEditModal) return;
     const prevFarmer = showEditModal.farmer;
-    const newFarmer = editForm.farmer || null;
+    const newFarmer = (editForm.farmer && editForm.farmer !== '— Remove Assignment —') ? editForm.farmer : null;
     const prevStatus = showEditModal.status;
     let newStatus = editForm.status;
 
@@ -223,7 +225,7 @@ export default function RobotAssignment() {
 
     setRobots(robots.map((r) =>
       r.id === showEditModal.id
-        ? { ...r, farmer: newFarmer, status: newStatus, model: editForm.model }
+        ? { ...r, farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes }
         : r
     ));
     setHistory([{ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
@@ -655,7 +657,7 @@ export default function RobotAssignment() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} style={{ color: '#9CA3AF' }} /> Farmer
                     </div>
-                    <Select options={farmerNames.length ? ['', ...farmerNames] : ['']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder="Select a farmer" />
+                    <Select options={farmerNames.length ? ['— Remove Assignment —', ...farmerNames] : ['— Remove Assignment —']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder="Select a farmer" />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -667,9 +669,7 @@ export default function RobotAssignment() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Bot size={12} style={{ color: '#9CA3AF' }} /> Model
                     </div>
-                    <input value={editForm.model} onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                    />
+                    <Select options={modelOptions} value={editForm.model} onChange={(v) => setEditForm({ ...editForm, model: v })} placeholder="Select model" />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
