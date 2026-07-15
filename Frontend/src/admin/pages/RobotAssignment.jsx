@@ -324,24 +324,15 @@ export default function RobotAssignment() {
           <div className="py-12 text-center text-text-secondary text-sm">No robots found matching your criteria.</div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: 120 }} />
-              <col style={{ width: 90 }} />
-              <col style={{ width: '25%' }} />
-              <col style={{ width: 130 }} />
-              <col style={{ width: 140 }} />
-              <col style={{ width: 140 }} />
-              <col style={{ width: 90 }} />
-            </colgroup>
             <thead>
               <tr>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Robot ID</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>QR Code</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 120 }}>Robot ID</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 90 }}>QR Code</th>
                 <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Farmer Assigned</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Model</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Status</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Registered</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>Actions</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 130 }}>Model</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 140 }}>Status</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-left" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 140 }}>Registered</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap', width: 90 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
