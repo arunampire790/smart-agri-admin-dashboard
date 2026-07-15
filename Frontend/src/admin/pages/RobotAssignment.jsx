@@ -382,7 +382,7 @@ export default function RobotAssignment() {
               <tr>
                 <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>Robot ID</th>
                 <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>QR Code</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>Farmer Assigned</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>Farmer Assigned</th>
                 <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>Model</th>
                 <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>Status</th>
                 <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>Registered</th>
@@ -414,7 +414,7 @@ export default function RobotAssignment() {
                       />
                     )}
                   </td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.farmer
                       ? <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{r.farmer}</span>
                       : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
