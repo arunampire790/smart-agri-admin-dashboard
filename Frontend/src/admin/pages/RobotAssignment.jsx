@@ -324,6 +324,15 @@ export default function RobotAssignment() {
           <div className="py-12 text-center text-text-secondary text-sm">No robots found matching your criteria.</div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
+            <colgroup>
+              <col style={{ width: 120 }} />
+              <col style={{ width: 80 }} />
+              <col />
+              <col style={{ width: 100 }} />
+              <col style={{ width: 130 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 80 }} />
+            </colgroup>
             <thead>
               <tr>
                 <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Robot ID</th>
@@ -342,41 +351,41 @@ export default function RobotAssignment() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-5 py-5 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.id}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                  <td className="px-5 py-3 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.id}</td>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     {qrLoading ? (
-                      <div style={{ width: 44, height: 44, borderRadius: 8, background: '#F3F4F6' }} />
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6' }} />
                     ) : qrErrors[r.id] ? (
                       <span className="text-[11px] text-danger-text">⚠ Failed to generate</span>
                     ) : (
                       <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
                         title={`View QR Code for ${r.id}`}
                         onClick={() => setShowQRModal(r)}
-                        style={{ width: 44, height: 44, borderRadius: 8, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease' }}
+                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease' }}
                         onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
                       />
                     )}
                   </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     {r.farmer
                       ? <span className="font-medium text-primary">{r.farmer}</span>
                       : <span className="italic text-text-secondary">— Unassigned —</span>
                     }
                   </td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.model}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{statusBadge(r.status)}</td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.registered}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.model}</td>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{statusBadge(r.status)}</td>
+                  <td className="px-5 py-3 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.registered}</td>
+                  <td className="px-5 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <div className="flex gap-3 items-center">
                       <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <Pencil size={16} />
+                        <Pencil size={18} />
                       </button>
                       <button title="Remove" onClick={() => {
                         setRobots(robots.filter((x) => x.id !== r.id));
                         setHistory([{ robotId: r.id, action: 'Deactivated', farmer: r.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) }, ...history]);
                       }} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </td>
