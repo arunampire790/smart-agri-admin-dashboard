@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
 import { QrCode, User, CheckCircle, AlertTriangle, Bot, Pencil, Trash2, X } from 'lucide-react';
 import { mockRobots, mockHistory, modelOptions, statusOptions } from '../../data/mockRobotAssignments';
+import QRCodeLib from 'qrcode';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -117,6 +118,9 @@ export default function RobotAssignment() {
   const [genForm, setGenForm] = useState({ model: 'AB-X1000', notes: '' });
   const [editForm, setEditForm] = useState({ farmer: '', status: '' });
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [qrCodes, setQrCodes] = useState({});
+  const [qrLoading, setQrLoading] = useState(true);
+  const [qrErrors, setQrErrors] = useState({});
 
   const total = robots.length;
   const assigned = robots.filter((r) => r.status === 'Assigned' || r.status === 'Active').length;
@@ -197,6 +201,47 @@ export default function RobotAssignment() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, []);
+
+  useEffect(() => {
+    const generateQRCodes = async () => {
+      const codes = {};
+      const errors = {};
+      for (const robot of robots) {
+        try {
+          // TODO: Replace Robot ID string with a secure token from backend once available
+          codes[robot.id] = await QRCodeLib.toDataURL(robot.id, {
+            width: 200,
+            errorCorrectionLevel: 'M',
+            color: { dark: '#166534', light: '#ffffff' },
+            margin: 2,
+          });
+        } catch {
+          errors[robot.id] = true;
+        }
+      }
+      setQrCodes(codes);
+      setQrErrors(errors);
+      setQrLoading(false);
+    };
+    generateQRCodes();
+  }, [robots]);
+
+  const handleDownloadQR = (robotId) => {
+    if (!qrCodes[robotId]) return;
+    const link = document.createElement('a');
+    link.href = qrCodes[robotId];
+    link.download = `${robotId}-qr.png`;
+    link.click();
+  };
+
+  const handlePrintQR = (robotId) => {
+    if (!qrCodes[robotId]) return;
+    const win = window.open('');
+    if (win) {
+      win.document.write(`<img src="${qrCodes[robotId]}" style="display:block;margin:40px auto;max-width:90vw" onload="window.print();window.close()" />`);
+      win.document.close();
+    }
+  };
 
   return (
     <>
@@ -299,13 +344,19 @@ export default function RobotAssignment() {
                 >
                   <td className="px-5 py-5 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{r.id}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span onClick={() => setShowQRModal(r)}
-                      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#2e7d2e', fontSize: '13px', fontWeight: 500, transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
-                    >
-                      <QrCode size={14} /> View QR
-                    </span>
+                    {qrLoading ? (
+                      <div style={{ width: 44, height: 44, borderRadius: 8, background: '#F3F4F6' }} />
+                    ) : qrErrors[r.id] ? (
+                      <span className="text-[11px] text-danger-text">⚠ Failed to generate</span>
+                    ) : (
+                      <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
+                        title={`View QR Code for ${r.id}`}
+                        onClick={() => setShowQRModal(r)}
+                        style={{ width: 44, height: 44, borderRadius: 8, cursor: 'pointer', display: 'block', transition: 'opacity 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                      />
+                    )}
                   </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     {r.farmer
@@ -320,9 +371,6 @@ export default function RobotAssignment() {
                     <div className="flex gap-3 items-center">
                       <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <Pencil size={16} />
-                      </button>
-                      <button title="View QR" onClick={() => setShowQRModal(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <QrCode size={16} />
                       </button>
                       <button title="Remove" onClick={() => {
                         setRobots(robots.filter((x) => x.id !== r.id));
@@ -479,40 +527,25 @@ export default function RobotAssignment() {
               ><X size={20} /></button>
             </div>
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              {/* TODO: Replace with real generated QR code from backend */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 180, height: 180, background: '#ffffff', borderRadius: 16, border: '2px solid #e5e7eb', padding: 12 }}>
-                <svg viewBox="0 0 33 33" width="156" height="156">
-                  <rect x="0" y="0" width="33" height="33" fill="#ffffff" />
-                  {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32].map(row =>
-                    [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32].map(col => {
-                      const isBlack = (
-                        (row < 7 && col < 7 && (row === 0 || row === 6 || col === 0 || col === 6 || (row >= 2 && row <= 4 && col >= 2 && col <= 4))) ||
-                        (row < 7 && col > 25 && (row === 0 || row === 6 || col === 26 || col === 32 || (row >= 2 && row <= 4 && col >= 28 && col <= 30))) ||
-                        (row > 25 && col < 7 && (row === 26 || row === 32 || col === 0 || col === 6 || (row >= 28 && row <= 30 && col >= 2 && col <= 4))) ||
-                        (row === 12 && col >= 8 && col <= 24) ||
-                        (col === 12 && row >= 8 && row <= 24) ||
-                        (row === 20 && (col === 8 || col === 10 || col === 14 || col === 16 || col === 20 || col === 22 || col === 24)) ||
-                        (row === 22 && (col === 8 || col === 12 || col === 14 || col === 18 || col === 22 || col === 24)) ||
-                        (row === 24 && (col === 8 || col === 10 || col === 12 || col === 16 || col === 18 || col === 20 || col === 24)) ||
-                        (row === 28 && col === 28)
-                      );
-                      return <rect key={`${row}-${col}`} x={row} y={col} width="1" height="1" fill={isBlack ? '#111827' : '#ffffff'} />;
-                    })
-                  )}
-                </svg>
-              </div>
+              {qrCodes[showQRModal.id] ? (
+                <img src={qrCodes[showQRModal.id]} alt={`QR Code for ${showQRModal.id}`}
+                  style={{ width: 200, height: 200, borderRadius: 16, border: '2px solid #e5e7eb', padding: 12, background: '#ffffff', display: 'inline-block' }}
+                />
+              ) : (
+                <div style={{ width: 200, height: 200, borderRadius: 16, border: '2px solid #e5e7eb', background: '#F3F4F6', margin: '0 auto' }} />
+              )}
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginTop: '16px' }}>{showQRModal.id}</div>
               <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || '— Unassigned —'}</div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
-              <button type="button"
+              <button type="button" onClick={() => handleDownloadQR(showQRModal.id)}
                 style={{ background: 'transparent', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
                 onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                 onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
               ><i className="ph ph-download" /> Download QR</button>
-              <button type="button"
+              <button type="button" onClick={() => handlePrintQR(showQRModal.id)}
                 style={{ background: 'transparent', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
