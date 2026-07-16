@@ -192,6 +192,30 @@ function getSensorStatus(type, value) {
   return { label: 'Normal', color: '#6b7280' };
 }
 
+function AnimatedValue({ value, duration = 600, decimals = 0 }) {
+  const [display, setDisplay] = useState(Number(value) || 0);
+  const startRef = useRef(null);
+  const fromRef = useRef(Number(value) || 0);
+
+  useEffect(() => {
+    fromRef.current = display;
+    startRef.current = null;
+    const target = Number(value) || 0;
+    if (Math.abs(target - fromRef.current) < 0.01) { setDisplay(target); return; }
+    const animate = (now) => {
+      if (!startRef.current) startRef.current = now;
+      const p = Math.min((now - startRef.current) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(fromRef.current + (target - fromRef.current) * eased);
+      if (p < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, duration]);
+
+  return <>{display.toFixed(decimals)}</>;
+}
+
 export default function Analytics() {
   const navigate = useNavigate();
   const { farms } = useFarms();
@@ -200,6 +224,7 @@ export default function Analytics() {
 
   const [selectedFarmName, setSelectedFarmName] = useState('All Farms');
   const [graphType, setGraphType] = useState('line');
+  const [selectedCrop, setSelectedCrop] = useState(null);
   const now = new Date();
 
   const selectedFarm = useMemo(() => {
@@ -333,10 +358,8 @@ export default function Analytics() {
   };
 
   const sectionTitle = { color: '#1a1a1a', fontSize: '16px', fontWeight: 700, marginBottom: '4px' };
-  const sectionSub = { color: '#6b7280', fontSize: '12px', marginBottom: '12px' };
-  const rowHoverProps = {
-    cursor: 'pointer', transition: 'background 0.15s ease', borderRadius: '10px',
-  };
+  const sectionSub = { color: '#6b7280', fontSize: '12px', marginBottom: '10px' };
+
 
   const summaryText = useMemo(() => {
     if (selectedFarm) {
@@ -457,75 +480,77 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* SECTION 1: Crop Performance */}
-        <div>
+        <div data-section="crop" className="section-entrance" style={{ animationDelay: '0s' }}>
           <div style={sectionTitle}>Crop Performance</div>
           <div style={sectionSub}>Key metrics for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {/* Card 1 */}
-            <div style={cropCardStyle}>
+            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'growth' ? null : 'growth')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                <div style={badgeStyle(selectedCrop === 'growth' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
                   <CheckCircle size={14} color="#2e7d2e" />
                 </div>
               </div>
               <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Growth Status</div>
               <div style={{ fontSize: '22px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
-              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>{growthStatus.pct}% optimal</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}><AnimatedValue value={growthStatus.pct} decimals={0} />% optimal</div>
             </div>
             {/* Card 2 */}
-            <div style={cropCardStyle}>
+            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'harvest' ? null : 'harvest')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                <div style={badgeStyle(selectedCrop === 'harvest' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
                   <Calendar size={14} color="#2e7d2e" />
                 </div>
               </div>
               <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Harvest In</div>
               <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>
-                {harvestInfo ? `${harvestInfo.days} Days` : '--'}
+                {harvestInfo ? <><AnimatedValue value={harvestInfo.days} decimals={0} /> Days</> : '--'}
               </div>
               <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
                 {harvestInfo ? (selectedFarm ? harvestDateStr : `${harvestDateStr} \u2014 ${harvestInfo.farmName}`) : ''}
               </div>
             </div>
             {/* Card 3 */}
-            <div style={cropCardStyle}>
+            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'yield' ? null : 'yield')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle('rgba(249,115,22,0.1)')}>
+                <div style={badgeStyle(selectedCrop === 'yield' ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.1)')}>
                   <TrendingUp size={14} color="#f97316" />
                 </div>
               </div>
               <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Yield</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>{computedYield.toFixed(1)} Tons</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> Tons</div>
               <div style={{ color: '#2e7d2e', fontSize: '11px', marginTop: '2px' }}>↑ +15%</div>
             </div>
             {/* Card 4 */}
-            <div style={cropCardStyle}>
+            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'revenue' ? null : 'revenue')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                <div style={badgeStyle(selectedCrop === 'revenue' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
                   <DollarSign size={14} color="#2e7d2e" />
                 </div>
               </div>
               <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Net Profit</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#2e7d2e' }}>${(computedProfit / 1000).toFixed(0)}K</div>
-              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>Revenue: ${(computedProfit / 1000).toFixed(0)}K</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#2e7d2e' }}>$<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>Revenue: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
             </div>
           </div>
         </div>
 
         {/* SECTION 2: Sensor Analytics */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '12px' }}>
+        <div data-section="sensors" className="section-entrance" style={{ animationDelay: '0.1s' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
             <div>
               <div style={sectionTitle}>Sensor Analytics</div>
               <div style={sectionSub}>24-hour readings at ~2.4 hour intervals</div>
             </div>
-            <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
+            <div className="card-hover-select">
+              <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {sensorConfigs.map((s) => {
@@ -536,7 +561,7 @@ export default function Analytics() {
               const status = getSensorStatus(s.key, lastVal);
 
               return (
-                <div key={s.key} style={{
+                <div key={s.key} className="card-hover-sensor" style={{
                   background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)',
                   borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 }}>
@@ -558,9 +583,11 @@ export default function Analytics() {
                       {status.label}
                     </span>
                   </div>
-                  <ResponsiveContainer width="100%" height={130}>
-                    {renderChart(chartData[s.key], 'value', s.color, graphType)}
-                  </ResponsiveContainer>
+                  <div key={graphType} className="chart-fade">
+                    <ResponsiveContainer width="100%" height={130}>
+                      {renderChart(chartData[s.key], 'value', s.color, graphType)}
+                    </ResponsiveContainer>
+                  </div>
                   <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`Trend over time — shows how ${s.label.toLowerCase()} changes throughout the day for ${selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.`}>
                     Trend over time — shows how {s.label.toLowerCase()} changes throughout the day for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.
                   </div>
@@ -571,7 +598,7 @@ export default function Analytics() {
         </div>
 
         {/* SECTION 3: Farm Summary */}
-        <div>
+        <div data-section="summary" className="section-entrance" style={{ animationDelay: '0.2s' }}>
           <div style={{ ...cardStyle, padding: '14px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <Sprout size={20} color="#2e7d2e" />
@@ -585,7 +612,7 @@ export default function Analytics() {
                 </span>
               )}
             </div>
-            <div style={{ color: '#374151', fontSize: '13px', lineHeight: 1.5, margin: '8px 0 12px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={summaryText}>
+            <div className="summary-fade" style={{ color: '#374151', fontSize: '13px', lineHeight: 1.5, margin: '8px 0 12px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={summaryText}>
               {summaryText}
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -594,15 +621,12 @@ export default function Analytics() {
                 { label: '\uD83D\uDCCB View Tasks', nav: '/admin/tasks' },
                 { label: '\uD83C\uDF3E View Farms', nav: '/admin/farms' },
               ].map((chip) => (
-                <div key={chip.label} onClick={() => navigate(chip.nav)}
+                <div key={chip.label} className="card-hover-chip" onClick={() => navigate(chip.nav)}
                   style={{
                     background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
                     borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
                     color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
-                    transition: 'background 0.15s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(46,125,50,0.1)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
                 >
                   {chip.label}
                 </div>
@@ -611,7 +635,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div>
+        <div data-section="alerts" className="section-entrance" style={{ animationDelay: '0.3s' }}>
           <div style={{
             height: '48px', background: '#ffffff',
             border: '1px solid rgba(76,175,80,0.12)',
@@ -619,14 +643,12 @@ export default function Analytics() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-              <div onClick={() => navigate('/admin/robots')} style={{
+              <div className="card-hover-row" onClick={() => navigate('/admin/robots')} style={{
                 display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
-                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                padding: '4px 8px', borderRadius: '8px',
                 fontSize: '13px', fontWeight: 500,
                 color: offlineRobots.length > 0 ? '#dc2626' : '#9CA3AF',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <span style={{ fontSize: '14px' }}>🔴</span>
                 <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{offlineRobots.length}</span>
@@ -647,14 +669,12 @@ export default function Analytics() {
                 <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Low Battery</span>
               </div>
               <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.06)', margin: '0 4px', flexShrink: 0 }} />
-              <div onClick={() => navigate('/admin/tasks')} style={{
+              <div className="card-hover-row" onClick={() => navigate('/admin/tasks')} style={{
                 display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
-                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                padding: '4px 8px', borderRadius: '8px',
                 fontSize: '13px', fontWeight: 500,
                 color: overdueTasks.length > 0 ? '#dc2626' : '#9CA3AF',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <span style={{ fontSize: '14px' }}>⚠</span>
                 <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{overdueTasks.length}</span>
@@ -662,7 +682,7 @@ export default function Analytics() {
               </div>
             </div>
             {hasAlerts ? (
-              <span style={{
+              <span className="alert-pulse" style={{
                 background: 'rgba(220,38,38,0.1)', color: '#dc2626',
                 borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
               }}>
@@ -680,12 +700,13 @@ export default function Analytics() {
         </div>
 
         {/* SECTION 5: Fleet Intelligence */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div data-section="fleet" className="section-entrance" style={{ animationDelay: '0.4s' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left: Battery Health */}
           <div style={{ ...cardStyle, padding: '14px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
-              <span style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
+              <span className="card-hover-link" style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
                 Click any robot →
               </span>
             </div>
@@ -697,10 +718,8 @@ export default function Analytics() {
                 const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
 
                 return (
-                  <div key={r.id} onClick={() => navigate('/admin/robots')}
-                    style={{ ...rowHoverProps, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  <div key={r.id} className="card-hover-slide" onClick={() => navigate('/admin/robots')}
+                    style={{ padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
                   >
                     <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
                     <span style={{ flex: 1, fontWeight: 600, color: '#1a1a1a', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
@@ -718,8 +737,8 @@ export default function Analytics() {
                 );
               })}
             </div>
-            <div onClick={() => navigate('/admin/robots')} style={{
-              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            <div className="card-hover-link" onClick={() => navigate('/admin/robots')} style={{
+              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
               fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
             }}>
               {needsCharging} robots need charging soon →
@@ -733,11 +752,11 @@ export default function Analytics() {
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
                 <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Tasks</div>
               </div>
               <div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{completionRate}%</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={completionRate} decimals={0} />%</div>
                 <div style={{ fontSize: '11px', color: '#6b7280' }}>Completion Rate</div>
               </div>
               <div>
@@ -751,7 +770,7 @@ export default function Analytics() {
                 <div className="relative flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={160}>
                     <PieChart>
-                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" strokeWidth={0}>
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" strokeWidth={0} isAnimationActive={true} animationBegin={200} animationDuration={600}>
                         {statusData.map((entry, i) => (
                           <Cell key={i} fill={entry.color} />
                         ))}
@@ -760,7 +779,7 @@ export default function Analytics() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>{tasks.length}</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={tasks.length} decimals={0} /></div>
                       <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
                     </div>
                   </div>
@@ -776,17 +795,18 @@ export default function Analytics() {
               </div>
             </div>
 
-            <div onClick={() => navigate('/admin/tasks')} style={{
-              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.05)',
+            <div className="card-hover-link" onClick={() => navigate('/admin/tasks')} style={{
+              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
               textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '12px', fontWeight: 500,
             }}>
               View all tasks →
             </div>
           </div>
+          </div>
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{__html: `
         .recharts-wrapper, .recharts-surface,
         .recharts-wrapper svg, .recharts-layer,
         .recharts-pie, .recharts-pie-sector,
@@ -799,6 +819,33 @@ export default function Analytics() {
           border: none !important;
         }
 
+        .card-hover { transition: all 0.2s ease; cursor: default; }
+        .card-hover:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
+        .card-hover-sensor { transition: all 0.2s ease; cursor: default; }
+        .card-hover-sensor:hover { transform: scale(1.01); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
+        .card-hover-row { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-row:hover { background: #f8fdf8; border-radius: 10px; }
+        .card-hover-slide { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-slide:hover { background: #f8fdf8; transform: translateX(3px); }
+        .card-hover-link { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-link:hover { color: #1a3a2a; transform: translateX(3px); }
+        .card-hover-chip { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-chip:hover { transform: scale(1.04); background: rgba(46,125,50,0.15) !important; box-shadow: 0 2px 8px rgba(46,125,50,0.2); }
+        .card-hover-select { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-select:hover { box-shadow: 0 2px 8px rgba(46,125,50,0.15); }
+        .card-hover-alert { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-alert:hover { transform: scale(1.03); }
+
+        .section-entrance { animation: sectionEntrance 0.4s ease-out forwards; opacity: 0; }
+        @keyframes sectionEntrance { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .alert-pulse { animation: alertPulse 2s ease-in-out infinite; }
+        @keyframes alertPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+
+        .chart-fade { animation: chartFade 0.35s ease-out; }
+        @keyframes chartFade { from { opacity: 0.2; } to { opacity: 1; } }
+        .summary-fade { transition: opacity 0.2s ease; }
+
         @media (max-width: 1024px) {
           .battery-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .farm-crop-grid { grid-template-columns: 1fr !important; }
@@ -807,7 +854,7 @@ export default function Analytics() {
         @media (max-width: 640px) {
           .battery-grid { grid-template-columns: 1fr !important; }
         }
-      `}</style>
+      `}} />
     </>
   );
 }
