@@ -8,8 +8,8 @@ import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check, Calendar, TrendingUp, Sprout, Leaf, CloudRain, Wind } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { mockSensorReadings } from '../../data/mockSensorData';
 
 function GlowCard({ className, onClick, children }) {
@@ -131,6 +131,185 @@ function RobotSelect({ robots, selectedId, onChange }) {
   );
 }
 
+function FarmSelect({ farms, selectedName, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div className="relative" ref={ref} style={{ width: '220px' }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{
+          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
+          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+          display: 'flex', alignItems: 'center',
+          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
+        }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selectedName ? '#111827' : '#9CA3AF' }}>
+          {selectedName || 'All Farms'}
+        </span>
+        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+          maxHeight: '240px', overflowY: 'auto',
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+        }}>
+          <div key="all" onClick={() => { onChange(null); setOpen(false); }}
+            style={{
+              padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+              background: !selectedName ? 'rgba(76,175,80,0.12)' : 'transparent',
+              color: !selectedName ? '#4caf50' : '#1d1d1f',
+              transition: 'background 0.15s, color 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}
+          >
+            <span>All Farms</span>
+            {!selectedName && <Check size={12} color="#4caf50" />}
+          </div>
+          {farms.map((f) => {
+            const sel = f.name === selectedName;
+            return (
+              <div key={f.name} onClick={() => { onChange(f.name); setOpen(false); }}
+                style={{
+                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  color: sel ? '#4caf50' : '#1d1d1f',
+                  transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+              >
+                <span>{f.name}</span>
+                {sel && <Check size={12} color="#4caf50" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GraphTypeSelect({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const options = ['Line', 'Bar', 'Area'];
+  return (
+    <div className="relative" ref={ref} style={{ width: '120px' }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{
+          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
+          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+          display: 'flex', alignItems: 'center',
+          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
+        }}
+      >
+        <span style={{ flex: 1 }}>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
+        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', color: '#6B7280', transition: 'transform 0.2s ease' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+        }}>
+          {options.map((opt) => {
+            const sel = opt.toLowerCase() === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt.toLowerCase()); setOpen(false); }}
+                style={{
+                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  color: sel ? '#4caf50' : '#1d1d1f',
+                  transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+              >
+                <span>{opt}</span>
+                {sel && <Check size={12} color="#4caf50" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const farmSensorData = (() => {
+  const farmNames = [
+    'Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm',
+    'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch',
+  ];
+  const baseTemps = [24, 27, 30, 22, 28, 26, 29, 25];
+  const baseHum = [63, 70, 80, 52, 72, 60, 78, 55];
+  const baseSoil = [44, 18, 70, 38, 55, 48, 25, 35];
+  const baseRain = [2, 1, 3, 1.5, 4, 2.5, 0.5, 1];
+  const data = {};
+  farmNames.forEach((name, idx) => {
+    const readings = [];
+    for (let i = 0; i < 10; i++) {
+      const hour = (i * 4) % 24;
+      const hr = `${String(hour).padStart(2, '0')}:00`;
+      readings.push({
+        time: hr,
+        temperature: baseTemps[idx] + (i % 3 - 1) * 2 + Math.round((i * 0.3) % 3 - 1),
+        humidity: baseHum[idx] + (i % 3 - 1) * 3 + Math.round((i * 0.5) % 4 - 1),
+        soilMoisture: baseSoil[idx] + (i % 3 - 1) * 2,
+        rainfall: Math.max(0, baseRain[idx] + (i % 4 - 1) * 0.5),
+      });
+    }
+    data[name] = readings;
+  });
+  return data;
+})();
+
+const farmCropMetrics = (() => {
+  const metrics = {};
+  const farmNames = [
+    'Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm',
+    'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch',
+  ];
+  const growth = [78, 62, 90, 55, 70, 85, 50, 65];
+  const harvest = [14, 28, 7, 35, 21, 10, 42, 18];
+  const yieldV = [4.2, 3.8, 5.1, 3.5, 4.0, 4.8, 3.2, 4.5];
+  const profit = [125000, 98000, 185000, 112000, 145000, 168000, 82000, 156000];
+  const stats = ['Good', 'Fair', 'Excellent', 'Fair', 'Good', 'Excellent', 'Fair', 'Good'];
+  const hText = ['Healthy', 'Developing', 'Ready', 'Early Stage', 'Flowering', 'Mature', 'Early Stage', 'Developing'];
+  farmNames.forEach((name, idx) => {
+    metrics[name] = {
+      growthStatus: growth[idx],
+      harvestIn: harvest[idx],
+      harvestLabel: hText[idx],
+      yield: yieldV[idx],
+      netProfit: profit[idx],
+      statusLabel: stats[idx],
+    };
+  });
+  return metrics;
+})();
+
 export default function Analytics() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -249,16 +428,215 @@ export default function Analytics() {
   const selectedRobot = useMemo(() => robots.find((r) => r.id === selectedRobotId), [robots, selectedRobotId]);
   const robotSensorData = selectedRobot && mockSensorReadings[selectedRobot.id];
 
+  const [selectedFarmName, setSelectedFarmName] = useState(null);
+  const [graphType, setGraphType] = useState('line');
+
+  const selectedFarm = useMemo(() => selectedFarmName ? farms.find((f) => f.name === selectedFarmName) : null, [selectedFarmName, farms]);
+
+  const activeFarmSensorData = useMemo(() => {
+    if (selectedFarmName && farmSensorData[selectedFarmName]) return farmSensorData[selectedFarmName];
+    const names = Object.keys(farmSensorData);
+    const agg = [];
+    for (let i = 0; i < 10; i++) {
+      let t = 0, h = 0, s = 0, r = 0;
+      names.forEach((nm) => {
+        t += farmSensorData[nm][i].temperature;
+        h += farmSensorData[nm][i].humidity;
+        s += farmSensorData[nm][i].soilMoisture;
+        r += farmSensorData[nm][i].rainfall;
+      });
+      const n = names.length;
+      agg.push({
+        time: farmSensorData[names[0]][i].time,
+        temperature: Math.round((t / n) * 10) / 10,
+        humidity: Math.round((h / n) * 10) / 10,
+        soilMoisture: Math.round(s / n),
+        rainfall: Math.round((r / n) * 10) / 10,
+      });
+    }
+    return agg;
+  }, [selectedFarmName]);
+
+  const activeCropMetrics = useMemo(() => {
+    if (selectedFarmName && farmCropMetrics[selectedFarmName]) return farmCropMetrics[selectedFarmName];
+    const names = Object.keys(farmCropMetrics);
+    let g = 0, h = 0, y = 0, p = 0;
+    names.forEach((nm) => {
+      g += farmCropMetrics[nm].growthStatus;
+      h += farmCropMetrics[nm].harvestIn;
+      y += farmCropMetrics[nm].yield;
+      p += farmCropMetrics[nm].netProfit;
+    });
+    const n = names.length;
+    return {
+      growthStatus: Math.round(g / n),
+      harvestIn: Math.round(h / n),
+      yield: Math.round((y / n) * 10) / 10,
+      netProfit: Math.round(p / n),
+      statusLabel: 'Average',
+      harvestLabel: 'Mixed',
+    };
+  }, [selectedFarmName]);
+
   const soilLabel = (s) => { if (s < 20) return 'Too Dry'; if (s <= 60) return 'Optimal'; return 'Too Wet'; };
   const soilColor = (s) => { if (s < 20) return '#EF4444'; if (s <= 60) return '#16a34a'; return '#3B82F6'; };
   const ultrasonicInfo = (u) => { if (u < 30) return { icon: '⚠', color: '#dc2626', label: 'Obstacle Detected' }; if (u <= 200) return { icon: '✓', color: '#16a34a', label: 'Clear Path' }; return { icon: '—', color: '#9CA3AF', label: 'No Reading' }; };
   const statusColor = (s) => { if (s === 'Active') return '#4caf50'; if (s === 'Assigned') return '#3b82f6'; if (s === 'Maintenance') return '#F59E0B'; return '#EF4444'; };
 
+  const cardStyle = { background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)' };
+
+  const sensors = [
+    { key: 'temperature', label: 'Temperature', unit: '°C', icon: Thermometer, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+    { key: 'humidity', label: 'Humidity', unit: '%', icon: Droplets, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+    { key: 'soilMoisture', label: 'Soil Moisture', unit: '%', icon: Leaf, color: '#16a34a', bg: 'rgba(22,163,74,0.1)' },
+    { key: 'rainfall', label: 'Rainfall', unit: 'mm', icon: CloudRain, color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
+  ];
+
+  const renderChart = (data, dataKey, color) => {
+    const common = { data, margin: { top: 5, right: 5, bottom: 5, left: -15 } };
+    const axisProps = { tick: { fontSize: 10, fill: '#9CA3AF' }, axisLine: false, tickLine: false };
+    if (graphType === 'bar') return (
+      <BarChart {...common}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+        <XAxis dataKey="time" {...axisProps} />
+        <YAxis {...axisProps} />
+        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
+        <Bar dataKey={dataKey} fill={color} radius={[3, 3, 0, 0]} />
+      </BarChart>
+    );
+    if (graphType === 'area') return (
+      <AreaChart {...common}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+        <XAxis dataKey="time" {...axisProps} />
+        <YAxis {...axisProps} />
+        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
+        <Area type="monotone" dataKey={dataKey} stroke={color} fill={color} fillOpacity={0.1} strokeWidth={2} dot={false} />
+      </AreaChart>
+    );
+    return (
+      <LineChart {...common}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+        <XAxis dataKey="time" {...axisProps} />
+        <YAxis {...axisProps} />
+        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
+        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} />
+      </LineChart>
+    );
+  };
+
   return (
     <>
       <div className="mb-6">
-        <div className="text-2xl font-bold text-primary">Analytics</div>
-        <div className="text-sm text-text-secondary mt-1">Command center — deeper insights not shown on the Dashboard</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div className="text-2xl font-bold text-primary">Analytics</div>
+            <div className="text-sm text-text-secondary mt-1">{selectedFarmName ? `Insights for ${selectedFarmName}` : 'Command center \u2014 deeper insights not shown on the Dashboard'}</div>
+          </div>
+          <FarmSelect farms={farms} selectedName={selectedFarmName} onChange={setSelectedFarmName} />
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <div className="text-lg font-bold text-primary mb-4">Crop Performance</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          {[
+            { label: 'Growth Status', value: `${activeCropMetrics.growthStatus}%`, sub: activeCropMetrics.harvestLabel, icon: Sprout, bg: 'rgba(76,175,80,0.12)', color: '#2e7d2e' },
+            { label: 'Harvest In', value: `${activeCropMetrics.harvestIn} days`, sub: activeCropMetrics.statusLabel, icon: Calendar, bg: 'rgba(245,158,11,0.12)', color: '#D97706' },
+            { label: 'Yield', value: `${activeCropMetrics.yield} t/ac`, sub: 'per acre', icon: TrendingUp, bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
+            { label: 'Net Profit', value: `\u20B9${activeCropMetrics.netProfit.toLocaleString('en-IN')}`, sub: 'estimated', icon: Leaf, bg: 'rgba(234,179,8,0.12)', color: '#B45309' },
+          ].map((m) => (
+            <GlowCard key={m.label} className="glass-card rounded-2xl" style={cardStyle}>
+              <div className="flex items-center justify-between mb-3">
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.bg }}>
+                  <m.icon size={20} color={m.color} />
+                </div>
+              </div>
+              <div className="text-xs font-medium text-text-secondary mb-1">{m.label}</div>
+              <div className="text-xl font-extrabold" style={{ color: '#1a1a1a' }}>{m.value}</div>
+              <div className="text-xs mt-1" style={{ color: m.color }}>{m.sub}</div>
+            </GlowCard>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <div className="text-lg font-bold text-primary">Sensor Analytics</div>
+            <div className="text-sm text-text-secondary mt-1">24-hour readings at 4-hour intervals</div>
+          </div>
+          <GraphTypeSelect value={graphType} onChange={setGraphType} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+          {sensors.map((s) => (
+            <GlowCard key={s.key} className="glass-card rounded-2xl" style={cardStyle}>
+              <div className="flex items-center gap-2 mb-3">
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: s.bg }}>
+                  <s.icon size={16} color={s.color} />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-primary">{s.label}</div>
+                  <div className="text-xs text-text-secondary">{s.unit}</div>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                {renderChart(activeFarmSensorData, s.key, s.color)}
+              </ResponsiveContainer>
+            </GlowCard>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <GlowCard className="glass-card rounded-2xl" style={cardStyle}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-lg font-bold text-primary">Farm Summary</div>
+              <div className="text-sm text-text-secondary mt-1">{selectedFarmName ? `Quick overview of ${selectedFarmName}` : 'Aggregated overview of all farms'}</div>
+            </div>
+            <Calendar size={20} color="#6B7280" />
+          </div>
+          {selectedFarm ? (
+            <div>
+              <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <div><span className="text-xs text-text-secondary">Location</span><div className="text-sm font-semibold text-primary">{selectedFarm.location}</div></div>
+                <div><span className="text-xs text-text-secondary">Owner</span><div className="text-sm font-semibold text-primary">{selectedFarm.owner}</div></div>
+                <div><span className="text-xs text-text-secondary">Primary Crop</span><div className="text-sm font-semibold text-primary">{selectedFarm.crop}</div></div>
+                <div><span className="text-xs text-text-secondary">Soil Type</span><div className="text-sm font-semibold text-primary">{selectedFarm.soil}</div></div>
+                <div><span className="text-xs text-text-secondary">Size</span><div className="text-sm font-semibold text-primary">{selectedFarm.size}</div></div>
+                <div><span className="text-xs text-text-secondary">Status</span><div className="text-sm font-semibold text-primary">{selectedFarm.status}</div></div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <div><span className="text-xs text-text-secondary">Total Farms</span><div className="text-sm font-semibold text-primary">{farms.length}</div></div>
+                <div><span className="text-xs text-text-secondary">Crop Types</span><div className="text-sm font-semibold text-primary">{cropFrequency.length}</div></div>
+                <div><span className="text-xs text-text-secondary">Total Area</span><div className="text-sm font-semibold text-primary">{totalArea.toFixed(0)} ac</div></div>
+                <div><span className="text-xs text-text-secondary">Most Grown</span><div className="text-sm font-semibold text-primary">{mostGrown ? mostGrown.name : '\u2014'}</div></div>
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {[
+              { label: 'View Farm Details', nav: '/admin/farms' },
+              { label: 'View Tasks', nav: '/admin/tasks' },
+              { label: 'View Sensors', nav: '/admin/sensors' },
+            ].map((chip) => (
+              <div key={chip.label} onClick={() => navigate(chip.nav)}
+                style={{
+                  padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', background: 'rgba(76,175,80,0.08)', color: '#2e7d2e',
+                  border: '1px solid rgba(76,175,80,0.2)', transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              >
+                {chip.label} →
+              </div>
+            ))}
+          </div>
+        </GlowCard>
       </div>
 
       {!hasAlerts ? (
