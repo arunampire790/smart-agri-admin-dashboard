@@ -1,14 +1,15 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
-
+import { useRobots } from '../../context/RobotContext';
+import { useTasks } from '../../context/TaskContext';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
-  Thermometer, Droplets, CloudRain, Leaf,
-  ChevronDown, Check,
+  Thermometer, Droplets, CloudRain, Leaf, Sprout,
+  ChevronDown, Check, ArrowRight, AlertTriangle
 } from 'lucide-react';
 import {
-  ResponsiveContainer,
+  PieChart, Pie, Cell, ResponsiveContainer,
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
@@ -218,10 +219,13 @@ function AnimatedValue({ value, duration = 600, decimals = 0 }) {
 export default function Analytics() {
   const navigate = useNavigate();
   const { farms } = useFarms();
+  const { robots } = useRobots();
+  const { tasks } = useTasks();
 
   const [selectedFarmName, setSelectedFarmName] = useState('All Farms');
   const [graphType, setGraphType] = useState('line');
   const [selectedCrop, setSelectedCrop] = useState(null);
+  const now = new Date();
 
   const selectedFarm = useMemo(() => {
     if (selectedFarmName === 'All Farms') return null;
@@ -330,9 +334,23 @@ export default function Analytics() {
     { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
+  const offlineRobots = robots.filter((r) => r.status === 'Offline');
+  const lowBattRobots = robots.filter((r) => r.battery < 20);
+  const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && new Date(t.dueDate) < now);
+  const hasAlerts = offlineRobots.length > 0 || lowBattRobots.length > 0 || overdueTasks.length > 0;
 
+  const batterySorted = useMemo(() => {
+    return [...robots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
+  }, [robots]);
 
+  const statusData = useMemo(() => [
+    { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
+    { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
+    { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
+  ], [tasks]);
 
+  const completionRate = tasks.length > 0 ? Math.round((statusData[2].value / tasks.length) * 100) : 0;
+  const needsCharging = robots.filter((r) => r.battery > 0 && r.battery < 50).length;
 
   const cardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
@@ -343,8 +361,48 @@ export default function Analytics() {
   const sectionSub = { color: '#6b7280', fontSize: '12px', marginBottom: '10px' };
 
 
+  const summaryText = useMemo(() => {
+    if (selectedFarm) {
+      const crops = (selectedFarm.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
+      const cropName = crops[0] || 'crop';
+      const statusWord = growthStatus.label === 'Healthy' ? 'healthy' : 'struggling';
+      const parts = [`${selectedFarm.name}'s ${cropName} crop is ${statusWord}.`];
 
+      const lastSoil = sensorReadings.soilMoisture[sensorReadings.soilMoisture.length - 1];
+      const lastTemp = sensorReadings.temperature[sensorReadings.temperature.length - 1];
+      const lastHum = sensorReadings.humidity[sensorReadings.humidity.length - 1];
 
+      if (lastSoil < 45) parts.push('Soil moisture is below optimal — consider irrigating.');
+      if (lastTemp > 30) parts.push('Temperature is elevated — monitor for heat stress.');
+      if (lastHum > 80) parts.push('Humidity is high — watch for fungal growth.');
+      if (lastSoil >= 45 && lastTemp <= 30 && lastHum <= 80) parts.push('All sensor readings are within optimal range.');
+
+      return parts.join(' ');
+    }
+
+    const total = farms.length;
+    const healthy = farms.filter((f) => {
+      const d = SENSOR_DATA[f.name] || SENSOR_DATA['All Farms'];
+      if (!d) return false;
+      const t = d.temperature[d.temperature.length - 1];
+      const s = d.soilMoisture[d.soilMoisture.length - 1];
+      const h = d.humidity[d.humidity.length - 1];
+      return (t >= 20 && t <= 30) && (s >= 45 && s <= 70) && (h >= 40 && h <= 80);
+    }).length;
+
+    const issues = [];
+    farms.forEach((f) => {
+      const d = SENSOR_DATA[f.name] || SENSOR_DATA['All Farms'];
+      if (!d) return;
+      const s = d.soilMoisture[d.soilMoisture.length - 1];
+      const t = d.temperature[d.temperature.length - 1];
+      if (s < 45) issues.push(`${f.name} (low soil moisture)`);
+      if (t > 30) issues.push(`${f.name} (high temperature)`);
+    });
+
+    if (healthy === total) return `All ${total} farms are currently reporting healthy crop conditions.`;
+    return `Fleet overview: ${healthy} of ${total} farms reporting healthy crop status. Farms needing attention: ${issues.slice(0, 3).join(', ')}${issues.length > 3 ? `, and ${issues.length - 3} more.` : '.'}`;
+  }, [selectedFarm, farms, growthStatus, sensorReadings]);
 
   const cropCardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
@@ -396,12 +454,9 @@ export default function Analytics() {
     );
   }
 
-  const harvestDateStr = useMemo(() => {
-    if (!harvestInfo) return '';
-    const d = new Date();
-    d.setDate(d.getDate() + harvestInfo.days);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }, [harvestInfo]);
+  const harvestDateStr = harvestInfo
+    ? new Date(Date.now() + harvestInfo.days * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
 
   return (
     <>
@@ -425,7 +480,7 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* SECTION 1: Crop Performance */}
         <div data-section="crop" className="section-entrance" style={{ animationDelay: '0s' }}>
           <div style={sectionTitle}>Crop Performance</div>
@@ -542,34 +597,217 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* QUICK ACTIONS */}
-        <div style={{ ...cardStyle, padding: '12px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'center' }}>
-            <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: 500, marginRight: '4px' }}>Quick Navigate</span>
-            <div className="card-hover-chip" onClick={() => navigate('/admin/robots')}
-              style={{
-                background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
-                borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
-                color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
-              }}>
-              🤖 Robot Management →
+        {/* SECTION 3: Farm Summary */}
+        <div data-section="summary" className="section-entrance" style={{ animationDelay: '0.2s' }}>
+          <div style={{ ...cardStyle, padding: '14px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Sprout size={20} color="#2e7d2e" />
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Farm Summary</span>
+              {selectedFarm && (
+                <span style={{
+                  background: 'rgba(46,125,50,0.1)', color: '#2e7d2e',
+                  borderRadius: '20px', padding: '2px 10px', fontSize: '12px', fontWeight: 600,
+                }}>
+                  {selectedFarm.name}
+                </span>
+              )}
             </div>
-            <div className="card-hover-chip" onClick={() => navigate('/admin/tasks')}
-              style={{
-                background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
-                borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
-                color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
-              }}>
-              📋 Task Management →
+            <div className="summary-fade" style={{ color: '#374151', fontSize: '13px', lineHeight: 1.5, margin: '8px 0 12px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={summaryText}>
+              {summaryText}
             </div>
-            <div className="card-hover-chip" onClick={() => navigate('/admin/farms')}
-              style={{
-                background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
-                borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
-                color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
-              }}>
-              🌾 Farm Management →
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { label: '\uD83E\uDD16 View Robot Status', nav: '/admin/robots' },
+                { label: '\uD83D\uDCCB View Tasks', nav: '/admin/tasks' },
+                { label: '\uD83C\uDF3E View Farms', nav: '/admin/farms' },
+              ].map((chip) => (
+                <div key={chip.label} className="card-hover-chip" onClick={() => navigate(chip.nav)}
+                  style={{
+                    background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
+                    borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
+                    color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
+                  }}
+                >
+                  {chip.label}
+                </div>
+              ))}
             </div>
+          </div>
+        </div>
+
+        <div data-section="alerts" className="section-entrance" style={{ animationDelay: '0.3s' }}>
+          <div style={{
+            height: '48px', background: '#ffffff',
+            border: '1px solid rgba(76,175,80,0.12)',
+            borderRadius: '12px', padding: '10px 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+              <div className="card-hover-row" onClick={() => navigate('/admin/robots')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px',
+                fontSize: '13px', fontWeight: 500,
+                color: offlineRobots.length > 0 ? '#dc2626' : '#9CA3AF',
+              }}
+              >
+                <span style={{ fontSize: '14px' }}>🔴</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{offlineRobots.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Robots Offline</span>
+              </div>
+              <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.06)', margin: '0 4px', flexShrink: 0 }} />
+              <div onClick={() => navigate('/admin/robots')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                fontSize: '13px', fontWeight: 500,
+                color: lowBattRobots.length > 0 ? '#d97706' : '#9CA3AF',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span style={{ fontSize: '14px' }}>🟡</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{lowBattRobots.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Low Battery</span>
+              </div>
+              <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.06)', margin: '0 4px', flexShrink: 0 }} />
+              <div className="card-hover-row" onClick={() => navigate('/admin/tasks')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px',
+                fontSize: '13px', fontWeight: 500,
+                color: overdueTasks.length > 0 ? '#dc2626' : '#9CA3AF',
+              }}
+              >
+                <span style={{ fontSize: '14px' }}>⚠</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{overdueTasks.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Overdue Tasks</span>
+              </div>
+            </div>
+            {hasAlerts ? (
+              <span onClick={() => navigate(offlineRobots.length > 0 || lowBattRobots.length > 0 ? '/admin/robots' : '/admin/tasks')}
+                title={offlineRobots.length > 0 ? 'View offline robots \u2192' : lowBattRobots.length > 0 ? 'View low battery robots \u2192' : 'View overdue tasks \u2192'}
+                style={{
+                  background: 'rgba(220,38,38,0.1)', color: '#dc2626',
+                  borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(239,68,68,0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                ⚠ Needs Attention
+              </span>
+            ) : (
+              <span style={{
+                background: 'rgba(46,125,50,0.1)', color: '#2e7d2e',
+                borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
+              }}>
+                ✓ All Clear
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* SECTION 5: Fleet Intelligence */}
+        <div data-section="fleet" className="section-entrance" style={{ animationDelay: '0.4s' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Left: Battery Health */}
+          <div style={{ ...cardStyle, padding: '14px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
+              <span className="card-hover-link" style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
+                Click any robot →
+              </span>
+            </div>
+            <div style={sectionSub}>Sorted by battery level (lowest first)</div>
+            <div>
+              {batterySorted.map((r) => {
+                const barColor = r.battery < 20 ? '#ef4444' : r.battery < 50 ? '#f97316' : '#22C55E';
+                const statusLabel = r.battery < 20 ? 'Critical' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
+                const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
+
+                return (
+                  <div key={r.id} className="card-hover-slide" onClick={() => navigate('/admin/robots')}
+                    style={{ padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+                  >
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontWeight: 600, color: '#1a1a1a', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    <div style={{ width: '70px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', flexShrink: 0 }}>
+                      <div style={{ width: `${Math.min(r.battery, 100)}%`, height: '100%', borderRadius: '999px', background: barColor }} />
+                    </div>
+                    <span style={{ fontWeight: 700, color: barColor, fontSize: '12px', minWidth: '28px', textAlign: 'right' }}>{r.battery}%</span>
+                    <span style={{
+                      fontSize: '10px', fontWeight: 500, padding: '1px 5px', borderRadius: '6px',
+                      background: `${barColor}18`, color: barColor, flexShrink: 0,
+                    }}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="card-hover-link" onClick={() => navigate('/admin/robots')} style={{
+              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
+            }}>
+              {needsCharging} robots need charging soon →
+            </div>
+          </div>
+
+          {/* Right: Task Operations */}
+          <div style={{ ...cardStyle, padding: '14px 18px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
+            <div style={sectionSub}>Status breakdown across all tasks</div>
+
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Tasks</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={completionRate} decimals={0} />%</div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Completion Rate</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Overdue</div>
+              </div>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <div style={{ width: '100%', maxWidth: '320px' }}>
+                <div className="relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" strokeWidth={0} isAnimationActive={true} animationBegin={200} animationDuration={600}>
+                        {statusData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '6px' }}>
+                  {statusData.map((entry) => (
+                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280' }}>
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+                      <span>{entry.name} {entry.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="card-hover-link" onClick={() => navigate('/admin/tasks')} style={{
+              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '12px', fontWeight: 500,
+            }}>
+              View all tasks →
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -591,16 +829,37 @@ export default function Analytics() {
         .card-hover:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
         .card-hover-sensor { transition: all 0.2s ease; cursor: default; }
         .card-hover-sensor:hover { transform: scale(1.01); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
+        .card-hover-row { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-row:hover { background: #f8fdf8; border-radius: 10px; }
+        .card-hover-slide { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-slide:hover { background: #f8fdf8; transform: translateX(3px); }
+        .card-hover-link { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-link:hover { color: #1a3a2a; transform: translateX(3px); }
         .card-hover-chip { transition: all 0.15s ease; cursor: pointer; }
         .card-hover-chip:hover { transform: scale(1.04); background: rgba(46,125,50,0.15) !important; box-shadow: 0 2px 8px rgba(46,125,50,0.2); }
         .card-hover-select { transition: all 0.15s ease; cursor: pointer; }
         .card-hover-select:hover { box-shadow: 0 2px 8px rgba(46,125,50,0.15); }
+        .card-hover-alert { transition: all 0.15s ease; cursor: pointer; }
+        .card-hover-alert:hover { transform: scale(1.03); }
 
         .section-entrance { animation: sectionEntrance 0.4s ease-out forwards; opacity: 0; }
         @keyframes sectionEntrance { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
+        .alert-pulse { animation: alertPulse 2s ease-in-out infinite; }
+        @keyframes alertPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+
         .chart-fade { animation: chartFade 0.35s ease-out; }
         @keyframes chartFade { from { opacity: 0.2; } to { opacity: 1; } }
+        .summary-fade { transition: opacity 0.2s ease; }
+
+        @media (max-width: 1024px) {
+          .battery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .farm-crop-grid { grid-template-columns: 1fr !important; }
+          .team-sensor-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .battery-grid { grid-template-columns: 1fr !important; }
+        }
       `}} />
     </>
   );
