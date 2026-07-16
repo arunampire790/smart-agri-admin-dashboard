@@ -682,10 +682,16 @@ export default function Analytics() {
               </div>
             </div>
             {hasAlerts ? (
-              <span className="alert-pulse" style={{
-                background: 'rgba(220,38,38,0.1)', color: '#dc2626',
-                borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
-              }}>
+              <span onClick={() => navigate(offlineRobots.length > 0 || lowBattRobots.length > 0 ? '/admin/robots' : '/admin/tasks')}
+                title={offlineRobots.length > 0 ? 'View offline robots \u2192' : lowBattRobots.length > 0 ? 'View low battery robots \u2192' : 'View overdue tasks \u2192'}
+                style={{
+                  background: 'rgba(220,38,38,0.1)', color: '#dc2626',
+                  borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(239,68,68,0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
                 ⚠ Needs Attention
               </span>
             ) : (
