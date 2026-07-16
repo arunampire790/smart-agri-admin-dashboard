@@ -203,22 +203,7 @@ export default function Analytics() {
 
   const latestUser = useMemo(() => [...users].sort((a, b) => new Date(b.joined) - new Date(a.joined))[0], [users]);
 
-  const taskTypeData = ['Irrigation', 'Fertilizer', 'Inspection', 'Maintenance'].map((type) => ({
-    type,
-    count: tasks.filter((t) => t.type === type).length,
-  }));
-  const maxTaskTypeCount = Math.max(...taskTypeData.map((t) => t.count), 1);
 
-  const taskPriorityData = [
-    { priority: 'High', count: tasks.filter((t) => t.priority === 'High').length },
-    { priority: 'Medium', count: tasks.filter((t) => t.priority === 'Medium').length },
-    { priority: 'Low', count: tasks.filter((t) => t.priority === 'Low').length },
-  ];
-  const maxTaskPriorityCount = Math.max(...taskPriorityData.map((p) => p.count), 1);
-
-  const overdueHighPriority = useMemo(() => {
-    return tasks.filter((t) => t.priority === 'High' && t.status !== 'Completed' && new Date(t.dueDate) < now);
-  }, [tasks, now]);
 
   const sensorData = useMemo(() => {
     const first = robots.find((r) => r.status !== 'Offline' && mockSensorReadings[r.id]);
@@ -472,70 +457,6 @@ export default function Analytics() {
           </div>
         </GlowCard>
 
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ marginBottom: '4px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Task Intelligence</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '14px' }}>What robots are being used for</div>
-
-          <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>By Type</div>
-            {taskTypeData.map((t) => {
-              const typeColorMap = { Irrigation: '#3b82f6', Fertilizer: '#a16207', Inspection: '#8b5cf6', Maintenance: '#f97316' };
-              const typeBgMap = { Irrigation: 'rgba(59,130,246,0.1)', Fertilizer: 'rgba(161,98,7,0.1)', Inspection: 'rgba(139,92,246,0.1)', Maintenance: 'rgba(249,115,22,0.1)' };
-              const pct = maxTaskTypeCount > 0 ? (t.count / maxTaskTypeCount) * 100 : 0;
-              return (
-                <div key={t.type} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', fontSize: '12px', transition: 'background 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span style={{ padding: '2px 7px', borderRadius: '999px', background: typeBgMap[t.type], color: typeColorMap[t.type], fontSize: '9px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>{t.type}</span>
-                  <div style={{ flex: 1, height: '5px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: typeColorMap[t.type], transition: 'width 0.3s ease' }} />
-                  </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#111827', flexShrink: 0, width: '20px', textAlign: 'right' }}>{t.count}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>By Priority</div>
-            {taskPriorityData.map((p) => {
-              const pct = maxTaskPriorityCount > 0 ? (p.count / maxTaskPriorityCount) * 100 : 0;
-              const pBg = p.priority === 'High' ? '#FEE2E2' : p.priority === 'Medium' ? '#FEF3C7' : '#E8F5E9';
-              const pColor = p.priority === 'High' ? '#DC2626' : p.priority === 'Medium' ? '#D97706' : '#2e7d2e';
-              const barColor = p.priority === 'High' ? '#EF4444' : p.priority === 'Medium' ? '#F59E0B' : '#4caf50';
-              return (
-                <div key={p.priority} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', fontSize: '12px', transition: 'background 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span style={{ padding: '2px 7px', borderRadius: '999px', background: pBg, color: pColor, fontSize: '9px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>{p.priority}</span>
-                  <div style={{ flex: 1, height: '5px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: barColor, transition: 'width 0.3s ease' }} />
-                  </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#111827', flexShrink: 0, width: '20px', textAlign: 'right' }}>{p.count}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '4px' }}>Needs Attention</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{overdueHighPriority.length} high-priority overdue</span>
-            </div>
-          </div>
-
-          <div onClick={() => navigate('/admin/tasks')} style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)', textAlign: 'right', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', transition: 'opacity 0.15s ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-          >
-            View all tasks →
-          </div>
-        </GlowCard>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="team-sensor-grid">
