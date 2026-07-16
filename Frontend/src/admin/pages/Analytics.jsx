@@ -9,6 +9,7 @@ import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { mockSensorReadings } from '../../data/mockSensorData';
 
 function GlowCard({ className, onClick, children }) {
@@ -168,35 +169,17 @@ export default function Analytics() {
   const inProgressTasks = tasks.filter((t) => t.status === 'In Progress');
   const completedTasks = tasks.filter((t) => t.status === 'Completed');
 
-  const highCount = tasks.filter((t) => t.priority === 'High').length;
-  const medCount = tasks.filter((t) => t.priority === 'Medium').length;
-  const lowCount = tasks.filter((t) => t.priority === 'Low').length;
+  const statusChartData = useMemo(() => [
+    { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
+    { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
+    { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
+  ], [tasks]);
 
-  const inProgressTypes = useMemo(() => {
-    const counts = {};
-    inProgressTasks.forEach((t) => { counts[t.type] = (counts[t.type] || 0) + 1; });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  }, [inProgressTasks]);
-
-  const completedThisWeek = useMemo(() => {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const weekStart = new Date(d.setDate(diff));
-    weekStart.setHours(0, 0, 0, 0);
-    return completedTasks.filter((t) => {
-      const due = new Date(t.dueDate);
-      const completed = new Date(due.getTime() + 86400000 * 2);
-      return completed >= weekStart;
-    }).length;
-  }, [completedTasks]);
-
-  const overdueTaskRows = useMemo(() => {
-    return overdueTasks.map((t) => {
-      const daysLate = Math.floor((now - new Date(t.dueDate).getTime()) / 86400000);
-      return { ...t, daysLate };
-    }).sort((a, b) => b.daysLate - a.daysLate).slice(0, 5);
-  }, [overdueTasks, now]);
+  const priorityChartData = useMemo(() => [
+    { name: 'High', count: tasks.filter((t) => t.priority === 'High').length, color: '#ef4444' },
+    { name: 'Medium', count: tasks.filter((t) => t.priority === 'Medium').length, color: '#f97316' },
+    { name: 'Low', count: tasks.filter((t) => t.priority === 'Low').length, color: '#4caf50' },
+  ], [tasks]);
 
   const hashStr = (s) => {
     let h = 0;
@@ -370,84 +353,75 @@ export default function Analytics() {
 
       <div className="mb-6">
         <GlowCard className="glass-card rounded-2xl p-5">
-          <div className="text-sm font-semibold text-primary mb-1">Task Operations Pipeline</div>
-          <div className="text-[10px] text-text-secondary mb-5">Live task flow across all farms</div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>Task Operations</div>
+          <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '20px' }}>Status and priority breakdown across all tasks</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '10px', alignItems: 'stretch' }} className="pipeline-grid">
-            {[
-              { key: 'Pending', count: pendingTasks.length, labelColor: '#D97706', tabColor: '#D97706', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(245,158,11,0.15)',
-                details: (
-                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-danger-bg text-danger-text">High {highCount}</span>
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-warning-bg text-warning-text">Medium {medCount}</span>
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">Low {lowCount}</span>
-                  </div>
-                ) },
-              { key: 'In Progress', count: inProgressTasks.length, labelColor: '#16A34A', tabColor: '#2e7d2e', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(76,175,80,0.15)',
-                details: (
-                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                    {inProgressTypes.length > 0 ? inProgressTypes.map(([type, ct]) => (
-                      <span key={type} className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: 'rgba(76,175,80,0.1)', color: '#2e7d2e' }}>{type} {ct}</span>
-                    )) : <span className="text-[10px] text-text-secondary">No active tasks</span>}
-                  </div>
-                ) },
-              { key: 'Completed', count: completedTasks.length, labelColor: '#2e7d2e', tabColor: '#2e7d2e', bg: 'rgba(255,255,255,1)', border: '1px solid rgba(76,175,80,0.15)',
-                details: (
-                  <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">This week {completedThisWeek}</span>
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-brand-light text-brand-dark">On time {completedTasks.length}</span>
-                    <span className="pill inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold bg-danger-bg text-danger-text">Late 0</span>
-                  </div>
-                ) },
-            ].map((col, i) => (
-              <>
-                {i > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px' }}>
-                    <div style={{ fontSize: '16px', color: '#D1D5DB', fontWeight: 300 }}>→</div>
-                  </div>
-                )}
-                <div key={col.key} style={{ padding: '16px', borderRadius: '12px', textAlign: 'center', background: col.bg, border: col.border }}>
-                  <div className="text-sm font-medium pb-1.5 mb-2" style={{ color: col.tabColor, borderBottom: '2px solid', borderColor: col.tabColor, display: 'inline-block' }}>{col.key}</div>
-                  <div className="text-3xl font-extrabold text-primary mt-1">{col.count}</div>
-                  <div className="text-[9px] text-text-secondary mb-1">tasks</div>
-                  {col.details}
-                </div>
-              </>
-            ))}
+          <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
+            <div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Total Tasks</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length > 0 ? ((completedTasks.length / tasks.length) * 100).toFixed(0) : 0}%</div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Completion Rate</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Overdue</div>
+            </div>
           </div>
 
-          {overdueTasks.length > 0 ? (
-            <div className="mt-3" style={{ padding: '12px 14px', borderRadius: '8px', background: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.15)' }}>
-              <div className="text-[11px] font-semibold mb-2 flex items-center gap-1.5" style={{ color: '#b91c1c' }}>
-                <AlertTriangle size={14} color="#b91c1c" />
-                {overdueTasks.length} {overdueTasks.length === 1 ? 'task is' : 'tasks are'} overdue
-              </div>
-              {overdueTaskRows.map((t) => (
-                <div key={t.id} onClick={() => navigate('/admin/tasks')} className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors" style={{ fontSize: '11px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,48,0.06)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#b91c1c', flexShrink: 0 }} />
-                  <span className="font-semibold text-primary flex-1 truncate">{t.title}</span>
-                  <span className="text-text-secondary text-[10px]">{t.assignedTo}</span>
-                  <span className="text-xs font-semibold shrink-0" style={{ color: '#b91c1c' }}>{t.daysLate}d late</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }} className="task-chart-grid">
+            <div style={{ borderRight: '1px solid rgba(76,175,80,0.08)' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>By Status</div>
+              <div className="relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" strokeWidth={0}>
+                      {statusChartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center">
+                    <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: '#1a1a1a' }}>{tasks.length}</div>
+                    <div className="text-[10px]" style={{ color: '#6b7280' }}>Total Tasks</div>
+                  </div>
                 </div>
-              ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
+                {statusChartData.map((entry) => (
+                  <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#6b7280' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+                    <span>{entry.name} {entry.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="mt-3 flex items-center gap-2 text-[11px] font-semibold" style={{ color: '#2e7d2e', padding: '10px 14px', borderRadius: '8px', background: 'rgba(76,175,80,0.08)' }}>
-              <CheckCircle size={14} color="#2e7d2e" />
-              No overdue tasks — all on track
-            </div>
-          )}
 
-          <div onClick={() => navigate('/admin/tasks')} style={{
-            marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
-            fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
-            color: '#2e7d2e', textAlign: 'center',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>By Priority</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart layout="vertical" data={priorityChartData} barSize={20} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+                  <CartesianGrid horizontal={true} vertical={false} stroke="rgba(26,46,26,0.06)" />
+                  <XAxis type="number" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fill: '#6b7280' }} axisLine={false} tickLine={false} width={70} />
+                  <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(76,175,80,0.15)', borderRadius: '8px', fontSize: '13px' }} />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                    {priorityChartData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div onClick={() => navigate('/admin/tasks')} style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500 }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
           >
             View all tasks →
           </div>
@@ -864,8 +838,10 @@ export default function Analytics() {
         }
         @media (max-width: 640px) {
           .battery-grid { grid-template-columns: 1fr !important; }
-          .pipeline-grid { grid-template-columns: 1fr !important; }
-          .pipeline-grid > .pipeline-arrow { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .task-chart-grid { grid-template-columns: 1fr !important; }
+          .task-chart-grid > div:first-child { border-right: none !important; }
         }
       `}</style>
     </>
