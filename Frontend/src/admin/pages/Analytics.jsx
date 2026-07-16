@@ -787,6 +787,18 @@ export default function Analytics() {
       </div>
 
       <style>{`
+        .recharts-wrapper, .recharts-surface,
+        .recharts-wrapper svg, .recharts-layer,
+        .recharts-pie, .recharts-pie-sector,
+        .recharts-bar-rectangle, .recharts-line,
+        .recharts-area, .recharts-cartesian-grid,
+        .recharts-responsive-container,
+        .recharts-wrapper:focus, .recharts-surface:focus,
+        .recharts-wrapper *:focus {
+          outline: none !important;
+          border: none !important;
+        }
+
         @media (max-width: 1024px) {
           .battery-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .farm-crop-grid { grid-template-columns: 1fr !important; }
