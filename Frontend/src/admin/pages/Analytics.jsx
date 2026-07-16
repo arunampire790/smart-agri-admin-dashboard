@@ -611,106 +611,72 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* SECTION 4: System Alerts */}
         <div>
-          {!hasAlerts ? (
-            <div style={cardStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '36px', height: '36px', borderRadius: '50%',
-                  background: 'rgba(76,175,80,0.12)', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <CheckCircle size={18} color="#2e7d2e" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#2e7d2e' }}>All Systems Normal</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>No alerts at this time</div>
-                </div>
+          <div style={{
+            height: '48px', background: '#ffffff',
+            border: '1px solid rgba(76,175,80,0.12)',
+            borderRadius: '12px', padding: '10px 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+              <div onClick={() => navigate('/admin/robots')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                fontSize: '13px', fontWeight: 500,
+                color: offlineRobots.length > 0 ? '#dc2626' : '#9CA3AF',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span style={{ fontSize: '14px' }}>🔴</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{offlineRobots.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Robots Offline</span>
+              </div>
+              <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.06)', margin: '0 4px', flexShrink: 0 }} />
+              <div onClick={() => navigate('/admin/robots')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                fontSize: '13px', fontWeight: 500,
+                color: lowBattRobots.length > 0 ? '#d97706' : '#9CA3AF',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span style={{ fontSize: '14px' }}>🟡</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{lowBattRobots.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Low Battery</span>
+              </div>
+              <div style={{ width: '1px', height: '18px', background: 'rgba(0,0,0,0.06)', margin: '0 4px', flexShrink: 0 }} />
+              <div onClick={() => navigate('/admin/tasks')} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease',
+                fontSize: '13px', fontWeight: 500,
+                color: overdueTasks.length > 0 ? '#dc2626' : '#9CA3AF',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span style={{ fontSize: '14px' }}>⚠</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1 }}>{overdueTasks.length}</span>
+                <span style={{ fontSize: '13px', color: '#9CA3AF' }}>Overdue Tasks</span>
               </div>
             </div>
-          ) : (
-            <div style={cardStyle}>
-              <div style={sectionTitle}>System Alerts</div>
-              <div style={sectionSub}>Active issues requiring attention</div>
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-                {offlineRobots.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#dc2626' }}>
-                    <span style={{ fontSize: '16px' }}>🔴</span> {offlineRobots.length} Robots Offline
-                  </div>
-                )}
-                {lowBattRobots.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#d97706' }}>
-                    <span style={{ fontSize: '16px' }}>🟡</span> {lowBattRobots.length} Low Battery
-                  </div>
-                )}
-                {overdueTasks.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#dc2626' }}>
-                    <span style={{ fontSize: '16px' }}>⚠</span> {overdueTasks.length} Overdue Tasks
-                  </div>
-                )}
-              </div>
-              {offlineRobots.length > 0 && (
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Offline Robots</div>
-                  {offlineRobots.slice(0, 5).map((r) => (
-                    <div key={r.id} onClick={() => navigate('/admin/robots')}
-                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.name}</span>
-                      <span style={{ color: '#9CA3AF' }}>— {r.farm || 'Unassigned'}</span>
-                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {lowBattRobots.length > 0 && (
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Low Battery Robots</div>
-                  {lowBattRobots.slice(0, 5).map((r) => (
-                    <div key={r.id} onClick={() => navigate('/admin/robots')}
-                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#d97706', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.name}</span>
-                      <span style={{ color: '#d97706', fontWeight: 600 }}>{r.battery}%</span>
-                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {overdueTasks.length > 0 && (
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Overdue Tasks</div>
-                  {overdueTasks.slice(0, 5).map((t, i) => (
-                    <div key={t.id || i} onClick={() => navigate('/admin/tasks')}
-                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{t.title || `Task #${i + 1}`}</span>
-                      <span style={{ color: '#9CA3AF' }}>— Due: {t.dueDate || 'N/A'}</span>
-                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
-                <div onClick={() => navigate('/admin/robots')} style={{ fontSize: '13px', fontWeight: 500, color: '#2e7d2e', cursor: 'pointer' }}>
-                  View Robot Management →
-                </div>
-                <div onClick={() => navigate('/admin/tasks')} style={{ fontSize: '13px', fontWeight: 500, color: '#2e7d2e', cursor: 'pointer' }}>
-                  View Task Management →
-                </div>
-              </div>
-            </div>
-          )}
+            {hasAlerts ? (
+              <span style={{
+                background: 'rgba(220,38,38,0.1)', color: '#dc2626',
+                borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
+              }}>
+                ⚠ Needs Attention
+              </span>
+            ) : (
+              <span style={{
+                background: 'rgba(46,125,50,0.1)', color: '#2e7d2e',
+                borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
+              }}>
+                ✓ All Clear
+              </span>
+            )}
+          </div>
         </div>
 
         {/* SECTION 5: Fleet Intelligence */}
