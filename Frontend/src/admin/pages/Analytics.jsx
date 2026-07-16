@@ -1,1188 +1,823 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
-import { useEmployees } from '../../context/EmployeeContext';
-import { useActivityLog } from '../../context/ActivityLogContext';
-import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check, Calendar, TrendingUp, Sprout, Leaf, CloudRain, Wind } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { mockSensorReadings } from '../../data/mockSensorData';
+import {
+  CheckCircle, Calendar, TrendingUp, DollarSign,
+  Thermometer, Droplets, CloudRain, Leaf, Sprout,
+  ChevronDown, Check, ArrowRight, AlertTriangle
+} from 'lucide-react';
+import {
+  PieChart, Pie, Cell, ResponsiveContainer,
+  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip
+} from 'recharts';
 
-function GlowCard({ className, onClick, children }) {
-  const [isHovered, setIsHovered] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
-      className={className}
-      style={{
-        cursor: onClick ? 'pointer' : undefined,
-        transition: 'all 0.25s ease',
-        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: isHovered ? '0 8px 24px rgba(26,46,26,0.15)' : '0 2px 12px rgba(46,125,50,0.08)',
-      }}
-    >
-      {children}
-    </div>
-  );
+const TIME_LABELS = ["00:00", "02:30", "05:00", "07:30", "10:00", "12:30", "15:00", "17:30", "20:00", "22:30"];
+
+const CROP_DAYS = {
+  Rice: 12, Wheat: 45, Corn: 30, Soybeans: 25, Barley: 38,
+  Apples: 60, Pears: 55, Strawberries: 20, Tomatoes: 25,
+  Alfalfa: 40, Hay: 45, Cotton: 50, Vegetables: 15,
+};
+
+const YIELD_FACTORS = {
+  Rice: 2.5, Wheat: 1.8, Corn: 3.2, Soybeans: 1.5, Barley: 2.0,
+  Apples: 2.2, Pears: 2.0, Strawberries: 1.5, Tomatoes: 3.5,
+  Alfalfa: 3.0, Hay: 2.5, Cotton: 1.8, Vegetables: 2.8,
+};
+
+const CROP_PRICES = {
+  Rice: 400, Wheat: 300, Corn: 250, Soybeans: 500, Barley: 280,
+  Apples: 350, Pears: 320, Strawberries: 600, Tomatoes: 450,
+  Alfalfa: 200, Hay: 180, Cotton: 350, Vegetables: 380,
+};
+
+const OP_COST_PER_ACRE = 50;
+
+function parseAcres(size) {
+  return parseFloat(size) || 0;
 }
 
-function Clickable({ onClick, children, showArrow }) {
-  const [hover, setHover] = useState(false);
-  return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        cursor: 'pointer', transition: 'all 0.15s ease',
-        background: hover ? 'rgba(76,175,80,0.06)' : 'transparent',
-        borderRadius: '8px', padding: '8px 10px',
-        display: 'flex', alignItems: 'center', gap: '8px',
-      }}
-    >
-      {children}
-      {showArrow && hover && (
-        <ArrowRight size={14} color="#2e7d2e" className="shrink-0 ml-auto" style={{ opacity: 0.6 }} />
-      )}
-    </div>
-  );
-}
+const SENSOR_DATA = (() => {
+  const data = {
+    "All Farms": {
+      temperature: [19, 17, 16, 19, 23, 26, 28, 27, 25, 23],
+      soilMoisture: [58, 56, 55, 54, 52, 50, 49, 50, 52, 54],
+      humidity: [75, 76, 78, 77, 75, 72, 70, 71, 73, 75],
+      npk: [40, 41, 42, 43, 44, 45, 45, 45, 44, 44],
+    },
+    "Green Valley Farm": {
+      temperature: [18, 16, 15, 18, 22, 25, 28, 27, 26, 24],
+      soilMoisture: [65, 63, 62, 61, 58, 56, 56, 57, 58, 60],
+      humidity: [78, 79, 80, 79, 77, 75, 72, 73, 74, 76],
+      npk: [42, 43, 43, 44, 44, 45, 45, 45, 45, 45],
+    },
+    "Sunrise Orchards": {
+      temperature: [20, 18, 17, 20, 24, 27, 30, 29, 27, 25],
+      soilMoisture: [45, 43, 42, 41, 39, 37, 36, 37, 39, 41],
+      humidity: [70, 71, 73, 72, 70, 68, 65, 66, 68, 70],
+      npk: [35, 36, 37, 38, 39, 40, 40, 40, 39, 39],
+    },
+    "Golden Harvest": {
+      temperature: [22, 20, 19, 22, 26, 29, 32, 31, 29, 27],
+      soilMoisture: [72, 70, 69, 68, 66, 64, 63, 64, 66, 68],
+      humidity: [82, 83, 85, 84, 82, 80, 77, 78, 80, 82],
+      npk: [48, 49, 50, 51, 52, 53, 53, 52, 51, 50],
+    },
+    "Maple Ridge Farm": {
+      temperature: [17, 15, 14, 17, 21, 24, 27, 26, 24, 22],
+      soilMoisture: [55, 53, 52, 51, 49, 47, 46, 47, 49, 51],
+      humidity: [73, 74, 76, 75, 73, 71, 68, 69, 71, 73],
+      npk: [38, 39, 40, 41, 42, 43, 43, 42, 41, 40],
+    },
+  };
 
-function relativeTime(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
-function actionDot(action) {
-  const a = (action || '').toLowerCase();
-  if (a.includes('add') || a.startsWith('create')) return '#10B981';
-  if (a.includes('edit') || a.includes('update')) return '#F59E0B';
-  if (a.includes('delete') || a.includes('remove')) return '#EF4444';
-  return '#9CA3AF';
-}
-
-function RobotSelect({ robots, selectedId, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  return (
-    <div className="relative" ref={ref} style={{ width: '200px' }}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{
-          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
-          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
-          display: 'flex', alignItems: 'center',
-          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
-        }}
-        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
-        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selectedId ? '#111827' : '#9CA3AF' }}>
-          {(() => { const r = robots.find((x) => x.id === selectedId); return r ? `${r.name} (${r.id})` : 'Select robot'; })()}
-        </span>
-        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
-        }}>
-          {robots.map((r) => {
-            const sel = r.id === selectedId;
-            return (
-              <div key={r.id} onClick={() => { onChange(r.id); setOpen(false); }}
-                style={{
-                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
-                  color: sel ? '#4caf50' : '#1d1d1f',
-                  transition: 'background 0.15s, color 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
-                onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
-              >
-                <span>{r.name} ({r.id})</span>
-                {sel && <Check size={12} color="#4caf50" />}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FarmSelect({ farms, selectedName, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  return (
-    <div className="relative" ref={ref} style={{ width: '220px' }}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{
-          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
-          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
-          display: 'flex', alignItems: 'center',
-          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
-        }}
-        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
-        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selectedName ? '#111827' : '#9CA3AF' }}>
-          {selectedName || 'All Farms'}
-        </span>
-        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-          maxHeight: '240px', overflowY: 'auto',
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
-        }}>
-          <div key="all" onClick={() => { onChange(null); setOpen(false); }}
-            style={{
-              padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-              background: !selectedName ? 'rgba(76,175,80,0.12)' : 'transparent',
-              color: !selectedName ? '#4caf50' : '#1d1d1f',
-              transition: 'background 0.15s, color 0.15s',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}
-          >
-            <span>All Farms</span>
-            {!selectedName && <Check size={12} color="#4caf50" />}
-          </div>
-          {farms.map((f) => {
-            const sel = f.name === selectedName;
-            return (
-              <div key={f.name} onClick={() => { onChange(f.name); setOpen(false); }}
-                style={{
-                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
-                  color: sel ? '#4caf50' : '#1d1d1f',
-                  transition: 'background 0.15s, color 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
-                onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
-              >
-                <span>{f.name}</span>
-                {sel && <Check size={12} color="#4caf50" />}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GraphTypeSelect({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  const options = ['Line', 'Bar', 'Area'];
-  return (
-    <div className="relative" ref={ref} style={{ width: '120px' }}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{
-          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
-          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
-          display: 'flex', alignItems: 'center',
-          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
-        }}
-      >
-        <span style={{ flex: 1 }}>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
-        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', color: '#6B7280', transition: 'transform 0.2s ease' }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
-        }}>
-          {options.map((opt) => {
-            const sel = opt.toLowerCase() === value;
-            return (
-              <div key={opt} onClick={() => { onChange(opt.toLowerCase()); setOpen(false); }}
-                style={{
-                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
-                  color: sel ? '#4caf50' : '#1d1d1f',
-                  transition: 'background 0.15s, color 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-              >
-                <span>{opt}</span>
-                {sel && <Check size={12} color="#4caf50" />}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const farmSensorData = (() => {
-  const farmNames = [
-    'Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm',
-    'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch',
+  const allFarms = [
+    "Green Valley Farm", "Sunrise Orchards", "Golden Harvest", "Maple Ridge Farm",
+    "River Bend Agriculture", "Highland Crops", "Coastal Farms", "Valley View Ranch",
   ];
-  const baseTemps = [24, 27, 30, 22, 28, 26, 29, 25];
-  const baseHum = [63, 70, 80, 52, 72, 60, 78, 55];
-  const baseSoil = [44, 18, 70, 38, 55, 48, 25, 35];
-  const baseRain = [2, 1, 3, 1.5, 4, 2.5, 0.5, 1];
-  const data = {};
-  farmNames.forEach((name, idx) => {
-    const readings = [];
-    for (let i = 0; i < 10; i++) {
-      const hour = (i * 4) % 24;
-      const hr = `${String(hour).padStart(2, '0')}:00`;
-      readings.push({
-        time: hr,
-        temperature: baseTemps[idx] + (i % 3 - 1) * 2 + Math.round((i * 0.3) % 3 - 1),
-        humidity: baseHum[idx] + (i % 3 - 1) * 3 + Math.round((i * 0.5) % 4 - 1),
-        soilMoisture: baseSoil[idx] + (i % 3 - 1) * 2,
-        rainfall: Math.max(0, baseRain[idx] + (i % 4 - 1) * 0.5),
-      });
+  const base = data["All Farms"];
+
+  allFarms.forEach((name) => {
+    if (!data[name]) {
+      const seed = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      data[name] = {};
+      for (const key of Object.keys(base)) {
+        data[name][key] = base[key].map((v, i) => {
+          const variation = 1 + ((seed * (i + 1) * 7) % 11 - 5) / 100;
+          return Math.round(v * variation * 10) / 10;
+        });
+      }
     }
-    data[name] = readings;
   });
+
   return data;
 })();
 
-const farmCropMetrics = (() => {
-  const metrics = {};
-  const farmNames = [
-    'Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'Maple Ridge Farm',
-    'River Bend Agriculture', 'Highland Crops', 'Coastal Farms', 'Valley View Ranch',
-  ];
-  const growth = [78, 62, 90, 55, 70, 85, 50, 65];
-  const harvest = [14, 28, 7, 35, 21, 10, 42, 18];
-  const yieldV = [4.2, 3.8, 5.1, 3.5, 4.0, 4.8, 3.2, 4.5];
-  const profit = [125000, 98000, 185000, 112000, 145000, 168000, 82000, 156000];
-  const stats = ['Good', 'Fair', 'Excellent', 'Fair', 'Good', 'Excellent', 'Fair', 'Good'];
-  const hText = ['Healthy', 'Developing', 'Ready', 'Early Stage', 'Flowering', 'Mature', 'Early Stage', 'Developing'];
-  farmNames.forEach((name, idx) => {
-    metrics[name] = {
-      growthStatus: growth[idx],
-      harvestIn: harvest[idx],
-      harvestLabel: hText[idx],
-      yield: yieldV[idx],
-      netProfit: profit[idx],
-      statusLabel: stats[idx],
-    };
-  });
-  return metrics;
-})();
+function Select({ label, options, value, onChange, width }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div>
+      {label && (
+        <div style={{ color: '#6b7280', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>
+          {label}
+        </div>
+      )}
+      <div className="relative" ref={ref} style={{ width: width || '200px' }}>
+        <button type="button" onClick={() => setOpen((o) => !o)}
+          style={{
+            background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+            color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
+            width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+            transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+            display: 'flex', alignItems: 'center',
+            boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
+          }}
+          onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
+          onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selected ? '#111827' : '#9CA3AF' }}>
+            {selected ? selected.label : 'Select...'}
+          </span>
+          <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
+        </button>
+        {open && (
+          <div style={{
+            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+            maxHeight: '240px', overflowY: 'auto',
+            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+          }}>
+            {options.map((opt) => {
+              const sel = opt.value === value;
+              return (
+                <div key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
+                  style={{
+                    padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                    background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                    color: sel ? '#4caf50' : '#1d1d1f',
+                    transition: 'background 0.15s, color 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                  onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+                >
+                  <span>{opt.label}</span>
+                  {sel && <Check size={12} color="#4caf50" />}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function getSensorStatus(type, value) {
+  if (type === 'temperature') {
+    if (value < 15 || value > 35) return { label: 'Critical', color: '#ef4444' };
+    if (value >= 15 && value <= 20) return { label: 'Low', color: '#f97316' };
+    if (value > 30) return { label: 'High', color: '#f97316' };
+    return { label: 'Normal', color: '#2e7d2e' };
+  }
+  if (type === 'soilMoisture') {
+    if (value < 30) return { label: 'Critical', color: '#ef4444' };
+    if (value >= 30 && value <= 45) return { label: 'Low', color: '#f97316' };
+    if (value > 70) return { label: 'High', color: '#f97316' };
+    return { label: 'Optimal', color: '#2e7d2e' };
+  }
+  if (type === 'humidity') {
+    if (value < 40) return { label: 'Low', color: '#f97316' };
+    if (value > 80) return { label: 'High', color: '#f97316' };
+    return { label: 'Normal', color: '#2e7d2e' };
+  }
+  if (type === 'npk') {
+    if (value < 20) return { label: 'Low', color: '#f97316' };
+    if (value > 60) return { label: 'High', color: '#f97316' };
+    return { label: 'Optimal', color: '#2e7d2e' };
+  }
+  return { label: 'Normal', color: '#6b7280' };
+}
 
 export default function Analytics() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const { users } = useUsers();
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { tasks } = useTasks();
-  const { employees } = useEmployees();
-  const { entries } = useActivityLog();
 
-  const isMasterAdmin = currentUser?.role === 'masterAdmin';
+  const [selectedFarmName, setSelectedFarmName] = useState('All Farms');
+  const [graphType, setGraphType] = useState('line');
   const now = new Date();
 
+  const selectedFarm = useMemo(() => {
+    if (selectedFarmName === 'All Farms') return null;
+    return farms.find((f) => f.name === selectedFarmName) || null;
+  }, [selectedFarmName, farms]);
+
+  const sensorReadings = useMemo(() => {
+    const d = SENSOR_DATA[selectedFarmName];
+    if (d) return d;
+    return SENSOR_DATA['All Farms'];
+  }, [selectedFarmName]);
+
+  const harvestInfo = useMemo(() => {
+    const findNearest = (farmList) => {
+      let minDays = Infinity, minCrop = '', minFarm = '';
+      farmList.forEach((f) => {
+        (f.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((crop) => {
+          const days = CROP_DAYS[crop];
+          if (days !== undefined && days < minDays) {
+            minDays = days;
+            minCrop = crop;
+            minFarm = f.name;
+          }
+        });
+      });
+      if (minDays === Infinity) return null;
+      return { days: minDays, crop: minCrop, farmName: minFarm };
+    };
+
+    if (selectedFarm) return findNearest([selectedFarm]);
+    return findNearest(farms);
+  }, [selectedFarm, farms]);
+
+  const computedYield = useMemo(() => {
+    const calcFarm = (f) => {
+      const acres = parseAcres(f.size);
+      const crops = (f.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (crops.length === 0) return 0;
+      return crops.reduce((sum, crop) => {
+        const factor = YIELD_FACTORS[crop];
+        return sum + (factor ? (acres / crops.length) * factor : 0);
+      }, 0);
+    };
+
+    if (selectedFarm) return calcFarm(selectedFarm);
+    return farms.reduce((sum, f) => sum + calcFarm(f), 0);
+  }, [selectedFarm, farms]);
+
+  const computedProfit = useMemo(() => {
+    const calcFarm = (f) => {
+      const acres = parseAcres(f.size);
+      const crops = (f.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (crops.length === 0) return 0;
+      return crops.reduce((sum, crop) => {
+        const factor = YIELD_FACTORS[crop];
+        const price = CROP_PRICES[crop];
+        if (!factor || !price) return sum;
+        const cropAcres = acres / crops.length;
+        return sum + (cropAcres * factor * price - cropAcres * OP_COST_PER_ACRE);
+      }, 0);
+    };
+
+    if (selectedFarm) return calcFarm(selectedFarm);
+    return farms.reduce((sum, f) => sum + calcFarm(f), 0);
+  }, [selectedFarm, farms]);
+
+  const growthStatus = useMemo(() => {
+    const lastTemp = sensorReadings.temperature[sensorReadings.temperature.length - 1];
+    const lastSoil = sensorReadings.soilMoisture[sensorReadings.soilMoisture.length - 1];
+    const lastHum = sensorReadings.humidity[sensorReadings.humidity.length - 1];
+
+    let normal = 0;
+    if (lastTemp >= 20 && lastTemp <= 30) normal++;
+    if (lastSoil >= 45 && lastSoil <= 70) normal++;
+    if (lastHum >= 40 && lastHum <= 80) normal++;
+
+    const pct = Math.round((normal / 3) * 100);
+    if (pct >= 66) return { label: 'Healthy', color: '#2e7d2e', pct };
+    if (pct >= 33) return { label: 'Needs Attention', color: '#f97316', pct };
+    return { label: 'Critical', color: '#ef4444', pct };
+  }, [sensorReadings]);
+
+  const chartData = useMemo(() => {
+    return {
+      temperature: sensorReadings.temperature.map((v, i) => ({ time: TIME_LABELS[i], value: v })),
+      soilMoisture: sensorReadings.soilMoisture.map((v, i) => ({ time: TIME_LABELS[i], value: v })),
+      humidity: sensorReadings.humidity.map((v, i) => ({ time: TIME_LABELS[i], value: v })),
+      npk: sensorReadings.npk.map((v, i) => ({ time: TIME_LABELS[i], value: v })),
+    };
+  }, [sensorReadings]);
+
+  const farmOptions = useMemo(() => {
+    return [{ value: 'All Farms', label: 'All Farms' }, ...farms.map((f) => ({ value: f.name, label: f.name }))];
+  }, [farms]);
+
+  const graphOptions = [
+    { value: 'line', label: 'Line Chart' },
+    { value: 'bar', label: 'Bar Chart' },
+    { value: 'area', label: 'Area Chart' },
+  ];
+
+  const sensorConfigs = [
+    { key: 'temperature', label: 'Temperature', unit: '°C', icon: Thermometer, color: '#f97316', badgeBg: 'rgba(249,115,22,0.12)' },
+    { key: 'soilMoisture', label: 'Soil Moisture', unit: '%', icon: Droplets, color: '#3b82f6', badgeBg: 'rgba(59,130,246,0.12)' },
+    { key: 'humidity', label: 'Humidity', unit: '%', icon: CloudRain, color: '#06b6d4', badgeBg: 'rgba(6,182,212,0.12)' },
+    { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
+  ];
+
   const offlineRobots = robots.filter((r) => r.status === 'Offline');
-  const criticalBattRobots = robots.filter((r) => r.battery < 20);
+  const lowBattRobots = robots.filter((r) => r.battery < 20);
   const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && new Date(t.dueDate) < now);
-  const hasAlerts = offlineRobots.length > 0 || criticalBattRobots.length > 0 || overdueTasks.length > 0;
-  const hasCriticalAlerts = offlineRobots.length > 0;
+  const hasAlerts = offlineRobots.length > 0 || lowBattRobots.length > 0 || overdueTasks.length > 0;
 
   const batterySorted = useMemo(() => {
-    const order = { 'Critical': 0, 'Low': 1, 'Good': 2, 'Excellent': 3 };
-    return [...robots].sort((a, b) => {
-      const aOff = a.status === 'Offline';
-      const bOff = b.status === 'Offline';
-      if (aOff && !bOff) return -1;
-      if (!aOff && bOff) return 1;
-      const aLabel = a.battery < 20 ? 'Critical' : a.battery < 50 ? 'Low' : a.battery < 80 ? 'Good' : 'Excellent';
-      const bLabel = b.battery < 20 ? 'Critical' : b.battery < 50 ? 'Low' : b.battery < 80 ? 'Good' : 'Excellent';
-      return order[aLabel] - order[bLabel];
-    });
+    return [...robots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
   }, [robots]);
 
-  const robotsNeedAttention = robots.filter((r) => r.status === 'Offline' || r.battery < 50);
-
-  const pendingTasks = tasks.filter((t) => t.status === 'Pending');
-  const inProgressTasks = tasks.filter((t) => t.status === 'In Progress');
-  const completedTasks = tasks.filter((t) => t.status === 'Completed');
-
-  const statusChartData = useMemo(() => [
+  const statusData = useMemo(() => [
     { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
     { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
     { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
   ], [tasks]);
 
-  const hashStr = (s) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
-    return Math.abs(h);
+  const completionRate = tasks.length > 0 ? Math.round((statusData[2].value / tasks.length) * 100) : 0;
+  const needsCharging = robots.filter((r) => r.battery > 0 && r.battery < 50).length;
+
+  const cardStyle = {
+    background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
+    borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)',
   };
 
-  const farmAreaAcres = useMemo(() => {
-    return farms.map((f, idx) => {
-      const h = hashStr(f.name + idx);
-      const baseLat = 36.5 + (h % 100) / 200;
-      const baseLng = -(119.5 + ((h * 7) % 100) / 200);
-      const off = (i) => ((h * (13 + i * 7)) % 150) / 20000;
-      const p1 = { lat: baseLat + off(1), lng: baseLng + off(2) };
-      const p2 = { lat: baseLat + off(3), lng: baseLng + off(4) };
-      const p3 = { lat: baseLat + off(5), lng: baseLng + off(6) };
-      let area = parseFloat(computeTriangleAreaAcres(p1, p2, p3));
-      if (area < 10 || area > 1000) area = 80 + (h % 420);
-      return { ...f, acres: area };
-    });
-  }, [farms]);
+  const sectionTitle = { color: '#1a1a1a', fontSize: '20px', fontWeight: 700, marginBottom: '4px' };
+  const sectionSub = { color: '#6b7280', fontSize: '13px', marginBottom: '20px' };
+  const rowHoverProps = {
+    cursor: 'pointer', transition: 'background 0.15s ease', borderRadius: '10px',
+  };
 
-  const totalArea = farmAreaAcres.reduce((s, f) => s + f.acres, 0);
-  const activeArea = farmAreaAcres.filter((f) => f.status === 'Active').reduce((s, f) => s + f.acres, 0);
-  const idleArea = farmAreaAcres.filter((f) => f.status !== 'Active').reduce((s, f) => s + f.acres, 0);
+  const summaryText = useMemo(() => {
+    if (selectedFarm) {
+      const crops = (selectedFarm.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
+      const cropName = crops[0] || 'crop';
+      const statusWord = growthStatus.label === 'Healthy' ? 'healthy' : 'struggling';
+      const parts = [`${selectedFarm.name}'s ${cropName} crop is ${statusWord}.`];
 
-  const cropFrequency = useMemo(() => {
-    const counts = {};
+      const lastSoil = sensorReadings.soilMoisture[sensorReadings.soilMoisture.length - 1];
+      const lastTemp = sensorReadings.temperature[sensorReadings.temperature.length - 1];
+      const lastHum = sensorReadings.humidity[sensorReadings.humidity.length - 1];
+
+      if (lastSoil < 45) parts.push('Soil moisture is below optimal — consider irrigating.');
+      if (lastTemp > 30) parts.push('Temperature is elevated — monitor for heat stress.');
+      if (lastHum > 80) parts.push('Humidity is high — watch for fungal growth.');
+      if (lastSoil >= 45 && lastTemp <= 30 && lastHum <= 80) parts.push('All sensor readings are within optimal range.');
+
+      return parts.join(' ');
+    }
+
+    const total = farms.length;
+    const healthy = farms.filter((f) => {
+      const d = SENSOR_DATA[f.name] || SENSOR_DATA['All Farms'];
+      if (!d) return false;
+      const t = d.temperature[d.temperature.length - 1];
+      const s = d.soilMoisture[d.soilMoisture.length - 1];
+      const h = d.humidity[d.humidity.length - 1];
+      return (t >= 20 && t <= 30) && (s >= 45 && s <= 70) && (h >= 40 && h <= 80);
+    }).length;
+
+    const issues = [];
     farms.forEach((f) => {
-      (f.cropTypes || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean).forEach((t) => {
-        counts[t] = (counts[t] || 0) + 1;
-      });
+      const d = SENSOR_DATA[f.name] || SENSOR_DATA['All Farms'];
+      if (!d) return;
+      const s = d.soilMoisture[d.soilMoisture.length - 1];
+      const t = d.temperature[d.temperature.length - 1];
+      if (s < 45) issues.push(`${f.name} (low soil moisture)`);
+      if (t > 30) issues.push(`${f.name} (high temperature)`);
     });
-    return Object.entries(counts).map(([name, count]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      count,
-    })).sort((a, b) => b.count - a.count);
-  }, [farms]);
 
-  const maxCropCount = cropFrequency.length > 0 ? cropFrequency[0].count : 1;
-  const mostGrown = cropFrequency.length > 0 ? cropFrequency[0] : null;
+    if (healthy === total) return `All ${total} farms are currently reporting healthy crop conditions.`;
+    return `Fleet overview: ${healthy} of ${total} farms reporting healthy crop status. Farms needing attention: ${issues.slice(0, 3).join(', ')}${issues.length > 3 ? `, and ${issues.length - 3} more.` : '.'}`;
+  }, [selectedFarm, farms, growthStatus, sensorReadings]);
 
-  const mostDiverseFarm = useMemo(() => {
-    let best = null, max = 0;
-    farms.forEach((f) => {
-      const types = (f.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
-      if (types.length > max) { max = types.length; best = f; }
-    });
-    return best ? { name: best.name, count: max } : null;
-  }, [farms]);
+  const cropCardStyle = {
+    background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
+    borderRadius: '14px', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+  };
 
-  const recentEntries = useMemo(() => entries.slice(0, 6), [entries]);
-
-  const activeUsersCount = users.filter((u) => u.status === 'Active').length;
-  const inactiveUsersCount = users.filter((u) => u.status === 'Inactive').length;
-
-  const farmersByRobots = useMemo(() => {
-    return users.map((u) => ({
-      ...u,
-      robotCount: robots.filter((r) => r.owner === u.name).length,
-    })).sort((a, b) => b.robotCount - a.robotCount);
-  }, [users, robots]);
-
-  const latestUser = useMemo(() => [...users].sort((a, b) => new Date(b.joined) - new Date(a.joined))[0], [users]);
-
-  const robotsWithData = useMemo(() => robots.filter((r) => mockSensorReadings[r.id]), [robots]);
-
-  const [selectedRobotId, setSelectedRobotId] = useState(() => {
-    const first = robots.find((r) => mockSensorReadings[r.id]);
-    return first ? first.id : null;
+  const badgeStyle = (bg) => ({
+    background: bg, borderRadius: '10px', padding: '10px',
+    width: '42px', height: '42px', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   });
 
-  const selectedRobot = useMemo(() => robots.find((r) => r.id === selectedRobotId), [robots, selectedRobotId]);
-  const robotSensorData = selectedRobot && mockSensorReadings[selectedRobot.id];
-
-  const [selectedFarmName, setSelectedFarmName] = useState(null);
-  const [graphType, setGraphType] = useState('line');
-
-  const selectedFarm = useMemo(() => selectedFarmName ? farms.find((f) => f.name === selectedFarmName) : null, [selectedFarmName, farms]);
-
-  const activeFarmSensorData = useMemo(() => {
-    if (selectedFarmName && farmSensorData[selectedFarmName]) return farmSensorData[selectedFarmName];
-    const names = Object.keys(farmSensorData);
-    const agg = [];
-    for (let i = 0; i < 10; i++) {
-      let t = 0, h = 0, s = 0, r = 0;
-      names.forEach((nm) => {
-        t += farmSensorData[nm][i].temperature;
-        h += farmSensorData[nm][i].humidity;
-        s += farmSensorData[nm][i].soilMoisture;
-        r += farmSensorData[nm][i].rainfall;
-      });
-      const n = names.length;
-      agg.push({
-        time: farmSensorData[names[0]][i].time,
-        temperature: Math.round((t / n) * 10) / 10,
-        humidity: Math.round((h / n) * 10) / 10,
-        soilMoisture: Math.round(s / n),
-        rainfall: Math.round((r / n) * 10) / 10,
-      });
-    }
-    return agg;
-  }, [selectedFarmName]);
-
-  const activeCropMetrics = useMemo(() => {
-    if (selectedFarmName && farmCropMetrics[selectedFarmName]) return farmCropMetrics[selectedFarmName];
-    const names = Object.keys(farmCropMetrics);
-    let g = 0, h = 0, y = 0, p = 0;
-    names.forEach((nm) => {
-      g += farmCropMetrics[nm].growthStatus;
-      h += farmCropMetrics[nm].harvestIn;
-      y += farmCropMetrics[nm].yield;
-      p += farmCropMetrics[nm].netProfit;
-    });
-    const n = names.length;
-    return {
-      growthStatus: Math.round(g / n),
-      harvestIn: Math.round(h / n),
-      yield: Math.round((y / n) * 10) / 10,
-      netProfit: Math.round(p / n),
-      statusLabel: 'Average',
-      harvestLabel: 'Mixed',
-    };
-  }, [selectedFarmName]);
-
-  const soilLabel = (s) => { if (s < 20) return 'Too Dry'; if (s <= 60) return 'Optimal'; return 'Too Wet'; };
-  const soilColor = (s) => { if (s < 20) return '#EF4444'; if (s <= 60) return '#16a34a'; return '#3B82F6'; };
-  const ultrasonicInfo = (u) => { if (u < 30) return { icon: '⚠', color: '#dc2626', label: 'Obstacle Detected' }; if (u <= 200) return { icon: '✓', color: '#16a34a', label: 'Clear Path' }; return { icon: '—', color: '#9CA3AF', label: 'No Reading' }; };
-  const statusColor = (s) => { if (s === 'Active') return '#4caf50'; if (s === 'Assigned') return '#3b82f6'; if (s === 'Maintenance') return '#F59E0B'; return '#EF4444'; };
-
-  const cardStyle = { background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)' };
-
-  const sensors = [
-    { key: 'temperature', label: 'Temperature', unit: '°C', icon: Thermometer, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-    { key: 'humidity', label: 'Humidity', unit: '%', icon: Droplets, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-    { key: 'soilMoisture', label: 'Soil Moisture', unit: '%', icon: Leaf, color: '#16a34a', bg: 'rgba(22,163,74,0.1)' },
-    { key: 'rainfall', label: 'Rainfall', unit: 'mm', icon: CloudRain, color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
-  ];
-
-  const renderChart = (data, dataKey, color) => {
+  function renderChart(data, dataKey, color, type) {
     const common = { data, margin: { top: 5, right: 5, bottom: 5, left: -15 } };
     const axisProps = { tick: { fontSize: 10, fill: '#9CA3AF' }, axisLine: false, tickLine: false };
-    if (graphType === 'bar') return (
-      <BarChart {...common}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
-        <XAxis dataKey="time" {...axisProps} />
-        <YAxis {...axisProps} />
-        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
-        <Bar dataKey={dataKey} fill={color} radius={[3, 3, 0, 0]} />
-      </BarChart>
-    );
-    if (graphType === 'area') return (
-      <AreaChart {...common}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
-        <XAxis dataKey="time" {...axisProps} />
-        <YAxis {...axisProps} />
-        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
-        <Area type="monotone" dataKey={dataKey} stroke={color} fill={color} fillOpacity={0.1} strokeWidth={2} dot={false} />
-      </AreaChart>
-    );
+    const grid = <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,46,26,0.06)" />;
+    const tooltip = <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />;
+
+    if (type === 'bar') {
+      return (
+        <BarChart {...common}>
+          {grid}
+          <XAxis dataKey="time" {...axisProps} />
+          <YAxis {...axisProps} />
+          {tooltip}
+          <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]} />
+        </BarChart>
+      );
+    }
+    if (type === 'area') {
+      return (
+        <AreaChart {...common}>
+          {grid}
+          <XAxis dataKey="time" {...axisProps} />
+          <YAxis {...axisProps} />
+          {tooltip}
+          <Area type="monotone" dataKey={dataKey} stroke={color} fill={color} fillOpacity={0.15} strokeWidth={2} dot={false} />
+        </AreaChart>
+      );
+    }
     return (
       <LineChart {...common}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+        {grid}
         <XAxis dataKey="time" {...axisProps} />
         <YAxis {...axisProps} />
-        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />
-        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} />
+        {tooltip}
+        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     );
-  };
+  }
+
+  const harvestDateStr = harvestInfo
+    ? new Date(Date.now() + harvestInfo.days * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
 
   return (
     <>
       <div className="mb-6">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div className="text-2xl font-bold text-primary">Analytics</div>
-            <div className="text-sm text-text-secondary mt-1">{selectedFarmName ? `Insights for ${selectedFarmName}` : 'Command center \u2014 deeper insights not shown on the Dashboard'}</div>
+            <div className="text-2xl font-bold text-primary">
+              Analytics{selectedFarm ? ` \u2014 ${selectedFarm.name} (${selectedFarm.cropTypes})` : ''}
+            </div>
+            <div className="text-sm text-text-secondary mt-1">
+              Real-time sensor data and performance metrics across all farms
+            </div>
           </div>
-          <FarmSelect farms={farms} selectedName={selectedFarmName} onChange={setSelectedFarmName} />
+          <Select
+            label="Select Farm"
+            options={farmOptions}
+            value={selectedFarmName}
+            onChange={setSelectedFarmName}
+            width="220px"
+          />
         </div>
       </div>
 
-      <div className="mb-6">
-        <div className="text-lg font-bold text-primary mb-4">Crop Performance</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-          {[
-            { label: 'Growth Status', value: `${activeCropMetrics.growthStatus}%`, sub: activeCropMetrics.harvestLabel, icon: Sprout, bg: 'rgba(76,175,80,0.12)', color: '#2e7d2e' },
-            { label: 'Harvest In', value: `${activeCropMetrics.harvestIn} days`, sub: activeCropMetrics.statusLabel, icon: Calendar, bg: 'rgba(245,158,11,0.12)', color: '#D97706' },
-            { label: 'Yield', value: `${activeCropMetrics.yield} t/ac`, sub: 'per acre', icon: TrendingUp, bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
-            { label: 'Net Profit', value: `\u20B9${activeCropMetrics.netProfit.toLocaleString('en-IN')}`, sub: 'estimated', icon: Leaf, bg: 'rgba(234,179,8,0.12)', color: '#B45309' },
-          ].map((m) => (
-            <GlowCard key={m.label} className="glass-card rounded-2xl" style={cardStyle}>
-              <div className="flex items-center justify-between mb-3">
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.bg }}>
-                  <m.icon size={20} color={m.color} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* SECTION 1: Crop Performance */}
+        <div>
+          <div style={sectionTitle}>Crop Performance</div>
+          <div style={sectionSub}>Key metrics for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {/* Card 1 */}
+            <div style={cropCardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ flex: 1 }} />
+                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                  <CheckCircle size={20} color="#2e7d2e" />
                 </div>
               </div>
-              <div className="text-xs font-medium text-text-secondary mb-1">{m.label}</div>
-              <div className="text-xl font-extrabold" style={{ color: '#1a1a1a' }}>{m.value}</div>
-              <div className="text-xs mt-1" style={{ color: m.color }}>{m.sub}</div>
-            </GlowCard>
-          ))}
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Growth Status</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>{growthStatus.pct}% optimal</div>
+            </div>
+            {/* Card 2 */}
+            <div style={cropCardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ flex: 1 }} />
+                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                  <Calendar size={20} color="#2e7d2e" />
+                </div>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Harvest In</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>
+                {harvestInfo ? `${harvestInfo.days} Days` : '--'}
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>
+                {harvestInfo ? (selectedFarm ? harvestDateStr : `${harvestDateStr} \u2014 ${harvestInfo.farmName}`) : ''}
+              </div>
+            </div>
+            {/* Card 3 */}
+            <div style={cropCardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ flex: 1 }} />
+                <div style={badgeStyle('rgba(249,115,22,0.1)')}>
+                  <TrendingUp size={20} color="#f97316" />
+                </div>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Yield</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>{computedYield.toFixed(1)} Tons</div>
+              <div style={{ color: '#2e7d2e', fontSize: '13px', marginTop: '2px' }}>↑ +15%</div>
+            </div>
+            {/* Card 4 */}
+            <div style={cropCardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ flex: 1 }} />
+                <div style={badgeStyle('rgba(46,125,50,0.1)')}>
+                  <DollarSign size={20} color="#2e7d2e" />
+                </div>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Net Profit</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#2e7d2e' }}>${(computedProfit / 1000).toFixed(0)}K</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>Revenue: ${(computedProfit / 1000).toFixed(0)}K</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="mb-6">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <div className="text-lg font-bold text-primary">Sensor Analytics</div>
-            <div className="text-sm text-text-secondary mt-1">24-hour readings at 4-hour intervals</div>
+        {/* SECTION 2: Sensor Analytics */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
+            <div>
+              <div style={sectionTitle}>Sensor Analytics</div>
+              <div style={sectionSub}>24-hour readings at ~2.4 hour intervals</div>
+            </div>
+            <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
           </div>
-          <GraphTypeSelect value={graphType} onChange={setGraphType} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-          {sensors.map((s) => (
-            <GlowCard key={s.key} className="glass-card rounded-2xl" style={cardStyle}>
-              <div className="flex items-center gap-2 mb-3">
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: s.bg }}>
-                  <s.icon size={16} color={s.color} />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-primary">{s.label}</div>
-                  <div className="text-xs text-text-secondary">{s.unit}</div>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={200}>
-                {renderChart(activeFarmSensorData, s.key, s.color)}
-              </ResponsiveContainer>
-            </GlowCard>
-          ))}
-        </div>
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            {sensorConfigs.map((s) => {
+              const readings = sensorReadings[s.key];
+              const lastVal = readings[readings.length - 1];
+              const prevVal = readings[readings.length - 2];
+              const trend = lastVal >= prevVal ? 'up' : 'down';
+              const status = getSensorStatus(s.key, lastVal);
 
-      <div className="mb-6">
-        <GlowCard className="glass-card rounded-2xl" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-lg font-bold text-primary">Farm Summary</div>
-              <div className="text-sm text-text-secondary mt-1">{selectedFarmName ? `Quick overview of ${selectedFarmName}` : 'Aggregated overview of all farms'}</div>
-            </div>
-            <Calendar size={20} color="#6B7280" />
-          </div>
-          {selectedFarm ? (
-            <div>
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                <div><span className="text-xs text-text-secondary">Location</span><div className="text-sm font-semibold text-primary">{selectedFarm.location}</div></div>
-                <div><span className="text-xs text-text-secondary">Owner</span><div className="text-sm font-semibold text-primary">{selectedFarm.owner}</div></div>
-                <div><span className="text-xs text-text-secondary">Primary Crop</span><div className="text-sm font-semibold text-primary">{selectedFarm.crop}</div></div>
-                <div><span className="text-xs text-text-secondary">Soil Type</span><div className="text-sm font-semibold text-primary">{selectedFarm.soil}</div></div>
-                <div><span className="text-xs text-text-secondary">Size</span><div className="text-sm font-semibold text-primary">{selectedFarm.size}</div></div>
-                <div><span className="text-xs text-text-secondary">Status</span><div className="text-sm font-semibold text-primary">{selectedFarm.status}</div></div>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                <div><span className="text-xs text-text-secondary">Total Farms</span><div className="text-sm font-semibold text-primary">{farms.length}</div></div>
-                <div><span className="text-xs text-text-secondary">Crop Types</span><div className="text-sm font-semibold text-primary">{cropFrequency.length}</div></div>
-                <div><span className="text-xs text-text-secondary">Total Area</span><div className="text-sm font-semibold text-primary">{totalArea.toFixed(0)} ac</div></div>
-                <div><span className="text-xs text-text-secondary">Most Grown</span><div className="text-sm font-semibold text-primary">{mostGrown ? mostGrown.name : '\u2014'}</div></div>
-              </div>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'View Farm Details', nav: '/admin/farms' },
-              { label: 'View Tasks', nav: '/admin/tasks' },
-              { label: 'View Sensors', nav: '/admin/sensors' },
-            ].map((chip) => (
-              <div key={chip.label} onClick={() => navigate(chip.nav)}
-                style={{
-                  padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                  cursor: 'pointer', background: 'rgba(76,175,80,0.08)', color: '#2e7d2e',
-                  border: '1px solid rgba(76,175,80,0.2)', transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >
-                {chip.label} →
-              </div>
-            ))}
-          </div>
-        </GlowCard>
-      </div>
-
-      {!hasAlerts ? (
-        <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5 mb-6">
-          <div className="flex items-center gap-3">
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(76,175,80,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <CheckCircle size={18} color="#2e7d2e" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold" style={{ color: '#2e7d2e' }}>All Systems Normal</div>
-              <div className="text-xs text-text-secondary mt-0.5">No alerts at this time</div>
-            </div>
-          </div>
-        </GlowCard>
-      ) : (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[
-            { count: offlineRobots.length, label: 'Robots Offline', nav: '/admin/robots', iconBg: offlineRobots.length > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(156,163,175,0.12)', iconColor: offlineRobots.length > 0 ? '#DC2626' : '#9CA3AF', numColor: offlineRobots.length > 0 ? '#DC2626' : '#111827' },
-            { count: criticalBattRobots.length, label: 'Critical Battery', nav: '/admin/robots', iconBg: criticalBattRobots.length > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(156,163,175,0.12)', iconColor: criticalBattRobots.length > 0 ? '#D97706' : '#9CA3AF', numColor: criticalBattRobots.length > 0 ? '#D97706' : '#111827' },
-            { count: overdueTasks.length, label: 'Overdue Tasks', nav: '/admin/tasks', iconBg: overdueTasks.length > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(156,163,175,0.12)', iconColor: overdueTasks.length > 0 ? '#DC2626' : '#9CA3AF', numColor: overdueTasks.length > 0 ? '#DC2626' : '#111827' },
-          ].map((b) => (
-            <GlowCard key={b.label} onClick={() => navigate(b.nav)} className="glass-card rounded-2xl p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-text-secondary mb-1">{b.label}</div>
-                  <div className="text-3xl font-extrabold" style={{ color: b.numColor }}>{b.count}</div>
-                </div>
-                <div style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: b.iconBg, flexShrink: 0 }}>
-                  <AlertTriangle size={18} color={b.iconColor} />
-                </div>
-              </div>
-            </GlowCard>
-          ))}
-        </div>
-      )}
-
-      <div className="mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-primary">Robot Fleet — Battery Status</span>
-            <span className="text-[10px] text-text-secondary">Click any robot to view details →</span>
-          </div>
-          <div className="text-[10px] text-text-secondary mb-4">Battery health across the fleet</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }} className="battery-grid">
-            {batterySorted.map((r) => {
-              const isOffline = r.status === 'Offline';
-              const barColor = isOffline ? '#D1D5DB' : r.battery >= 60 ? '#22C55E' : r.battery >= 30 ? '#F59E0B' : '#EF4444';
-              const dotColor = isOffline ? '#EF4444' : r.status === 'Active' ? '#4caf50' : '#F59E0B';
-              const statusTextColor = isOffline ? '#991B1B' : r.status === 'Active' ? '#065F46' : '#92400E';
               return (
-                <GlowCard key={r.id} onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-4" style={{ textAlign: 'center' }}>
-                  <div className="text-sm font-semibold text-primary truncate">{r.name}</div>
-                  <div className="text-[10px] text-text-secondary mt-0.5 truncate">{r.farm}</div>
-                  {isOffline ? (
-                    <div className="text-[11px] font-semibold mt-3" style={{ color: '#991B1B' }}>Offline</div>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-extrabold mt-2" style={{ color: barColor }}>{r.battery}%</div>
-                      <div className="flex items-center justify-center gap-1.5 mt-2">
-                        <div style={{ width: '48px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                          <div className="h-full rounded-full" style={{ width: `${r.battery}%`, background: barColor }} />
-                        </div>
+                <div key={s.key} style={{
+                  background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)',
+                  borderRadius: '16px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ background: s.badgeBg, borderRadius: '10px', padding: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <s.icon size={18} color={s.color} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                        <span style={{ fontWeight: 600, fontSize: '14px', color: '#1a1a1a' }}>{s.label}</span>
+                        <span style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>{lastVal}{s.unit}</span>
+                        <span style={{ fontSize: '13px', color: trend === 'up' ? '#2e7d2e' : '#ef4444' }}>{trend === 'up' ? '\u2191' : '\u2193'}</span>
                       </div>
-                    </>
-                  )}
-                  <div className="flex items-center justify-center gap-1.5 mt-2" style={{ fontSize: '11px', fontWeight: 600, color: statusTextColor }}>
-                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
-                    <span>{r.status}</span>
+                    </div>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px',
+                      background: `${status.color}18`, color: status.color, flexShrink: 0,
+                    }}>
+                      {status.label}
+                    </span>
                   </div>
-                </GlowCard>
+                  <ResponsiveContainer width="100%" height={180}>
+                    {renderChart(chartData[s.key], 'value', s.color, graphType)}
+                  </ResponsiveContainer>
+                  <div style={{ color: '#6b7280', fontSize: '12px', fontStyle: 'italic', marginTop: '8px', textAlign: 'center' }}>
+                    Trend over time — shows how {s.label.toLowerCase()} changes throughout the day for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.
+                  </div>
+                </div>
               );
             })}
           </div>
-          <div onClick={() => navigate('/admin/robots')} style={{
-            marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
-            fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
-            color: robotsNeedAttention.length > 0 ? '#D97706' : '#2e7d2e',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            {robotsNeedAttention.length} of {robots.length} robots need attention →
+        </div>
+
+        {/* SECTION 3: Farm Summary */}
+        <div>
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+              <Sprout size={22} color="#2e7d2e" />
+              <span style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>Farm Summary</span>
+              {selectedFarm && (
+                <span style={{
+                  background: 'rgba(46,125,50,0.1)', color: '#2e7d2e',
+                  borderRadius: '20px', padding: '3px 12px', fontSize: '13px', fontWeight: 600,
+                }}>
+                  {selectedFarm.name}
+                </span>
+              )}
+            </div>
+            <div style={{ color: '#374151', fontSize: '14px', lineHeight: 1.7, margin: '12px 0 20px' }}>
+              {summaryText}
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {[
+                { label: '\uD83E\uDD16 View Robot Status', nav: '/admin/robots' },
+                { label: '\uD83D\uDCCB View Tasks', nav: '/admin/tasks' },
+                { label: '\uD83C\uDF3E View Farms', nav: '/admin/farms' },
+              ].map((chip) => (
+                <div key={chip.label} onClick={() => navigate(chip.nav)}
+                  style={{
+                    background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
+                    borderRadius: '20px', padding: '7px 16px', fontSize: '13px',
+                    color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(46,125,50,0.1)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                >
+                  {chip.label}
+                </div>
+              ))}
+            </div>
           </div>
-        </GlowCard>
-      </div>
+        </div>
 
-      <div className="mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5">
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>Task Operations</div>
-          <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '20px' }}>Status and priority breakdown across all tasks</div>
-
-          <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Total Tasks</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length > 0 ? ((completedTasks.length / tasks.length) * 100).toFixed(0) : 0}%</div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Completion Rate</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Overdue</div>
-            </div>
-          </div>
-
-          <div className="relative flex items-center justify-center">
-            <div style={{ width: '100%', maxWidth: '480px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px', textAlign: 'center' }}>By Status</div>
-              <div className="relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={260}>
-                  <PieChart>
-                    <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={65} outerRadius={100} dataKey="value" strokeWidth={0}>
-                      {statusChartData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center">
-                    <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: '#1a1a1a' }}>{tasks.length}</div>
-                    <div className="text-[10px]" style={{ color: '#6b7280' }}>Total Tasks</div>
-                  </div>
+        {/* SECTION 4: System Alerts */}
+        <div>
+          {!hasAlerts ? (
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  background: 'rgba(76,175,80,0.12)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <CheckCircle size={18} color="#2e7d2e" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#2e7d2e' }}>All Systems Normal</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>No alerts at this time</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
-                {statusChartData.map((entry) => (
-                  <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#6b7280' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
-                    <span>{entry.name} {entry.value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
-          </div>
-
-          <div onClick={() => navigate('/admin/tasks')} style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500 }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-          >
-            View all tasks →
-          </div>
-        </GlowCard>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'stretch' }} className="mb-6">
-        <GlowCard className="glass-card rounded-2xl p-5" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ marginBottom: '4px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Farmer Overview</span>
-          </div>
-          <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '14px' }}>Your customer base at a glance</div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '16px' }}>
-            {[
-              { label: 'Total Farmers', value: users.length, color: '#111827' },
-              { label: 'Active', value: activeUsersCount, color: '#2e7d2e' },
-              { label: 'Inactive', value: inactiveUsersCount, color: '#DC2626' },
-            ].map((stat) => (
-              <div key={stat.label} style={{ textAlign: 'center', padding: '10px 4px', borderRadius: '8px', background: 'rgba(76,175,80,0.04)', border: '1px solid rgba(76,175,80,0.08)' }}>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: stat.color }}>{stat.value}</div>
-                <div style={{ fontSize: '9px', color: '#5A7A5A', marginTop: '2px' }}>{stat.label}</div>
+          ) : (
+            <div style={cardStyle}>
+              <div style={sectionTitle}>System Alerts</div>
+              <div style={sectionSub}>Active issues requiring attention</div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+                {offlineRobots.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#dc2626' }}>
+                    <span style={{ fontSize: '16px' }}>🔴</span> {offlineRobots.length} Robots Offline
+                  </div>
+                )}
+                {lowBattRobots.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#d97706' }}>
+                    <span style={{ fontSize: '16px' }}>🟡</span> {lowBattRobots.length} Low Battery
+                  </div>
+                )}
+                {overdueTasks.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#dc2626' }}>
+                    <span style={{ fontSize: '16px' }}>⚠</span> {overdueTasks.length} Overdue Tasks
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Top Farmers by Robots Owned</div>
-            {farmersByRobots.map((f, i) => (
-              <div key={f.name} onClick={() => navigate('/admin/users')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', fontSize: '12px', cursor: 'pointer', transition: 'background 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <span style={{ width: '18px', fontSize: '10px', fontWeight: 700, color: '#9CA3AF', textAlign: 'right', flexShrink: 0 }}>#{i + 1}</span>
-                <span style={{ flex: 1, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.status === 'Active' ? '#4caf50' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: f.status === 'Active' ? '#2e7d2e' : '#DC2626' }}>{f.robotCount}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {latestUser && (
-            <div style={{ marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '4px' }}>Recently Joined</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4caf50', display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{latestUser.name}</span>
-                <span style={{ fontSize: '10px', color: '#9CA3AF', marginLeft: 'auto' }}>{latestUser.joined}</span>
+              {offlineRobots.length > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Offline Robots</div>
+                  {offlineRobots.slice(0, 5).map((r) => (
+                    <div key={r.id} onClick={() => navigate('/admin/robots')}
+                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.name}</span>
+                      <span style={{ color: '#9CA3AF' }}>— {r.farm || 'Unassigned'}</span>
+                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {lowBattRobots.length > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Low Battery Robots</div>
+                  {lowBattRobots.slice(0, 5).map((r) => (
+                    <div key={r.id} onClick={() => navigate('/admin/robots')}
+                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#d97706', flexShrink: 0 }} />
+                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.name}</span>
+                      <span style={{ color: '#d97706', fontWeight: 600 }}>{r.battery}%</span>
+                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {overdueTasks.length > 0 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Overdue Tasks</div>
+                  {overdueTasks.slice(0, 5).map((t, i) => (
+                    <div key={t.id || i} onClick={() => navigate('/admin/tasks')}
+                      style={{ ...rowHoverProps, padding: '8px 10px', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                      <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{t.title || `Task #${i + 1}`}</span>
+                      <span style={{ color: '#9CA3AF' }}>— Due: {t.dueDate || 'N/A'}</span>
+                      <ArrowRight size={12} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                <div onClick={() => navigate('/admin/robots')} style={{ fontSize: '13px', fontWeight: 500, color: '#2e7d2e', cursor: 'pointer' }}>
+                  View Robot Management →
+                </div>
+                <div onClick={() => navigate('/admin/tasks')} style={{ fontSize: '13px', fontWeight: 500, color: '#2e7d2e', cursor: 'pointer' }}>
+                  View Task Management →
+                </div>
               </div>
             </div>
           )}
+        </div>
 
-          <div onClick={() => navigate('/admin/users')} style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)', textAlign: 'right', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', transition: 'opacity 0.15s ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-          >
-            View all farmers →
+        {/* SECTION 5: Fleet Intelligence */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Left: Battery Health */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
+              <span style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
+                Click any robot to view details →
+              </span>
+            </div>
+            <div style={sectionSub}>Sorted by battery level (lowest first)</div>
+            <div>
+              {batterySorted.map((r) => {
+                const barColor = r.battery < 20 ? '#ef4444' : r.battery < 50 ? '#f97316' : '#22C55E';
+                const statusLabel = r.battery < 20 ? 'Critical' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
+                const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
+
+                return (
+                  <div key={r.id} onClick={() => navigate('/admin/robots')}
+                    style={{ ...rowHoverProps, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontWeight: 600, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    <div style={{ width: '80px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', flexShrink: 0 }}>
+                      <div style={{ width: `${Math.min(r.battery, 100)}%`, height: '100%', borderRadius: '999px', background: barColor }} />
+                    </div>
+                    <span style={{ fontWeight: 700, color: barColor, minWidth: '30px', textAlign: 'right' }}>{r.battery}%</span>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 500, padding: '1px 6px', borderRadius: '8px',
+                      background: `${barColor}18`, color: barColor, flexShrink: 0,
+                    }}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div onClick={() => navigate('/admin/robots')} style={{
+              marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              fontSize: '13px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
+            }}>
+              {needsCharging} robots need charging soon →
+            </div>
           </div>
-        </GlowCard>
 
-      </div>
+          {/* Right: Task Operations */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
+            <div style={sectionSub}>Status breakdown across all tasks</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="team-sensor-grid">
-        {isMasterAdmin ? (
-          <GlowCard className="glass-card rounded-2xl p-5">
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>System Activity</span>
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Total Tasks</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{completionRate}%</div>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Completion Rate</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Overdue</div>
+              </div>
             </div>
-            <div style={{ fontSize: '10px', color: '#5A7A5A', marginBottom: '16px' }}>Recent actions across the platform</div>
 
-            {recentEntries.length > 0 ? (
-              <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                <div style={{
-                  position: 'absolute', left: '9px', top: '8px', bottom: '8px',
-                  width: '2px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px',
-                }} />
-                {recentEntries.map((entry) => {
-                  const dotColor = actionDot(entry.action);
-                  return (
-                    <div key={entry.id} onClick={() => navigate('/admin/employees')} style={{
-                      position: 'relative', paddingBottom: '16px', cursor: 'pointer',
-                      paddingLeft: '0', transition: 'all 0.15s ease',
-                      borderRadius: '6px',
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.04)'; e.currentTarget.style.paddingLeft = '8px'; e.currentTarget.style.paddingRight = '8px'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.paddingLeft = '0'; e.currentTarget.style.paddingRight = '0'; }}
-                    >
-                      <div style={{
-                        position: 'absolute', left: '-17px', top: '4px',
-                        width: '10px', height: '10px', borderRadius: '50%',
-                        background: dotColor,
-                        border: '2px solid #fff',
-                        boxShadow: '0 0 0 2px rgba(0,0,0,0.04)',
-                        zIndex: 1,
-                      }} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>{entry.userName}</span>
-                          <div style={{ fontSize: '10px', color: '#5A7A5A', marginTop: '1px' }}>
-                            {entry.action} <span style={{ fontWeight: 600, color: '#111827' }}>{entry.target}</span>
-                          </div>
-                        </div>
-                        <span style={{ fontSize: '9px', color: '#9CA3AF', flexShrink: 0, marginLeft: '8px' }}>{relativeTime(entry.timestamp)}</span>
-                      </div>
+            <div className="relative flex items-center justify-center">
+              <div style={{ width: '100%', maxWidth: '320px' }}>
+                <div className="relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} dataKey="value" strokeWidth={0}>
+                        {statusData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <div style={{ fontSize: '22px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>{tasks.length}</div>
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-12 text-text-placeholder">
-                <i className="ph ph-clock-counter-clockwise text-4xl mb-3 opacity-50" />
-                <p className="text-sm font-medium">No activity entries found</p>
-                <p className="text-xs mt-1">Actions will appear here as they occur</p>
-              </div>
-            )}
-
-            <div onClick={() => navigate('/admin/employees')} style={{
-              marginTop: '8px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
-              fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease',
-              color: '#2e7d2e',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
-              View full activity log →
-            </div>
-          </GlowCard>
-        ) : (
-          <GlowCard className="glass-card rounded-2xl p-5">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Robot Sensor Network</span>
-              <RobotSelect robots={robotsWithData} selectedId={selectedRobotId} onChange={setSelectedRobotId} />
-            </div>
-            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '14px' }}>Live readings from connected robot fleet</div>
-
-            {selectedRobot && robotSensorData && (
-              <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor(selectedRobot.status), flexShrink: 0 }} />
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{selectedRobot.name}</span>
-                <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.id}</span>
-                {selectedRobot.farm && <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.farm}</span>}
-                <div onClick={() => navigate('/admin/sensors')} style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  View full details →
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
+                  {statusData.map((entry) => (
+                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#6b7280' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+                      <span>{entry.name} {entry.value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
-
-            {selectedRobot && robotSensorData && (
-              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '16px' }}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{selectedRobot.battery}%</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Battery</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.dht11.temperature}°C</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Temperature</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.soilMoisture}%</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Soil Moisture</div>
-                </div>
-              </div>
-            )}
-
-            {selectedRobot && robotSensorData ? (
-              <>
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Thermometer size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DHT11</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Thermometer size={13} color="#16a34a" />{robotSensorData.dht11.temperature}°C
-                      </span>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Droplets size={13} color="#16a34a" />{robotSensorData.dht11.humidity}%
-                      </span>
-                    </div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Droplets size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SOIL MOISTURE</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '2px' }}>{robotSensorData.soilMoisture}%</div>
-                    <div style={{ width: '140px', height: '6px', borderRadius: '999px', background: 'rgba(26,46,26,0.08)', overflow: 'hidden', marginTop: '4px' }}>
-                      <div style={{ width: `${robotSensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
-                    </div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(robotSensorData.soilMoisture)}</div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Radar size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ULTRASONIC</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(robotSensorData.ultrasonic).color, marginTop: '2px' }}>
-                      {ultrasonicInfo(robotSensorData.ultrasonic).icon} {robotSensorData.ultrasonic}cm
-                    </div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <MapPin size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LOCATION</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({robotSensorData.wifiLocation.lat.toFixed(2)}, {robotSensorData.wifiLocation.lng.toFixed(2)})</span>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#16a34a' }}>● Active</span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{robotSensorData.wifiLocation.label}</div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-              </>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '13px', color: '#6b7280' }}>No sensor data available</div>
-            )}
-
-            <div style={{ color: 'rgba(90,122,90,0.6)', fontSize: '12px', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
-              Readings update automatically when hardware pushes data to the API
             </div>
-            {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
-          </GlowCard>
-        )}
 
-        <GlowCard className="glass-card rounded-2xl p-5">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Robot Sensor Network</span>
-              <RobotSelect robots={robotsWithData} selectedId={selectedRobotId} onChange={setSelectedRobotId} />
+            <div onClick={() => navigate('/admin/tasks')} style={{
+              marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500,
+            }}>
+              View all tasks →
             </div>
-            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '14px' }}>Live readings from connected robot fleet</div>
-
-            {selectedRobot && robotSensorData && (
-              <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor(selectedRobot.status), flexShrink: 0 }} />
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{selectedRobot.name}</span>
-                <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.id}</span>
-                {selectedRobot.farm && <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.farm}</span>}
-                <div onClick={() => navigate('/admin/sensors')} style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  View full details →
-                </div>
-              </div>
-            )}
-
-            {selectedRobot && robotSensorData && (
-              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '16px' }}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{selectedRobot.battery}%</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Battery</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.dht11.temperature}°C</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Temperature</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.soilMoisture}%</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Soil Moisture</div>
-                </div>
-              </div>
-            )}
-
-            {selectedRobot && robotSensorData ? (
-              <>
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Thermometer size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DHT11</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Thermometer size={13} color="#16a34a" />{robotSensorData.dht11.temperature}°C
-                      </span>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Droplets size={13} color="#16a34a" />{robotSensorData.dht11.humidity}%
-                      </span>
-                    </div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Droplets size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SOIL MOISTURE</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '2px' }}>{robotSensorData.soilMoisture}%</div>
-                    <div style={{ width: '140px', height: '6px', borderRadius: '999px', background: 'rgba(26,46,26,0.08)', overflow: 'hidden', marginTop: '4px' }}>
-                      <div style={{ width: `${robotSensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
-                    </div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(robotSensorData.soilMoisture)}</div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <Radar size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ULTRASONIC</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(robotSensorData.ultrasonic).color, marginTop: '2px' }}>
-                      {ultrasonicInfo(robotSensorData.ultrasonic).icon} {robotSensorData.ultrasonic}cm
-                    </div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                    <MapPin size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LOCATION</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({robotSensorData.wifiLocation.lat.toFixed(2)}, {robotSensorData.wifiLocation.lng.toFixed(2)})</span>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#16a34a' }}>● Active</span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{robotSensorData.wifiLocation.label}</div>
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                  </span>
-                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-                </div>
-              </>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '13px', color: '#6b7280' }}>No sensor data available</div>
-            )}
-
-            <div style={{ color: 'rgba(90,122,90,0.6)', fontSize: '12px', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
-              Readings update automatically when hardware pushes data to the API
-            </div>
-            {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
-          </GlowCard>
+          </div>
+        </div>
       </div>
 
       <style>{`
@@ -1194,7 +829,6 @@ export default function Analytics() {
         @media (max-width: 640px) {
           .battery-grid { grid-template-columns: 1fr !important; }
         }
-
       `}</style>
     </>
   );
