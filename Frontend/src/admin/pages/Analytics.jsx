@@ -9,7 +9,7 @@ import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { mockSensorReadings } from '../../data/mockSensorData';
 
 function GlowCard({ className, onClick, children }) {
@@ -173,12 +173,6 @@ export default function Analytics() {
     { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
     { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
     { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
-  ], [tasks]);
-
-  const priorityChartData = useMemo(() => [
-    { name: 'High', count: tasks.filter((t) => t.priority === 'High').length, color: '#ef4444' },
-    { name: 'Medium', count: tasks.filter((t) => t.priority === 'Medium').length, color: '#f97316' },
-    { name: 'Low', count: tasks.filter((t) => t.priority === 'Low').length, color: '#4caf50' },
   ], [tasks]);
 
   const hashStr = (s) => {
@@ -371,13 +365,13 @@ export default function Analytics() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }} className="task-chart-grid">
-            <div style={{ borderRight: '1px solid rgba(76,175,80,0.08)' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>By Status</div>
+          <div className="relative flex items-center justify-center">
+            <div style={{ width: '100%', maxWidth: '480px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px', textAlign: 'center' }}>By Status</div>
               <div className="relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
-                    <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" strokeWidth={0}>
+                    <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={65} outerRadius={100} dataKey="value" strokeWidth={0}>
                       {statusChartData.map((entry, i) => (
                         <Cell key={i} fill={entry.color} />
                       ))}
@@ -399,23 +393,6 @@ export default function Analytics() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', marginBottom: '12px' }}>By Priority</div>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart layout="vertical" data={priorityChartData} barSize={20} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
-                  <CartesianGrid horizontal={true} vertical={false} stroke="rgba(26,46,26,0.06)" />
-                  <XAxis type="number" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fill: '#6b7280' }} axisLine={false} tickLine={false} width={70} />
-                  <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(76,175,80,0.15)', borderRadius: '8px', fontSize: '13px' }} />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                    {priorityChartData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
             </div>
           </div>
 
@@ -839,10 +816,7 @@ export default function Analytics() {
         @media (max-width: 640px) {
           .battery-grid { grid-template-columns: 1fr !important; }
         }
-        @media (max-width: 768px) {
-          .task-chart-grid { grid-template-columns: 1fr !important; }
-          .task-chart-grid > div:first-child { border-right: none !important; }
-        }
+
       `}</style>
     </>
   );
