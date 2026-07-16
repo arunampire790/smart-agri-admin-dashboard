@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUsers } from '../../context/UserContext';
@@ -8,7 +8,7 @@ import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Thermometer, Droplets, Radar, MapPin, CheckCircle, ArrowRight, ChevronDown, Check } from 'lucide-react';
 import { mockSensorReadings } from '../../data/mockSensorData';
 
 function GlowCard({ className, onClick, children }) {
@@ -69,6 +69,65 @@ function actionDot(action) {
   if (a.includes('edit') || a.includes('update')) return '#F59E0B';
   if (a.includes('delete') || a.includes('remove')) return '#EF4444';
   return '#9CA3AF';
+}
+
+function RobotSelect({ robots, selectedId, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div className="relative" ref={ref} style={{ width: '200px' }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{
+          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+          color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
+          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+          transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+          display: 'flex', alignItems: 'center',
+          boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none',
+        }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.borderColor = '#9CA3AF'; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selectedId ? '#111827' : '#9CA3AF' }}>
+          {(() => { const r = robots.find((x) => x.id === selectedId); return r ? `${r.name} (${r.id})` : 'Select robot'; })()}
+        </span>
+        <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+        }}>
+          {robots.map((r) => {
+            const sel = r.id === selectedId;
+            return (
+              <div key={r.id} onClick={() => { onChange(r.id); setOpen(false); }}
+                style={{
+                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  color: sel ? '#4caf50' : '#1d1d1f',
+                  transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+              >
+                <span>{r.name} ({r.id})</span>
+                {sel && <Check size={12} color="#4caf50" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Analytics() {
@@ -203,26 +262,20 @@ export default function Analytics() {
 
   const latestUser = useMemo(() => [...users].sort((a, b) => new Date(b.joined) - new Date(a.joined))[0], [users]);
 
+  const robotsWithData = useMemo(() => robots.filter((r) => mockSensorReadings[r.id]), [robots]);
 
+  const [selectedRobotId, setSelectedRobotId] = useState(() => {
+    const first = robots.find((r) => mockSensorReadings[r.id]);
+    return first ? first.id : null;
+  });
 
-  const sensorData = useMemo(() => {
-    const first = robots.find((r) => r.status !== 'Offline' && mockSensorReadings[r.id]);
-    return first ? mockSensorReadings[first.id] : null;
-  }, [robots]);
-
-  const fleetSensorStats = useMemo(() => {
-    const withData = robots.filter((r) => mockSensorReadings[r.id]);
-    const online = withData.filter((r) => r.status !== 'Offline');
-    const temps = online.map((r) => mockSensorReadings[r.id].dht11.temperature).filter(Boolean);
-    const avgTemp = temps.length > 0 ? (temps.reduce((s, v) => s + v, 0) / temps.length) : 0;
-    const moistures = online.map((r) => mockSensorReadings[r.id].soilMoisture).filter((v) => v !== undefined);
-    const avgMoisture = moistures.length > 0 ? (moistures.reduce((s, v) => s + v, 0) / moistures.length) : 0;
-    return { online: `${online.length}/${withData.length}`, avgTemp: avgTemp.toFixed(1), avgMoisture: avgMoisture.toFixed(1) };
-  }, [robots]);
+  const selectedRobot = useMemo(() => robots.find((r) => r.id === selectedRobotId), [robots, selectedRobotId]);
+  const robotSensorData = selectedRobot && mockSensorReadings[selectedRobot.id];
 
   const soilLabel = (s) => { if (s < 20) return 'Too Dry'; if (s <= 60) return 'Optimal'; return 'Too Wet'; };
   const soilColor = (s) => { if (s < 20) return '#EF4444'; if (s <= 60) return '#16a34a'; return '#3B82F6'; };
   const ultrasonicInfo = (u) => { if (u < 30) return { icon: '⚠', color: '#dc2626', label: 'Obstacle Detected' }; if (u <= 200) return { icon: '✓', color: '#16a34a', label: 'Clear Path' }; return { icon: '—', color: '#9CA3AF', label: 'No Reading' }; };
+  const statusColor = (s) => { if (s === 'Active') return '#4caf50'; if (s === 'Assigned') return '#3b82f6'; if (s === 'Maintenance') return '#F59E0B'; return '#EF4444'; };
 
   return (
     <>
@@ -526,31 +579,44 @@ export default function Analytics() {
           </GlowCard>
         ) : (
           <GlowCard className="glass-card rounded-2xl p-5">
-            <div style={{ marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Robot Sensor Network</span>
+              <RobotSelect robots={robotsWithData} selectedId={selectedRobotId} onChange={setSelectedRobotId} />
             </div>
             <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '14px' }}>Live readings from connected robot fleet</div>
 
-            {sensorData && (
-              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '12px' }}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.online}</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Sensors Online</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.avgTemp}°C</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Avg Temperature</div>
-                </div>
-                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.avgMoisture}%</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Avg Soil Moisture</div>
+            {selectedRobot && robotSensorData && (
+              <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor(selectedRobot.status), flexShrink: 0 }} />
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{selectedRobot.name}</span>
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.id}</span>
+                {selectedRobot.farm && <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.farm}</span>}
+                <div onClick={() => navigate('/admin/sensors')} style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  View full details →
                 </div>
               </div>
             )}
 
-            {sensorData ? (
+            {selectedRobot && robotSensorData && (
+              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '16px' }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{selectedRobot.battery}%</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Battery</div>
+                </div>
+                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.dht11.temperature}°C</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Temperature</div>
+                </div>
+                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.soilMoisture}%</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Soil Moisture</div>
+                </div>
+              </div>
+            )}
+
+            {selectedRobot && robotSensorData ? (
               <>
                 <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
@@ -563,10 +629,10 @@ export default function Analytics() {
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DHT11</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Thermometer size={13} color="#16a34a" />{sensorData.dht11.temperature}°C
+                        <Thermometer size={13} color="#16a34a" />{robotSensorData.dht11.temperature}°C
                       </span>
                       <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Droplets size={13} color="#16a34a" />{sensorData.dht11.humidity}%
+                        <Droplets size={13} color="#16a34a" />{robotSensorData.dht11.humidity}%
                       </span>
                     </div>
                   </div>
@@ -586,11 +652,11 @@ export default function Analytics() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SOIL MOISTURE</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(sensorData.soilMoisture), marginTop: '2px' }}>{sensorData.soilMoisture}%</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '2px' }}>{robotSensorData.soilMoisture}%</div>
                     <div style={{ width: '140px', height: '6px', borderRadius: '999px', background: 'rgba(26,46,26,0.08)', overflow: 'hidden', marginTop: '4px' }}>
-                      <div style={{ width: `${sensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
+                      <div style={{ width: `${robotSensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
                     </div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(sensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(sensorData.soilMoisture)}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(robotSensorData.soilMoisture)}</div>
                   </div>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
@@ -608,8 +674,8 @@ export default function Analytics() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ULTRASONIC</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(sensorData.ultrasonic).color, marginTop: '2px' }}>
-                      {ultrasonicInfo(sensorData.ultrasonic).icon} {sensorData.ultrasonic}cm
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(robotSensorData.ultrasonic).color, marginTop: '2px' }}>
+                      {ultrasonicInfo(robotSensorData.ultrasonic).icon} {robotSensorData.ultrasonic}cm
                     </div>
                   </div>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
@@ -629,10 +695,10 @@ export default function Analytics() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LOCATION</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({sensorData.wifiLocation.lat.toFixed(2)}, {sensorData.wifiLocation.lng.toFixed(2)})</span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({robotSensorData.wifiLocation.lat.toFixed(2)}, {robotSensorData.wifiLocation.lng.toFixed(2)})</span>
                       <span style={{ fontSize: '11px', fontWeight: 600, color: '#16a34a' }}>● Active</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{sensorData.wifiLocation.label}</div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{robotSensorData.wifiLocation.label}</div>
                   </div>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
@@ -652,129 +718,142 @@ export default function Analytics() {
         )}
 
         <GlowCard className="glass-card rounded-2xl p-5">
-          <div style={{ marginBottom: '6px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Robot Sensor Network</span>
-          </div>
-          <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '14px' }}>Live readings from connected robot fleet</div>
-
-          {sensorData && (
-            <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '12px' }}>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.online}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Sensors Online</div>
-              </div>
-              <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.avgTemp}°C</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Avg Temperature</div>
-              </div>
-              <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{fleetSensorStats.avgMoisture}%</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Avg Soil Moisture</div>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Robot Sensor Network</span>
+              <RobotSelect robots={robotsWithData} selectedId={selectedRobotId} onChange={setSelectedRobotId} />
             </div>
-          )}
+            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', marginBottom: '14px' }}>Live readings from connected robot fleet</div>
 
-          {sensorData ? (
-            <>
-              <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-              >
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                  <Thermometer size={16} color="#16a34a" />
+            {selectedRobot && robotSensorData && (
+              <div style={{ background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor(selectedRobot.status), flexShrink: 0 }} />
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{selectedRobot.name}</span>
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.id}</span>
+                {selectedRobot.farm && <span style={{ fontSize: '13px', color: '#6b7280' }}>• {selectedRobot.farm}</span>}
+                <div onClick={() => navigate('/admin/sensors')} style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 600, color: '#2e7d2e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  View full details →
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DHT11</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                      <Thermometer size={13} color="#16a34a" />{sensorData.dht11.temperature}°C
-                    </span>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                      <Droplets size={13} color="#16a34a" />{sensorData.dht11.humidity}%
-                    </span>
-                  </div>
-                </div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                </span>
-                <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
               </div>
-              <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
+            )}
 
-              <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-              >
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                  <Droplets size={16} color="#16a34a" />
+            {selectedRobot && robotSensorData && (
+              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fdf8', border: '1px solid rgba(76,175,80,0.1)', borderRadius: '10px', padding: '8px 14px', marginBottom: '16px' }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{selectedRobot.battery}%</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Battery</div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SOIL MOISTURE</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(sensorData.soilMoisture), marginTop: '2px' }}>{sensorData.soilMoisture}%</div>
-                  <div style={{ width: '140px', height: '6px', borderRadius: '999px', background: 'rgba(26,46,26,0.08)', overflow: 'hidden', marginTop: '4px' }}>
-                    <div style={{ width: `${sensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
-                  </div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(sensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(sensorData.soilMoisture)}</div>
+                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.dht11.temperature}°C</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Temperature</div>
                 </div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                </span>
-                <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
+                <div style={{ width: '1px', height: '32px', background: 'rgba(76,175,80,0.1)', flexShrink: 0 }} />
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{robotSensorData.soilMoisture}%</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '2px' }}>Soil Moisture</div>
+                </div>
               </div>
-              <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
+            )}
 
-              <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-              >
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                  <Radar size={16} color="#16a34a" />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ULTRASONIC</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(sensorData.ultrasonic).color, marginTop: '2px' }}>
-                    {ultrasonicInfo(sensorData.ultrasonic).icon} {sensorData.ultrasonic}cm
+            {selectedRobot && robotSensorData ? (
+              <>
+                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+                    <Thermometer size={16} color="#16a34a" />
                   </div>
-                </div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                </span>
-                <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-              </div>
-              <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
-
-              <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
-              >
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
-                  <MapPin size={16} color="#16a34a" />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LOCATION</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({sensorData.wifiLocation.lat.toFixed(2)}, {sensorData.wifiLocation.lng.toFixed(2)})</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#16a34a' }}>● Active</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DHT11</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Thermometer size={13} color="#16a34a" />{robotSensorData.dht11.temperature}°C
+                      </span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Droplets size={13} color="#16a34a" />{robotSensorData.dht11.humidity}%
+                      </span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{sensorData.wifiLocation.label}</div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
+                  </span>
+                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
                 </div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
-                </span>
-                <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
-              </div>
-            </>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '13px', color: '#6b7280' }}>No sensor data available</div>
-          )}
+                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
 
-          <div style={{ color: 'rgba(90,122,90,0.6)', fontSize: '12px', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
-            Readings update automatically when hardware pushes data to the API
-          </div>
-          {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
-        </GlowCard>
+                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+                    <Droplets size={16} color="#16a34a" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SOIL MOISTURE</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '2px' }}>{robotSensorData.soilMoisture}%</div>
+                    <div style={{ width: '140px', height: '6px', borderRadius: '999px', background: 'rgba(26,46,26,0.08)', overflow: 'hidden', marginTop: '4px' }}>
+                      <div style={{ width: `${robotSensorData.soilMoisture}%`, height: '100%', borderRadius: '999px', background: '#16a34a', transition: 'width 0.3s ease' }} />
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: soilColor(robotSensorData.soilMoisture), marginTop: '3px' }}>{soilLabel(robotSensorData.soilMoisture)}</div>
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
+                  </span>
+                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
+                </div>
+                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
+
+                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+                    <Radar size={16} color="#16a34a" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ULTRASONIC</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: ultrasonicInfo(robotSensorData.ultrasonic).color, marginTop: '2px' }}>
+                      {ultrasonicInfo(robotSensorData.ultrasonic).icon} {robotSensorData.ultrasonic}cm
+                    </div>
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
+                  </span>
+                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
+                </div>
+                <div style={{ borderBottom: '1px solid rgba(76,175,80,0.06)' }} />
+
+                <div onClick={() => navigate('/admin/sensors')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer', transition: 'background 0.15s ease, border-radius 0.15s ease, padding 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; e.currentTarget.style.borderRadius = '10px'; e.currentTarget.style.padding = '10px 8px'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRadius = '0'; e.currentTarget.style.padding = '10px 0'; const a = e.currentTarget.querySelector('.row-arrow'); if (a) a.style.opacity = '0'; }}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+                    <MapPin size={16} color="#16a34a" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LOCATION</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#16a34a' }}>({robotSensorData.wifiLocation.lat.toFixed(2)}, {robotSensorData.wifiLocation.lng.toFixed(2)})</span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#16a34a' }}>● Active</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>{robotSensorData.wifiLocation.label}</div>
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(46,125,50,0.1)', color: '#16a34a', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> Live
+                  </span>
+                  <span className="row-arrow" style={{ color: '#6b7280', fontSize: '12px', color: '#9ca3af', opacity: 0, transition: 'opacity 0.15s ease', flexShrink: 0 }}>→</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '120px', fontSize: '13px', color: '#6b7280' }}>No sensor data available</div>
+            )}
+
+            <div style={{ color: 'rgba(90,122,90,0.6)', fontSize: '12px', fontStyle: 'italic', marginTop: '10px', textAlign: 'center' }}>
+              Readings update automatically when hardware pushes data to the API
+            </div>
+            {/* TODO: Replace mock data with real WebSocket/API data once hardware is connected */}
+          </GlowCard>
       </div>
 
       <style>{`
