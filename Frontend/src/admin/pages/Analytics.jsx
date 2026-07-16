@@ -329,11 +329,11 @@ export default function Analytics() {
 
   const cardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
-    borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)',
+    borderRadius: '12px', padding: '16px 20px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)',
   };
 
-  const sectionTitle = { color: '#1a1a1a', fontSize: '20px', fontWeight: 700, marginBottom: '4px' };
-  const sectionSub = { color: '#6b7280', fontSize: '13px', marginBottom: '20px' };
+  const sectionTitle = { color: '#1a1a1a', fontSize: '16px', fontWeight: 700, marginBottom: '4px' };
+  const sectionSub = { color: '#6b7280', fontSize: '12px', marginBottom: '12px' };
   const rowHoverProps = {
     cursor: 'pointer', transition: 'background 0.15s ease', borderRadius: '10px',
   };
@@ -383,12 +383,12 @@ export default function Analytics() {
 
   const cropCardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
-    borderRadius: '14px', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
   };
 
   const badgeStyle = (bg) => ({
-    background: bg, borderRadius: '10px', padding: '10px',
-    width: '42px', height: '42px', display: 'flex',
+    background: bg, borderRadius: '8px', padding: '7px',
+    width: '32px', height: '32px', display: 'flex',
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   });
 
@@ -457,77 +457,77 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* SECTION 1: Crop Performance */}
         <div>
           <div style={sectionTitle}>Crop Performance</div>
           <div style={sectionSub}>Key metrics for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {/* Card 1 */}
             <div style={cropCardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
                 <div style={badgeStyle('rgba(46,125,50,0.1)')}>
-                  <CheckCircle size={20} color="#2e7d2e" />
+                  <CheckCircle size={14} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Growth Status</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
-              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>{growthStatus.pct}% optimal</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Growth Status</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>{growthStatus.pct}% optimal</div>
             </div>
             {/* Card 2 */}
             <div style={cropCardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
                 <div style={badgeStyle('rgba(46,125,50,0.1)')}>
-                  <Calendar size={20} color="#2e7d2e" />
+                  <Calendar size={14} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Harvest In</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>
+              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Harvest In</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>
                 {harvestInfo ? `${harvestInfo.days} Days` : '--'}
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
                 {harvestInfo ? (selectedFarm ? harvestDateStr : `${harvestDateStr} \u2014 ${harvestInfo.farmName}`) : ''}
               </div>
             </div>
             {/* Card 3 */}
             <div style={cropCardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
                 <div style={badgeStyle('rgba(249,115,22,0.1)')}>
-                  <TrendingUp size={20} color="#f97316" />
+                  <TrendingUp size={14} color="#f97316" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Yield</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>{computedYield.toFixed(1)} Tons</div>
-              <div style={{ color: '#2e7d2e', fontSize: '13px', marginTop: '2px' }}>↑ +15%</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Yield</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>{computedYield.toFixed(1)} Tons</div>
+              <div style={{ color: '#2e7d2e', fontSize: '11px', marginTop: '2px' }}>↑ +15%</div>
             </div>
             {/* Card 4 */}
             <div style={cropCardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
                 <div style={badgeStyle('rgba(46,125,50,0.1)')}>
-                  <DollarSign size={20} color="#2e7d2e" />
+                  <DollarSign size={14} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Net Profit</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#2e7d2e' }}>${(computedProfit / 1000).toFixed(0)}K</div>
-              <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>Revenue: ${(computedProfit / 1000).toFixed(0)}K</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Net Profit</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#2e7d2e' }}>${(computedProfit / 1000).toFixed(0)}K</div>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>Revenue: ${(computedProfit / 1000).toFixed(0)}K</div>
             </div>
           </div>
         </div>
 
         {/* SECTION 2: Sensor Analytics */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '12px' }}>
             <div>
               <div style={sectionTitle}>Sensor Analytics</div>
               <div style={sectionSub}>24-hour readings at ~2.4 hour intervals</div>
             </div>
             <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {sensorConfigs.map((s) => {
               const readings = sensorReadings[s.key];
               const lastVal = readings[readings.length - 1];
@@ -538,30 +538,30 @@ export default function Analytics() {
               return (
                 <div key={s.key} style={{
                   background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)',
-                  borderRadius: '16px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ background: s.badgeBg, borderRadius: '10px', padding: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <s.icon size={18} color={s.color} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: s.badgeBg, borderRadius: '8px', padding: '6px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <s.icon size={14} color={s.color} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                        <span style={{ fontWeight: 600, fontSize: '14px', color: '#1a1a1a' }}>{s.label}</span>
-                        <span style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>{lastVal}{s.unit}</span>
-                        <span style={{ fontSize: '13px', color: trend === 'up' ? '#2e7d2e' : '#ef4444' }}>{trend === 'up' ? '\u2191' : '\u2193'}</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontWeight: 600, fontSize: '13px', color: '#1a1a1a' }}>{s.label}</span>
+                        <span style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{lastVal}{s.unit}</span>
+                        <span style={{ fontSize: '12px', color: trend === 'up' ? '#2e7d2e' : '#ef4444' }}>{trend === 'up' ? '\u2191' : '\u2193'}</span>
                       </div>
                     </div>
                     <span style={{
-                      fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px',
+                      fontSize: '10px', fontWeight: 600, padding: '2px 6px', borderRadius: '10px',
                       background: `${status.color}18`, color: status.color, flexShrink: 0,
                     }}>
                       {status.label}
                     </span>
                   </div>
-                  <ResponsiveContainer width="100%" height={180}>
+                  <ResponsiveContainer width="100%" height={130}>
                     {renderChart(chartData[s.key], 'value', s.color, graphType)}
                   </ResponsiveContainer>
-                  <div style={{ color: '#6b7280', fontSize: '12px', fontStyle: 'italic', marginTop: '8px', textAlign: 'center' }}>
+                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`Trend over time — shows how ${s.label.toLowerCase()} changes throughout the day for ${selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.`}>
                     Trend over time — shows how {s.label.toLowerCase()} changes throughout the day for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.
                   </div>
                 </div>
@@ -572,23 +572,23 @@ export default function Analytics() {
 
         {/* SECTION 3: Farm Summary */}
         <div>
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-              <Sprout size={22} color="#2e7d2e" />
-              <span style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>Farm Summary</span>
+          <div style={{ ...cardStyle, padding: '14px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Sprout size={20} color="#2e7d2e" />
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Farm Summary</span>
               {selectedFarm && (
                 <span style={{
                   background: 'rgba(46,125,50,0.1)', color: '#2e7d2e',
-                  borderRadius: '20px', padding: '3px 12px', fontSize: '13px', fontWeight: 600,
+                  borderRadius: '20px', padding: '2px 10px', fontSize: '12px', fontWeight: 600,
                 }}>
                   {selectedFarm.name}
                 </span>
               )}
             </div>
-            <div style={{ color: '#374151', fontSize: '14px', lineHeight: 1.7, margin: '12px 0 20px' }}>
+            <div style={{ color: '#374151', fontSize: '13px', lineHeight: 1.5, margin: '8px 0 12px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={summaryText}>
               {summaryText}
             </div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
                 { label: '\uD83E\uDD16 View Robot Status', nav: '/admin/robots' },
                 { label: '\uD83D\uDCCB View Tasks', nav: '/admin/tasks' },
@@ -597,7 +597,7 @@ export default function Analytics() {
                 <div key={chip.label} onClick={() => navigate(chip.nav)}
                   style={{
                     background: '#f1f8f1', border: '1px solid rgba(76,175,80,0.2)',
-                    borderRadius: '20px', padding: '7px 16px', fontSize: '13px',
+                    borderRadius: '20px', padding: '5px 12px', fontSize: '12px',
                     color: '#2e7d2e', cursor: 'pointer', fontWeight: 500,
                     transition: 'background 0.15s ease',
                   }}
@@ -682,11 +682,11 @@ export default function Analytics() {
         {/* SECTION 5: Fleet Intelligence */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left: Battery Health */}
-          <div style={cardStyle}>
+          <div style={{ ...cardStyle, padding: '14px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
-              <span style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
-                Click any robot to view details →
+              <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
+              <span style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
+                Click any robot →
               </span>
             </div>
             <div style={sectionSub}>Sorted by battery level (lowest first)</div>
@@ -698,18 +698,18 @@ export default function Analytics() {
 
                 return (
                   <div key={r.id} onClick={() => navigate('/admin/robots')}
-                    style={{ ...rowHoverProps, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}
+                    style={{ ...rowHoverProps, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fdf8'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontWeight: 600, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
-                    <div style={{ width: '80px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', flexShrink: 0 }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontWeight: 600, color: '#1a1a1a', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    <div style={{ width: '70px', height: '6px', borderRadius: '999px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden', flexShrink: 0 }}>
                       <div style={{ width: `${Math.min(r.battery, 100)}%`, height: '100%', borderRadius: '999px', background: barColor }} />
                     </div>
-                    <span style={{ fontWeight: 700, color: barColor, minWidth: '30px', textAlign: 'right' }}>{r.battery}%</span>
+                    <span style={{ fontWeight: 700, color: barColor, fontSize: '12px', minWidth: '28px', textAlign: 'right' }}>{r.battery}%</span>
                     <span style={{
-                      fontSize: '11px', fontWeight: 500, padding: '1px 6px', borderRadius: '8px',
+                      fontSize: '10px', fontWeight: 500, padding: '1px 5px', borderRadius: '6px',
                       background: `${barColor}18`, color: barColor, flexShrink: 0,
                     }}>
                       {statusLabel}
@@ -719,39 +719,39 @@ export default function Analytics() {
               })}
             </div>
             <div onClick={() => navigate('/admin/robots')} style={{
-              marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)',
-              fontSize: '13px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
+              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
             }}>
               {needsCharging} robots need charging soon →
             </div>
           </div>
 
           {/* Right: Task Operations */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
+          <div style={{ ...cardStyle, padding: '14px 18px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
             <div style={sectionSub}>Status breakdown across all tasks</div>
 
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Total Tasks</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{tasks.length}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Tasks</div>
               </div>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{completionRate}%</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Completion Rate</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{completionRate}%</div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Completion Rate</div>
               </div>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Overdue</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>Overdue</div>
               </div>
             </div>
 
             <div className="relative flex items-center justify-center">
               <div style={{ width: '100%', maxWidth: '320px' }}>
                 <div className="relative flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={160}>
                     <PieChart>
-                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} dataKey="value" strokeWidth={0}>
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" strokeWidth={0}>
                         {statusData.map((entry, i) => (
                           <Cell key={i} fill={entry.color} />
                         ))}
@@ -760,15 +760,15 @@ export default function Analytics() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
-                      <div style={{ fontSize: '22px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>{tasks.length}</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>{tasks.length}</div>
                       <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '6px' }}>
                   {statusData.map((entry) => (
-                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#6b7280' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280' }}>
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
                       <span>{entry.name} {entry.value}</span>
                     </div>
                   ))}
@@ -777,8 +777,8 @@ export default function Analytics() {
             </div>
 
             <div onClick={() => navigate('/admin/tasks')} style={{
-              marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)',
-              textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500,
+              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.05)',
+              textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '12px', fontWeight: 500,
             }}>
               View all tasks →
             </div>
