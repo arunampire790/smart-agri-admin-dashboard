@@ -204,6 +204,14 @@ export default function Tasks() {
   const [priorityFilter, setPriorityFilter] = useState('All Priorities');
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [farmerFilter, setFarmerFilter] = useState('All Farmers');
+  const [fertilizerLevel, setFertilizerLevel] = useState("");
+  const [waterQuantity, setWaterQuantity] = useState("");
+
+  const handleTypeChange = (v) => {
+    setForm({ ...form, type: v });
+    if (v !== 'Fertilizer') setFertilizerLevel("");
+    if (v !== 'Irrigation') setWaterQuantity("");
+  };
 
   const inputBase = {
     background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -219,6 +227,8 @@ export default function Tasks() {
   const openAssign = () => {
     setForm({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
     setFormErrors({});
+    setFertilizerLevel("");
+    setWaterQuantity("");
     setShowAssignModal(true);
   };
 
@@ -229,6 +239,22 @@ export default function Tasks() {
     if (!form.assignedTo) errs.assignedTo = 'Select an assignee';
     if (!form.farm) errs.farm = 'Select a farm';
     if (!form.dueDate) errs.dueDate = 'Select a due date';
+    if (form.type === 'Fertilizer') {
+      const val = parseFloat(fertilizerLevel);
+      if (fertilizerLevel === "" || isNaN(val) || val === 0) {
+        errs.fertilizerLevel = 'Please enter a valid fertilizer amount in liters';
+      } else if (val < 0) {
+        errs.fertilizerLevel = 'Fertilizer amount cannot be negative';
+      }
+    }
+    if (form.type === 'Irrigation') {
+      const val = parseFloat(waterQuantity);
+      if (waterQuantity === "" || isNaN(val) || val === 0) {
+        errs.waterQuantity = 'Please enter a valid water quantity in liters';
+      } else if (val < 0) {
+        errs.waterQuantity = 'Water quantity cannot be negative';
+      }
+    }
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
@@ -241,6 +267,8 @@ export default function Tasks() {
       priority: form.priority,
       dueDate: form.dueDate,
       status: 'Pending',
+      fertilizerLevel: form.type === 'Fertilizer' ? parseFloat(fertilizerLevel) : null, // TODO: Connect to hardware API for fertilizer dispensing control
+      waterQuantity: form.type === 'Irrigation' ? parseFloat(waterQuantity) : null, // TODO: Connect to hardware API for irrigation water flow control
     });
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Assigned Task', target: form.title.trim(), details: `Assigned to: ${form.assignedTo}, Farm: ${form.farm}, Priority: ${form.priority}` });
     setShowAssignModal(false);
@@ -421,7 +449,13 @@ export default function Tasks() {
                     >{task.assignedTo}</span>
                   </td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.farm}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span></td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span>
+                      {task.fertilizerLevel != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.fertilizerLevel).toFixed(1)} L</span>}
+                      {task.waterQuantity != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.waterQuantity).toFixed(1)} L</span>}
+                    </div>
+                  </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.dueDate}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
@@ -517,7 +551,7 @@ export default function Tasks() {
                     <SelectDropdown
                       options={typeOptions}
                       value={form.type}
-                      onChange={(v) => setForm({ ...form, type: v })}
+                      onChange={handleTypeChange}
                       placeholder="Select type"
                     />
                   </div>
@@ -532,9 +566,34 @@ export default function Tasks() {
                     {formErrors.dueDate && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{formErrors.dueDate}</span>}
                   </div>
 
+                  {/* Fertilizer Level — conditional */}
+                  <div style={{ gridColumn: '1 / -1', position: 'relative' }}>
+                    <div style={{ transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: form.type === 'Fertilizer' ? 1 : 0, transform: form.type === 'Fertilizer' ? 'translateY(0)' : 'translateY(-4px)', pointerEvents: form.type === 'Fertilizer' ? 'auto' : 'none', position: form.type === 'Fertilizer' ? 'relative' : 'absolute', top: 0, left: 0, right: 0, visibility: form.type === 'Fertilizer' ? 'visible' : 'hidden', zIndex: form.type === 'Fertilizer' ? 2 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Sprout size={12} color="#9CA3AF" /> Fertilizer Level
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input type="number" min="0" step="0.1" placeholder="Enter amount in liters (e.g. 25.5)" value={fertilizerLevel} onChange={(e) => setFertilizerLevel(e.target.value)} style={inputBase} onFocus={inputFocus} onBlur={inputBlur} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} />
+                        <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: '13px' }}>L</span>
+                      </div>
+                      {formErrors.fertilizerLevel && <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>{formErrors.fertilizerLevel}</div>}
+                    </div>
+                    {/* Water Quantity — conditional */}
+                    <div style={{ transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: form.type === 'Irrigation' ? 1 : 0, transform: form.type === 'Irrigation' ? 'translateY(0)' : 'translateY(-4px)', pointerEvents: form.type === 'Irrigation' ? 'auto' : 'none', position: form.type === 'Irrigation' ? 'relative' : 'absolute', top: 0, left: 0, right: 0, visibility: form.type === 'Irrigation' ? 'visible' : 'hidden', zIndex: form.type === 'Irrigation' ? 2 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                        <Droplets size={12} color="#9CA3AF" /> Water Quantity
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input type="number" min="0" step="0.1" placeholder="Enter amount in liters (e.g. 100.0)" value={waterQuantity} onChange={(e) => setWaterQuantity(e.target.value)} style={inputBase} onFocus={inputFocus} onBlur={inputBlur} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} />
+                        <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: '13px' }}>L</span>
+                      </div>
+                      {formErrors.waterQuantity && <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>{formErrors.waterQuantity}</div>}
+                    </div>
+                  </div>
+
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                      <AlertCircle size={12} color="#9CA3AF" /> Priority
+                      <AlertCircle size={12} color="#9CA3AF" /> Priority Tier
                     </div>
                     <div className="flex gap-2" style={{ userSelect: 'none' }}>
                       {priorityOptions.map((p) => {
