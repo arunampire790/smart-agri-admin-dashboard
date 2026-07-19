@@ -225,7 +225,7 @@ export default function SensorsDetails() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   });
 
-  const [robotNameFilter, setRobotNameFilter] = useState('All');
+  const [farmFilter, setFarmFilter] = useState('All Farms');
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
@@ -252,12 +252,12 @@ export default function SensorsDetails() {
     return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length };
   }, [robots]);
 
-  const robotNameOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.name).filter(Boolean))], [robots]);
+  const farmOptions = useMemo(() => ['All Farms', ...[...new Set(robots.map(r => r.farm).filter(Boolean))].sort()], [robots]);
 
   const filteredRobots = useMemo(() => {
-    if (robotNameFilter === 'All') return robots;
-    return robots.filter(r => r.name === robotNameFilter);
-  }, [robots, robotNameFilter]);
+    if (farmFilter === 'All Farms') return robots;
+    return robots.filter(r => r.farm === farmFilter);
+  }, [robots, farmFilter]);
 
   if (!robots || robots.length === 0) {
     return (
@@ -476,14 +476,14 @@ export default function SensorsDetails() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="text-sm font-semibold text-primary">Robot Sensor Grid ({filteredRobots.length})</div>
         <div>
-          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Robot</div>
-          <Select options={robotNameOptions} value={robotNameFilter} onChange={setRobotNameFilter} width="200px" />
+          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Farm</div>
+          <Select options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="200px" />
         </div>
       </div>
-      {robotNameFilter !== 'All' && (
+      {farmFilter !== 'All Farms' && (
         <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
           Showing {filteredRobots.length} of {robots.length} robots
-          <span onClick={() => setRobotNameFilter('All')}
+          <span onClick={() => setFarmFilter('All Farms')}
             style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
           >Clear Filter</span>
         </div>
