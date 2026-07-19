@@ -42,7 +42,7 @@ export default function FarmMapPreview({ points, onMapClick, nextPointIndex, mod
   }, [points]);
 
   return (
-    <div style={{ border: '1px solid rgba(46,125,50,0.3)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px', position: 'relative' }}>
+    <div style={{ border: '1px solid rgba(46,125,50,0.3)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px', position: 'relative', isolation: 'isolate', zIndex: 0 }}>
       <MapContainer center={[20, 0]} zoom={2} style={{ width: '100%', height: '220px' }} ref={mapRef}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap contributors" />
         <ClickHandler onMapClick={onMapClick} nextPointIndex={nextPointIndex} />

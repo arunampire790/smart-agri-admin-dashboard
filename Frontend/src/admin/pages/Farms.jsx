@@ -81,7 +81,7 @@ function Select({ options, value, onChange, placeholder, style, onMouseEnter, on
         <i className="ph ph-caret-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', fontSize: '12px' }} />
       </button>
       {open && (
-        <div style={{ position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', border: '1px solid rgba(255,255,255,0.5)', maxHeight: '160px', overflowY: 'auto', background: 'rgba(255,255,255,0.98)' }}>
+        <div style={{ position: 'absolute', zIndex: 9999, top: '100%', left: 0, right: 0, marginTop: '4px', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', border: '1px solid rgba(255,255,255,0.5)', maxHeight: '160px', overflowY: 'auto', background: 'rgba(255,255,255,0.98)' }}>
           {options.map((opt) => {
             const selected = opt === value;
             return (
@@ -131,7 +131,7 @@ function FilterSelect({ label, options, value, onChange, width }) {
         </button>
         {open && (
           <div style={{
-            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+            position: 'absolute', zIndex: 9999, top: '100%', left: 0, right: 0, marginTop: '4px',
             maxHeight: '240px', overflowY: 'auto',
             background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
             border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
@@ -163,10 +163,103 @@ function FilterSelect({ label, options, value, onChange, width }) {
   );
 }
 
+function RobotMultiSelect({ robots: robotList, selectedIds, onChange, maxCount }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const sorted = [...robotList].sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        style={{
+          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
+          color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
+          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+          textAlign: 'left', position: 'relative',
+        }}>
+        <span style={{ color: selectedIds.length ? '#111827' : '#9CA3AF' }}>
+          {selectedIds.length > 0 ? `${selectedIds.length} robot(s) selected` : 'Select robots...'}
+        </span>
+        <ChevronDown size={14} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', zIndex: 9999, top: '100%', left: 0, right: 0, marginTop: '4px',
+          maxHeight: '200px', overflowY: 'auto',
+          background: 'rgba(255,255,255,0.98)', backdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        }}>
+          {sorted.length === 0 ? (
+            <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
+              No robots available for assignment
+            </div>
+          ) : sorted.map((robot) => {
+            const selected = selectedIds.includes(robot.id);
+            const atLimit = selectedIds.length >= maxCount && !selected;
+            return (
+              <div key={robot.id}
+                onClick={() => { if (!atLimit) { onChange(selected ? selectedIds.filter(id => id !== robot.id) : [...selectedIds, robot.id]); setOpen(false); }}}
+                style={{
+                  padding: '10px 14px', fontSize: '13px',
+                  cursor: atLimit ? 'not-allowed' : 'pointer',
+                  opacity: atLimit ? 0.5 : 1,
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  borderBottom: '1px solid rgba(0,0,0,0.05)',
+                }}>
+                <input type="checkbox" checked={selected} readOnly
+                  style={{ accentColor: '#4caf50', margin: 0, pointerEvents: 'none' }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 600 }}>{robot.name}</span>
+                  <span style={{ color: '#6b7280', fontSize: '11px', marginLeft: '6px' }}>· {robot.id} · {robot.model}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {selectedIds.length > 0 && (
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+            {selectedIds.map(id => {
+              const robot = robotList.find(r => r.id === id);
+              return (
+                <span key={id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  background: 'rgba(46,125,50,0.08)', border: '1px solid rgba(46,125,50,0.2)',
+                  borderRadius: '8px', padding: '4px 10px', fontSize: '12px',
+                }}>
+                  <span style={{ fontWeight: 600, color: '#2e7d32' }}>{robot?.name}</span>
+                  <span style={{ color: '#6b7280', fontSize: '11px' }}>{robot?.id}</span>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); onChange(selectedIds.filter(id2 => id2 !== id)); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0 0 0 4px', fontSize: '14px', lineHeight: 1, display: 'flex' }}>
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: '11px', color: selectedIds.length >= maxCount ? '#ef4444' : '#6b7280', marginTop: '6px' }}>
+            {selectedIds.length >= maxCount
+              ? `Maximum of ${maxCount} robot(s) reached`
+              : `${selectedIds.length} of ${maxCount} robots selected`}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Farms() {
   const navigate = useNavigate();
   const { farms, addFarm, updateFarm, removeFarm } = useFarms();
-  const { robots } = useRobots();
+  const { robots, updateRobot } = useRobots();
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -381,6 +474,20 @@ export default function Farms() {
     if (parsedEditPoints.some(p => !p)) return null;
     return computeTriangleAreaAcres(parsedEditPoints[0], parsedEditPoints[1], parsedEditPoints[2]);
   }, [parsedEditPoints]);
+
+  useEffect(() => {
+    if (computedAcreage !== null) {
+      setForm(prev => ({ ...prev, acreage: computedAcreage.toFixed(2) }));
+    }
+  }, [computedAcreage]);
+
+  useEffect(() => {
+    if (editComputedAcreage !== null) {
+      setEditFarmForm(prev => ({ ...prev, acreage: editComputedAcreage.toFixed(2) }));
+    } else if (editFormCoordStrings.some(s => s.trim())) {
+      setEditFarmForm(prev => ({ ...prev, acreage: '' }));
+    }
+  }, [editComputedAcreage]);
 
   const addNextPointIndex = (() => { const v = parsedAddPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
   const editNextPointIndex = (() => { const v = parsedEditPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
@@ -620,46 +727,19 @@ export default function Farms() {
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assigned Robot
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
                     </div>
                     {(() => {
                       const deviceCount = parseInt(form.devices, 10);
                       if (deviceCount === 0) return <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No connected devices specified</div>;
                       const availableRobots = robots.filter(r => r.status === 'Available' && (!r.farm || r.farm === ''));
                       return (
-                        <>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            {availableRobots.map((robot) => {
-                              const selected = selectedRobotIds.includes(robot.id);
-                              const atLimit = selectedRobotIds.length >= deviceCount && !selected;
-                              return (
-                                <span key={robot.id}
-                                  onClick={() => { if (!atLimit) { setSelectedRobotIds(selected ? selectedRobotIds.filter(id => id !== robot.id) : [...selectedRobotIds, robot.id]); }}}
-                                  style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                    background: selected ? 'rgba(46,125,50,0.1)' : '#f9fafb',
-                                    border: selected ? '1px solid #2e7d32' : '1px solid #e5e7eb',
-                                    borderRadius: '8px', padding: '6px 12px', fontSize: '13px',
-                                    color: selected ? '#2e7d32' : '#374151',
-                                    fontWeight: selected ? 600 : 400,
-                                    cursor: atLimit ? 'not-allowed' : 'pointer',
-                                    opacity: atLimit ? 0.5 : 1,
-                                  }}
-                                >
-                                  {selected ? '✓ ' : ''}{robot.id} {robot.model}
-                                </span>
-                              );
-                            })}
-                          </div>
-                          {selectedRobotIds.length >= deviceCount && (
-                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px' }}>
-                              You can only assign {deviceCount} robot(s) based on Connected Devices count
-                            </div>
-                          )}
-                          <div style={{ fontSize: '12px', color: selectedRobotIds.length === deviceCount ? '#2e7d32' : '#ef4444', marginTop: '6px' }}>
-                            {selectedRobotIds.length} of {deviceCount} robots selected
-                          </div>
-                        </>
+                        <RobotMultiSelect
+                          robots={availableRobots}
+                          selectedIds={selectedRobotIds}
+                          onChange={setSelectedRobotIds}
+                          maxCount={deviceCount}
+                        />
                       );
                     })()}
                     {errors.robots && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '4px' }}>{errors.robots}</div>}
@@ -807,46 +887,19 @@ export default function Farms() {
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assigned Robot
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
                     </div>
                     {(() => {
                       const deviceCount = parseInt(editFarmForm.devices, 10);
                       if (deviceCount === 0) return <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No connected devices specified</div>;
                       const availableRobots = robots.filter(r => r.status === 'Available' && (!r.farm || r.farm === '') || r.farm === editFarm?.name);
                       return (
-                        <>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            {availableRobots.map((robot) => {
-                              const selected = editSelectedRobotIds.includes(robot.id);
-                              const atLimit = editSelectedRobotIds.length >= deviceCount && !selected;
-                              return (
-                                <span key={robot.id}
-                                  onClick={() => { if (!atLimit) { setEditSelectedRobotIds(selected ? editSelectedRobotIds.filter(id => id !== robot.id) : [...editSelectedRobotIds, robot.id]); }}}
-                                  style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                    background: selected ? 'rgba(46,125,50,0.1)' : '#f9fafb',
-                                    border: selected ? '1px solid #2e7d32' : '1px solid #e5e7eb',
-                                    borderRadius: '8px', padding: '6px 12px', fontSize: '13px',
-                                    color: selected ? '#2e7d32' : '#374151',
-                                    fontWeight: selected ? 600 : 400,
-                                    cursor: atLimit ? 'not-allowed' : 'pointer',
-                                    opacity: atLimit ? 0.5 : 1,
-                                  }}
-                                >
-                                  {selected ? '✓ ' : ''}{robot.id} {robot.model}
-                                </span>
-                              );
-                            })}
-                          </div>
-                          {editSelectedRobotIds.length >= deviceCount && (
-                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px' }}>
-                              You can only assign {deviceCount} robot(s) based on Connected Devices count
-                            </div>
-                          )}
-                          <div style={{ fontSize: '12px', color: editSelectedRobotIds.length === deviceCount ? '#2e7d32' : '#ef4444', marginTop: '6px' }}>
-                            {editSelectedRobotIds.length} of {deviceCount} robots selected
-                          </div>
-                        </>
+                        <RobotMultiSelect
+                          robots={availableRobots}
+                          selectedIds={editSelectedRobotIds}
+                          onChange={setEditSelectedRobotIds}
+                          maxCount={deviceCount}
+                        />
                       );
                     })()}
                     {editFarmErrors.editRobots && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '4px' }}>{editFarmErrors.editRobots}</div>}
