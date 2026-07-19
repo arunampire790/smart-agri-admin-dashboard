@@ -118,7 +118,7 @@ function Select({ label, options, value, onChange, width }) {
         <button type="button" onClick={() => setOpen((o) => !o)}
           style={{
             background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-            color: '#111827', fontSize: '13px', height: '34px', padding: '0 30px 0 10px',
+            color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
             width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
             transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
             display: 'flex', alignItems: 'center',
@@ -351,31 +351,29 @@ export default function Analytics() {
 
   const cardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
-    borderRadius: '12px', padding: '16px 20px', boxShadow: '0 2px 12px rgba(46,125,50,0.06)',
+    borderRadius: '14px', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
   };
 
   const sectionTitle = { color: '#1a1a1a', fontSize: '16px', fontWeight: 700, marginBottom: '4px' };
   const sectionSub = { color: '#6b7280', fontSize: '12px', marginBottom: '10px' };
 
-
-
-
-  const cropCardStyle = {
+  const statCardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
-    borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    borderRadius: '16px', padding: '20px', boxShadow: '0 2px 12px rgba(46,125,50,0.08)',
+    cursor: 'default', transition: 'all 0.25s ease',
   };
 
   const badgeStyle = (bg) => ({
-    background: bg, borderRadius: '8px', padding: '7px',
-    width: '32px', height: '32px', display: 'flex',
+    background: bg, borderRadius: '8px', padding: '8px',
+    width: '36px', height: '36px', display: 'flex',
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   });
 
   function renderChart(data, dataKey, color, type) {
     const common = { data, margin: { top: 5, right: 5, bottom: 5, left: -15 } };
     const axisProps = { tick: { fontSize: 10, fill: '#9CA3AF' }, axisLine: false, tickLine: false };
-    const grid = <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,46,26,0.06)" />;
-    const tooltip = <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.12)' }} />;
+    const grid = <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />;
+    const tooltip = <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px', fontSize: '12px', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />;
 
     if (type === 'bar') {
       return (
@@ -446,56 +444,56 @@ export default function Analytics() {
           <div style={sectionSub}>Key metrics for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {/* Card 1 */}
-            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'growth' ? null : 'growth')}>
+            <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'growth' ? null : 'growth')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle(selectedCrop === 'growth' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
-                  <CheckCircle size={14} color="#2e7d2e" />
+                <div style={badgeStyle(selectedCrop === 'growth' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.12)')}>
+                  <CheckCircle size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Growth Status</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
-              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}><AnimatedValue value={growthStatus.pct} decimals={0} />% optimal</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Growth Status</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}><AnimatedValue value={growthStatus.pct} decimals={0} />% optimal</div>
             </div>
             {/* Card 2 */}
-            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'harvest' ? null : 'harvest')}>
+            <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'harvest' ? null : 'harvest')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle(selectedCrop === 'harvest' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
-                  <Calendar size={14} color="#2e7d2e" />
+                <div style={badgeStyle(selectedCrop === 'harvest' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.12)')}>
+                  <Calendar size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Harvest In</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Harvest In</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>
                 {harvestInfo ? <><AnimatedValue value={harvestInfo.days} decimals={0} /> Days</> : '--'}
               </div>
-              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>
                 {harvestInfo ? (selectedFarm ? harvestDateStr : `${harvestDateStr} \u2014 ${harvestInfo.farmName}`) : ''}
               </div>
             </div>
             {/* Card 3 */}
-            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'yield' ? null : 'yield')}>
+            <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'yield' ? null : 'yield')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle(selectedCrop === 'yield' ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.1)')}>
-                  <TrendingUp size={14} color="#f97316" />
+                <div style={badgeStyle(selectedCrop === 'yield' ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.12)')}>
+                  <TrendingUp size={18} color="#f97316" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Yield</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> Tons</div>
-              <div style={{ color: '#2e7d2e', fontSize: '11px', marginTop: '2px' }}>↑ +15%</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Yield</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> Tons</div>
+              <div style={{ color: '#2e7d2e', fontSize: '12px', marginTop: '2px' }}>↑ +15%</div>
             </div>
             {/* Card 4 */}
-            <div className="card-hover" style={cropCardStyle} onClick={() => setSelectedCrop(selectedCrop === 'revenue' ? null : 'revenue')}>
+            <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'revenue' ? null : 'revenue')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div style={{ flex: 1 }} />
-                <div style={badgeStyle(selectedCrop === 'revenue' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.1)')}>
-                  <DollarSign size={14} color="#2e7d2e" />
+                <div style={badgeStyle(selectedCrop === 'revenue' ? 'rgba(46,125,50,0.2)' : 'rgba(46,125,50,0.12)')}>
+                  <DollarSign size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Net Profit</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#2e7d2e' }}>$<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
-              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>Revenue: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Net Profit</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#2e7d2e' }}>$<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>Revenue: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
             </div>
           </div>
         </div>
@@ -521,8 +519,8 @@ export default function Analytics() {
 
               return (
                 <div key={s.key} className="card-hover-sensor" style={{
-                  background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)',
-                  borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
+                  borderRadius: '14px', padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <div style={{ background: s.badgeBg, borderRadius: '8px', padding: '6px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -536,7 +534,7 @@ export default function Analytics() {
                       </div>
                     </div>
                     <span style={{
-                      fontSize: '10px', fontWeight: 600, padding: '2px 6px', borderRadius: '10px',
+                      fontSize: '10px', fontWeight: 600, padding: '4px 10px', borderRadius: '9999px',
                       background: `${status.color}18`, color: status.color, flexShrink: 0,
                     }}>
                       {status.label}
@@ -564,10 +562,10 @@ export default function Analytics() {
         <div data-section="fleet" className="section-entrance" style={{ animationDelay: '0.4s' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left: Battery Health */}
-          <div style={{ ...cardStyle, padding: '14px 18px' }}>
+          <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
-              <span className="card-hover-link" style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
+              <span className="card-hover-link" style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
                 Click any robot →
               </span>
             </div>
@@ -589,7 +587,7 @@ export default function Analytics() {
                     </div>
                     <span style={{ fontWeight: 700, color: barColor, fontSize: '12px', minWidth: '28px', textAlign: 'right' }}>{r.battery}%</span>
                     <span style={{
-                      fontSize: '10px', fontWeight: 500, padding: '1px 5px', borderRadius: '6px',
+                      fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px',
                       background: `${barColor}18`, color: barColor, flexShrink: 0,
                     }}>
                       {statusLabel}
@@ -599,30 +597,30 @@ export default function Analytics() {
               })}
             </div>
             <div className="card-hover-link" onClick={() => navigate('/admin/robots')} style={{
-              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
-              fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#d97706' : '#2e7d2e',
+              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
+              fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#f97316' : '#2e7d32',
             }}>
               {needsCharging} robots need charging soon →
             </div>
           </div>
 
           {/* Right: Task Operations */}
-          <div style={{ ...cardStyle, padding: '14px 18px' }}>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
+          <div style={cardStyle}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
             <div style={sectionSub}>Status breakdown across all tasks</div>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
-                <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Tasks</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tasks</div>
               </div>
               <div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={completionRate} decimals={0} />%</div>
-                <div style={{ fontSize: '11px', color: '#6b7280' }}>Completion Rate</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={completionRate} decimals={0} />%</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completion Rate</div>
               </div>
               <div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280' }}>Overdue</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overdue</div>
               </div>
             </div>
 
@@ -645,11 +643,12 @@ export default function Analytics() {
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
                   {statusData.map((entry) => (
-                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280' }}>
-                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
-                      <span>{entry.name} {entry.value}</span>
+                    <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: '12px', color: '#374151' }}>{entry.name}</span>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a1a1a' }}>{entry.value}</span>
                     </div>
                   ))}
                 </div>
@@ -657,8 +656,8 @@ export default function Analytics() {
             </div>
 
             <div className="card-hover-link" onClick={() => navigate('/admin/tasks')} style={{
-              marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.05)',
-              textAlign: 'right', cursor: 'pointer', color: '#2e7d2e', fontSize: '12px', fontWeight: 500,
+              marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
+              textAlign: 'right', cursor: 'pointer', color: '#2e7d32', fontSize: '12px', fontWeight: 500,
             }}>
               View all tasks →
             </div>
@@ -680,8 +679,7 @@ export default function Analytics() {
           border: none !important;
         }
 
-        .card-hover { transition: all 0.2s ease; cursor: default; }
-        .card-hover:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
+        .card-hover { cursor: default; }
         .card-hover-sensor { transition: all 0.2s ease; cursor: default; }
         .card-hover-sensor:hover { transform: scale(1.01); box-shadow: 0 6px 20px rgba(46,125,50,0.12); }
         .card-hover-slide { transition: all 0.15s ease; cursor: pointer; }
