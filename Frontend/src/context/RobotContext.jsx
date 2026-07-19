@@ -27,13 +27,14 @@ export function RobotProvider({ children }) {
   const [history, setHistory] = useState(initialHistory);
 
   const addRobot = (robot) => setRobots((prev) => [...prev, robot]);
+  const bulkAddRobots = (newRobots) => setRobots((prev) => [...prev, ...newRobots]);
   const updateRobot = (oldRobot, newData) =>
     setRobots((prev) => prev.map((r) => (r === oldRobot ? { ...r, ...newData } : r)));
   const removeRobot = (robot) => setRobots((prev) => prev.filter((r) => r !== robot));
   const addHistoryEntry = (entry) => setHistory((prev) => [entry, ...prev]);
 
   return (
-    <RobotContext.Provider value={{ robots, history, addRobot, updateRobot, removeRobot, addHistoryEntry }}>
+    <RobotContext.Provider value={{ robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry }}>
       {children}
     </RobotContext.Provider>
   );

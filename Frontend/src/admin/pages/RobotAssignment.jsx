@@ -112,7 +112,7 @@ const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 
 export default function RobotAssignment() {
   const { users } = useUsers();
-  const { robots, history, addRobot, updateRobot, removeRobot, addHistoryEntry } = useRobots();
+  const { robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
@@ -122,7 +122,9 @@ export default function RobotAssignment() {
   const [showQRModal, setShowQRModal] = useState(null);
   const [showEditModal, setShowEditModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [genForm, setGenForm] = useState({ model: 'AB-X1000', notes: '' });
+  const [genForm, setGenForm] = useState({ quantity: 1, model: 'AB-X1000' });
+  const [toast, setToast] = useState(null);
+  const [sortGenerated, setSortGenerated] = useState(false);
   const [editForm, setEditForm] = useState({ farmer: '', status: '', model: '', notes: '' });
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [qrCodes, setQrCodes] = useState({});
@@ -174,44 +176,61 @@ export default function RobotAssignment() {
         (r.model || '').toLowerCase().includes(q)
       );
     }
+    if (sortGenerated) {
+      result = [...result].sort((a, b) => {
+        if (a.registered > b.registered) return -1;
+        if (a.registered < b.registered) return 1;
+        return 0;
+      });
+    }
     return result;
-  }, [robots, activeFilter, searchTerm]);
+  }, [robots, activeFilter, searchTerm, sortGenerated]);
 
   const sortedHistory = useMemo(() => {
     return [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [history]);
 
   const openGenerate = () => {
-    const maxId = robots.reduce((max, r) => {
-      const num = parseInt(r.id.replace('ROB-', ''), 10);
-      return num > max ? num : max;
-    }, 0);
-    const nextId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
-    setGenForm({ model: 'AB-X1000', notes: '' });
+    setGenForm({ quantity: 1, model: 'AB-X1000' });
     setShowGenerateModal(true);
   };
 
   const handleGenerate = (e) => {
     e.preventDefault();
+    const qty = parseInt(genForm.quantity, 10);
+    if (isNaN(qty) || qty < 1 || qty > 100) return;
     const maxId = robots.reduce((max, r) => {
       const num = parseInt(r.id.replace('ROB-', ''), 10);
-      return num > max ? num : max;
+      return !isNaN(num) && num > max ? num : max;
     }, 0);
-    const nextId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
-    const newRobot = {
-      id: nextId,
-      name: `Robot ${nextId}`,
-      model: genForm.model,
-      farmer: null,
-      status: 'Available',
-      farm: '',
-      battery: 0,
-      registered: new Date().toISOString().slice(0, 10),
-      notes: genForm.notes,
-    };
-    addRobot(newRobot);
-    addHistoryEntry({ robotId: nextId, action: 'Generated', farmer: '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    const today = new Date().toISOString().split('T')[0];
+    const newRobots = [];
+    const newHistoryEntries = [];
+    for (let i = 1; i <= qty; i++) {
+      const idNum = maxId + i;
+      const robotId = `ROB-${String(idNum).padStart(4, '0')}`;
+      newRobots.push({
+        id: robotId,
+        name: `Robot ${robotId}`,
+        model: genForm.model,
+        farmer: null,
+        status: 'Available',
+        farm: '',
+        battery: 0,
+        registered: today,
+        notes: '',
+      });
+      newHistoryEntries.push({ robotId, action: 'Generated', farmer: '—', by: 'Admin User', date: today });
+    }
+    // TODO: Replace with real backend bulk generation API call once available
+    bulkAddRobots(newRobots);
+    newHistoryEntries.forEach((entry) => addHistoryEntry(entry));
+    const firstId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
+    const lastId = `ROB-${String(maxId + qty).padStart(4, '0')}`;
+    setSortGenerated(true);
     setShowGenerateModal(false);
+    setToast({ message: `\u2713 ${qty} robot${qty > 1 ? 's' : ''} generated successfully (${firstId} to ${lastId})` });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const openEdit = (robot) => {
@@ -256,6 +275,14 @@ export default function RobotAssignment() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, []);
+
+  useEffect(() => {
+    if (searchTerm) setSortGenerated(false);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setSortGenerated(false);
+  }, [activeFilter]);
 
   useEffect(() => {
     const generateQRCodes = async () => {
@@ -319,6 +346,12 @@ export default function RobotAssignment() {
         </div>
         <button onClick={openGenerate} className={btnPrimary}><i className="ph ph-plus" /> Generate Robot</button>
       </div>
+
+      {toast && (
+        <div style={{ background: 'rgba(22,163,74,0.12)', border: '1px solid rgba(22,163,74,0.25)', borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, color: '#166534' }}>
+          <span>{toast.message}</span>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -537,8 +570,8 @@ export default function RobotAssignment() {
                   <Bot size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Generate New Robot</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Create a new robot entry and generate its QR code</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Generate Robots</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Create multiple robots at once — each gets a unique ID automatically</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowGenerateModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -555,28 +588,38 @@ export default function RobotAssignment() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Robot ID
+                      <i className="ph ph-hash" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Number of Robots
                     </div>
-                    <div style={{ position: 'relative' }}>
-                      <input value={`ROB-${String(Math.max(...robots.map(r => parseInt(r.id.replace('ROB-', ''), 10)), 0) + 1).padStart(4, '0')}`} disabled
-                        style={{ ...inputBase, background: '#F3F4F6', color: '#6B7280', cursor: 'not-allowed' }}
-                      />
-                      <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '10px', color: '#9CA3AF' }}>Auto-generated</span>
-                    </div>
+                    <input type="number" min={1} max={100} value={genForm.quantity}
+                      onChange={(e) => setGenForm({ ...genForm, quantity: e.target.value })}
+                      placeholder="Enter quantity (1–100)"
+                      style={inputBase}
+                      onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                    />
+                    {(() => {
+                      const qty = parseInt(genForm.quantity, 10);
+                      if (isNaN(qty) || genForm.quantity === '') return null;
+                      if (qty < 1 || qty > 100) {
+                        return <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px' }}>Please enter a number between 1 and 100</div>;
+                      }
+                      const maxId = robots.reduce((max, r) => {
+                        const num = parseInt(r.id.replace('ROB-', ''), 10);
+                        return !isNaN(num) && num > max ? num : max;
+                      }, 0);
+                      const firstId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
+                      const lastId = `ROB-${String(maxId + qty).padStart(4, '0')}`;
+                      return (
+                        <div style={{ color: '#6b7280', fontSize: '12px', fontStyle: 'italic', marginTop: '4px' }}>
+                          This will generate {qty} robot{qty > 1 ? 's' : ''} ({firstId} to {lastId})
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-chip" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Model
+                      <i className="ph ph-chip" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Robot Model
                     </div>
                     <Select options={modelOptions} value={genForm.model} onChange={(v) => setGenForm({ ...genForm, model: v })} placeholder="Select model" />
-                  </div>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <FileText size={12} style={{ color: '#9CA3AF' }} /> Notes
-                    </div>
-                    <input value={genForm.notes} onChange={(e) => setGenForm({ ...genForm, notes: e.target.value })} placeholder="Optional notes"
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                    />
                   </div>
                 </div>
               </div>
@@ -589,12 +632,24 @@ export default function RobotAssignment() {
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >Cancel</button>
                 <button type="submit"
-                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
+                  disabled={(() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100; })()}
+                  style={{ background: (() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100 ? '#9CA3AF' : '#4caf50'; })(), color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100 ? 'not-allowed' : 'pointer'; })(), transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => {
+                    const q = parseInt(genForm.quantity, 10);
+                    if (!isNaN(q) && q >= 1 && q <= 100) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)';
+                    }
+                  }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
+                  onMouseDown={(e) => {
+                    const q = parseInt(genForm.quantity, 10);
+                    if (!isNaN(q) && q >= 1 && q <= 100) {
+                      e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95';
+                    }
+                  }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-                ><i className="ph ph-check" /> Generate Robot</button>
+                ><i className="ph ph-check" /> Generate {(() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) ? '' : `${q} Robot${q > 1 ? 's' : ''}`; })()}</button>
               </div>
             </form>
           </div>
