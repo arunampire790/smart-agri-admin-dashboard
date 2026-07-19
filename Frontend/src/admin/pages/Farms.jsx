@@ -50,6 +50,85 @@ function getIconConfig(label) {
   }
 }
 
+function parseCoordinate(value) {
+  if (!value.trim()) return null;
+  const parts = value.split(',');
+  if (parts.length !== 2) return { error: 'Use format: lat, lng' };
+  const lat = parseFloat(parts[0].trim());
+  const lng = parseFloat(parts[1].trim());
+  if (isNaN(lat) || isNaN(lng)) return { error: 'Use format: lat, lng' };
+  if (lat < -90 || lat > 90) return { error: 'Lat must be -90 to 90' };
+  if (lng < -180 || lng > 180) return { error: 'Lng must be -180 to 180' };
+  return { lat, lng };
+}
+
+function normalizeToSVG(points, svgWidth, svgHeight, padding = 30) {
+  const lats = points.map(p => p.lat);
+  const lngs = points.map(p => p.lng);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  return points.map(p => ({
+    x: ((p.lng - minLng) / (maxLng - minLng || 1)) * (svgWidth - padding * 2) + padding,
+    y: svgHeight - (((p.lat - minLat) / (maxLat - minLat || 1)) * (svgHeight - padding * 2) + padding)
+  }));
+}
+
+function FarmShapePreview({ points }) {
+  const containerStyle = {
+    width: '100%', height: '180px', background: '#f8fdf8',
+    border: '1px dashed rgba(46,125,50,0.3)', borderRadius: '12px',
+    position: 'relative', marginBottom: '16px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  };
+  const validPoints = points.filter(p => p && !p.error);
+  const allValid = validPoints.length === 3;
+  const degenerate = allValid && (
+    (validPoints[0].lat === validPoints[1].lat && validPoints[1].lat === validPoints[2].lat) ||
+    (validPoints[0].lng === validPoints[1].lng && validPoints[1].lng === validPoints[2].lng)
+  );
+
+  if (validPoints.length === 0) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ textAlign: 'center' }}>
+          <MapPin size={24} style={{ color: '#9ca3af', margin: '0 auto' }} />
+          <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>Farm boundary will appear here</div>
+        </div>
+      </div>
+    );
+  }
+
+  const svgW = 500, svgH = 180;
+  const mapped = normalizeToSVG(validPoints, svgW, svgH);
+  const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
+
+  return (
+    <div style={containerStyle}>
+      <svg width="100%" height="180" viewBox={`0 0 ${svgW} ${svgH}`} style={{ position: 'absolute', inset: 0 }}>
+        {allValid && !degenerate && (
+          <polygon
+            points={mapped.map(p => `${p.x},${p.y}`).join(' ')}
+            fill="rgba(46,125,50,0.15)"
+            stroke="#2e7d32"
+            strokeWidth="2"
+          />
+        )}
+        {mapped.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="5" fill={pointColors[i]} />
+            <text x={p.x + 8} y={p.y - 4} fontSize="10" fill={pointColors[i]} fontWeight="600">{`P${i + 1}`}</text>
+          </g>
+        ))}
+      </svg>
+      {degenerate && (
+        <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', fontSize: '11px', color: '#d97706', background: 'rgba(217,119,6,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
+          ⚠ Points appear too close — try different coordinates
+        </div>
+      )}
+    </div>
+  );
+}
+
 const statusOpts = ['Active', 'Idle', 'Offline'];
 const userStatusOpts = ['Active', 'Inactive'];
 
@@ -191,9 +270,10 @@ export default function Farms() {
     if (!form.name.trim()) errs.name = 'Farm name is required';
     if (!form.owner.trim()) errs.owner = 'Owner is required';
     formCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`coord${i}`] = 'Coordinate is required'; return; }
-      const parsed = parseCoordString(str);
-      if (!parsed) errs[`coord${i}`] = 'Invalid format. Use: lat, lng (e.g. 36.7783, -119.4179)';
+      if (!str.trim()) { errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
+      const parsed = parseCoordinate(str);
+      if (!parsed) errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
+      else if (parsed.error) errs[`coord${i}`] = parsed.error;
     });
     const deviceCount = parseInt(form.devices, 10);
     if (deviceCount > 0 && selectedRobotIds.length !== deviceCount) {
@@ -206,7 +286,7 @@ export default function Farms() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const parsedCoords = formCoordStrings.map(s => parseCoordString(s)).filter(Boolean);
+    const parsedCoords = parsedAddPoints.filter(Boolean);
     addFarm({
       name: form.name.trim(),
       location: '',
@@ -230,7 +310,6 @@ export default function Farms() {
     // TODO: Replace with real backend API call once backend is added.
   };
 
-  const parseCoordString = (str) => { if (!str || !str.includes(',')) return null; const parts = str.split(',').map(v => parseFloat(v.trim())); if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null; if (parts[0] < -90 || parts[0] > 90 || parts[1] < -180 || parts[1] > 180) return null; return { lat: parts[0], lng: parts[1] }; };
   const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobotIds([]); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
@@ -257,9 +336,10 @@ export default function Farms() {
     if (!editFarmForm.name.trim()) errs.name = 'Farm name is required';
     if (!editFarmForm.owner.trim()) errs.owner = 'Owner is required';
     editFormCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`editCoord${i}`] = 'Coordinate is required'; return; }
-      const parsed = parseCoordString(str);
-      if (!parsed) errs[`editCoord${i}`] = 'Invalid format. Use: lat, lng (e.g. 36.7783, -119.4179)';
+      if (!str.trim()) { errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
+      const parsed = parseCoordinate(str);
+      if (!parsed) errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
+      else if (parsed.error) errs[`editCoord${i}`] = parsed.error;
     });
     const deviceCount = parseInt(editFarmForm.devices, 10);
     if (deviceCount > 0 && editSelectedRobotIds.length !== deviceCount) {
@@ -305,7 +385,7 @@ export default function Farms() {
         updateRobot(robot, { farm: editFarmForm.name.trim(), status: 'Assigned' });
       }
     });
-    const parsedEditCoords = editFormCoordStrings.map(s => parseCoordString(s)).filter(Boolean);
+    const parsedEditCoords = parsedEditPoints.filter(Boolean);
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
       location: '',
@@ -357,16 +437,16 @@ export default function Farms() {
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
+  const parsedAddPoints = useMemo(() => formCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [formCoordStrings]);
+  const parsedEditPoints = useMemo(() => editFormCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [editFormCoordStrings]);
   const computedAcreage = useMemo(() => {
-    const parsed = formCoordStrings.map(s => parseCoordString(s));
-    if (parsed.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsed[0], parsed[1], parsed[2]);
-  }, [formCoordStrings]);
+    if (parsedAddPoints.some(p => !p)) return null;
+    return computeTriangleAreaAcres(parsedAddPoints[0], parsedAddPoints[1], parsedAddPoints[2]);
+  }, [parsedAddPoints]);
   const editComputedAcreage = useMemo(() => {
-    const parsed = editFormCoordStrings.map(s => parseCoordString(s));
-    if (parsed.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsed[0], parsed[1], parsed[2]);
-  }, [editFormCoordStrings]);
+    if (parsedEditPoints.some(p => !p)) return null;
+    return computeTriangleAreaAcres(parsedEditPoints[0], parsedEditPoints[1], parsedEditPoints[2]);
+  }, [parsedEditPoints]);
 
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
@@ -637,35 +717,44 @@ export default function Farms() {
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with map-based coordinate picker once available */}
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Coordinates</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter 3 GPS points to define the farm boundary. Format: latitude, longitude (e.g. 36.7783, -119.4179)</div>
+                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
+                <FarmShapePreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} />
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[0, 1, 2].map((i) => (
-                    <div key={i}>
-                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Point {i + 1}</div>
-                      <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
-                        placeholder="e.g. 36.7783, -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                        onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                      />
-                      {formCoordStrings[i] && parseCoordString(formCoordStrings[i]) && <span style={{ color: '#2e7d32', fontSize: '11px', marginTop: '2px', display: 'block' }}>✓</span>}
-                      {errors[`coord${i}`] && <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '2px' }}>{errors[`coord${i}`]}</div>}
-                    </div>
-                  ))}
-                </div>
-                {(() => {
-                  if (computedAcreage === null) return null;
-                  return (
-                    <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Ruler size={18} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Estimated Farm Area</div>
-                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</div>
-                        <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>Based on 3-point boundary approximation</div>
+                  {[
+                    { label: 'Point 1', color: '#2e7d32', key: 'coord0' },
+                    { label: 'Point 2', color: '#1d6fa8', key: 'coord1' },
+                    { label: 'Point 3', color: '#9333ea', key: 'coord2' },
+                  ].map((cfg, i) => {
+                    const parsed = parseCoordinate(formCoordStrings[i]);
+                    const statusValid = parsed && !parsed.error;
+                    const statusError = parsed && parsed.error;
+                    return (
+                      <div key={i}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
+                          <MapPin size={13} color={cfg.color} /> {cfg.label}
+                        </div>
+                        <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
+                          placeholder="lat, lng" style={inputBase}
+                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                        />
+                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
+                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
+                        {errors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {errors[cfg.key]}</div>}
                       </div>
+                    );
+                  })}
+                </div>
+                {computedAcreage !== null && (
+                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
+                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
+                    <div>
+                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</span></span>
+                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
               </div>
               </div>
 
@@ -815,35 +904,44 @@ export default function Farms() {
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with map-based coordinate picker once available */}
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Coordinates</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter 3 GPS points to define the farm boundary. Format: latitude, longitude (e.g. 36.7783, -119.4179)</div>
+                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
+                <FarmShapePreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} />
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[0, 1, 2].map((i) => (
-                    <div key={i}>
-                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Point {i + 1}</div>
-                      <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
-                        placeholder="e.g. 36.7783, -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                        onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                      />
-                      {editFormCoordStrings[i] && parseCoordString(editFormCoordStrings[i]) && <span style={{ color: '#2e7d32', fontSize: '11px', marginTop: '2px', display: 'block' }}>✓</span>}
-                      {editFarmErrors[`editCoord${i}`] && <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '2px' }}>{editFarmErrors[`editCoord${i}`]}</div>}
-                    </div>
-                  ))}
-                </div>
-                {(() => {
-                  if (editComputedAcreage === null) return null;
-                  return (
-                    <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Ruler size={18} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Estimated Farm Area</div>
-                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</div>
-                        <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>Based on 3-point boundary approximation</div>
+                  {[
+                    { label: 'Point 1', color: '#2e7d32', key: 'editCoord0' },
+                    { label: 'Point 2', color: '#1d6fa8', key: 'editCoord1' },
+                    { label: 'Point 3', color: '#9333ea', key: 'editCoord2' },
+                  ].map((cfg, i) => {
+                    const parsed = parseCoordinate(editFormCoordStrings[i]);
+                    const statusValid = parsed && !parsed.error;
+                    const statusError = parsed && parsed.error;
+                    return (
+                      <div key={i}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
+                          <MapPin size={13} color={cfg.color} /> {cfg.label}
+                        </div>
+                        <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
+                          placeholder="lat, lng" style={inputBase}
+                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                        />
+                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
+                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
+                        {editFarmErrors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {editFarmErrors[cfg.key]}</div>}
                       </div>
+                    );
+                  })}
+                </div>
+                {editComputedAcreage !== null && (
+                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
+                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
+                    <div>
+                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</span></span>
+                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
               </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
