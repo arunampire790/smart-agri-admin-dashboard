@@ -10,7 +10,6 @@ import {
 import {
   Thermometer, Droplets, Waves, Radar, MapPin, Cpu,
   ArrowLeft, Wifi, WifiOff, RefreshCw,
-  ChevronDown, Check, Bot,
 } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
@@ -34,7 +33,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
   );
 }
 
-function FilterSelect({ label, options, value, onChange, width }) {
+function Select({ options, value, onChange, placeholder, width }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -42,60 +41,51 @@ function FilterSelect({ label, options, value, onChange, width }) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-  const isActive = value !== options[0];
   return (
-    <div>
-      {label && (
-        <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', display: 'block' }}>{label}</div>
-      )}
-      <div className="relative" ref={ref} style={{ width: width || '160px' }}>
-        <button type="button" onClick={() => setOpen((o) => !o)}
+    <div className="relative" ref={ref} style={width ? { width } : undefined}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
+        style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+      >
+        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder || 'Select...'}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] w-full mt-1 overflow-hidden"
           style={{
-            background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '8px',
-            color: '#374151', fontSize: '13px', padding: '8px 12px',
-            width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-            transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
-            display: 'flex', alignItems: 'center',
-            borderLeft: isActive ? '2px solid #2e7d32' : '1px solid rgba(76,175,80,0.2)',
-          }}
-          onMouseEnter={(e) => { if (!open) { e.currentTarget.style.borderColor = 'rgba(76,175,80,0.4)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(46,125,50,0.1)'; } }}
-          onMouseLeave={(e) => { if (!open) { e.currentTarget.style.borderColor = isActive ? 'rgba(76,175,80,0.4)' : 'rgba(76,175,80,0.2)'; e.currentTarget.style.boxShadow = 'none'; } }}
-        >
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: value === options[0] ? '#9CA3AF' : '#374151' }}>
-            {value}
-          </span>
-          <ChevronDown size={14} style={{ flexShrink: 0, color: '#6B7280', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-        </button>
-        {open && (
-          <div style={{
-            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-            maxHeight: '240px', overflowY: 'auto',
-            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          }}>
-            {options.map((opt) => {
-              const sel = opt === value;
-              return (
-                <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
-                  style={{
-                    padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-                    background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
-                    color: sel ? '#4caf50' : '#1d1d1f',
-                    transition: 'background 0.15s, color 0.15s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}
-                  onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
-                  onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
-                >
-                  <span>{opt}</span>
-                  {sel && <Check size={12} color="#4caf50" />}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+          }}
+        >
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '12px 16px', fontSize: '14px',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                }}
+              >
+                <span>{opt}</span>
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -235,43 +225,39 @@ export default function SensorsDetails() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   });
 
-  const [farmFilter, setFarmFilter] = useState('All Farms');
+  const [robotNameFilter, setRobotNameFilter] = useState('All');
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
   const fleetStats = useMemo(() => {
-    const visible = filteredRobots;
-    const online = visible.filter((r) => r.status !== 'Offline').length;
-    const temps = visible
+    const online = robots.filter((r) => r.status !== 'Offline').length;
+    const temps = robots
       .filter((r) => r.status !== 'Offline')
       .map((r) => readingFor(r.id)?.dht11?.temperature)
       .filter(Boolean);
     const avgTemp = temps.length > 0
       ? Math.round((temps.reduce((s, v) => s + v, 0) / temps.length) * 10) / 10
       : 0;
-    const moistures = visible
+    const moistures = robots
       .filter((r) => r.status !== 'Offline')
       .map((r) => readingFor(r.id)?.soilMoisture)
       .filter(Boolean);
     const avgMoisture = moistures.length > 0
       ? Math.round((moistures.reduce((s, v) => s + v, 0) / moistures.length) * 10) / 10
       : 0;
-    const obstacles = visible.filter((r) => {
+    const obstacles = robots.filter((r) => {
       const u = readingFor(r.id)?.ultrasonic;
       return u !== undefined && u < 30;
     }).length;
-    return { online: `${online}/${visible.length}`, avgTemp, avgMoisture, obstacles, total: visible.length };
-  }, [filteredRobots]);
+    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length };
+  }, [robots]);
 
-  const farmOptions = useMemo(() =>
-    ['All Farms', ...[...new Set(robots.map(r => r.farm).filter(Boolean))].sort()],
-    [robots]
-  );
+  const robotNameOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.name).filter(Boolean))], [robots]);
 
   const filteredRobots = useMemo(() => {
-    if (farmFilter === 'All Farms') return robots;
-    return robots.filter(r => r.farm === farmFilter);
-  }, [robots, farmFilter]);
+    if (robotNameFilter === 'All') return robots;
+    return robots.filter(r => r.name === robotNameFilter);
+  }, [robots, robotNameFilter]);
 
   if (!robots || robots.length === 0) {
     return (
@@ -489,25 +475,19 @@ export default function SensorsDetails() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="text-sm font-semibold text-primary">Robot Sensor Grid ({filteredRobots.length})</div>
-        <FilterSelect label="FARM" options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="160px" />
+        <div>
+          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Robot</div>
+          <Select options={robotNameOptions} value={robotNameFilter} onChange={setRobotNameFilter} width="200px" />
+        </div>
       </div>
-      {farmFilter !== 'All Farms' && (
-        <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span>Showing {filteredRobots.length} of {robots.length} robots</span>
-          <span onClick={() => setFarmFilter('All Farms')}
-            style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
-          >Clear Filters</span>
+      {robotNameFilter !== 'All' && (
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredRobots.length} of {robots.length} robots
+          <span onClick={() => setRobotNameFilter('All')}
+            style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+          >Clear Filter</span>
         </div>
       )}
-      {filteredRobots.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
-          <Bot size={36} style={{ marginBottom: '12px', color: '#9CA3AF' }} />
-          <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No robots assigned to this farm</div>
-          <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>Assign a robot to {farmFilter} in Robot Management to view sensor data</div>
-        </div>
-      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredRobots.map((r) => {
           const rId = r.id;
@@ -579,7 +559,6 @@ export default function SensorsDetails() {
           );
         })}
       </div>
-      )}
     </>
   );
 }
