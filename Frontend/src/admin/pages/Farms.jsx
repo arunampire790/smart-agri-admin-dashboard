@@ -7,7 +7,7 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
-import { MapPin, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check, Triangle } from 'lucide-react';
+import { MapPin, Sprout, Bot, Home, User, Ruler, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import FarmMapPreview from '../components/FarmMapPreview';
 
@@ -163,103 +163,10 @@ function FilterSelect({ label, options, value, onChange, width }) {
   );
 }
 
-function RobotMultiSelect({ robots: robotList, selectedIds, onChange, maxCount }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  const sorted = [...robotList].sort((a, b) => a.name.localeCompare(b.name));
-  return (
-    <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen(o => !o)}
-        style={{
-          background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
-          color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
-          width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
-          textAlign: 'left', position: 'relative',
-        }}>
-        <span style={{ color: selectedIds.length ? '#111827' : '#9CA3AF' }}>
-          {selectedIds.length > 0 ? `${selectedIds.length} robot(s) selected` : 'Select robots...'}
-        </span>
-        <ChevronDown size={14} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', zIndex: 9999, top: '100%', left: 0, right: 0, marginTop: '4px',
-          maxHeight: '200px', overflowY: 'auto',
-          background: 'rgba(255,255,255,0.98)', backdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-        }}>
-          {sorted.length === 0 ? (
-            <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
-              No robots available for assignment
-            </div>
-          ) : sorted.map((robot) => {
-            const selected = selectedIds.includes(robot.id);
-            const atLimit = selectedIds.length >= maxCount && !selected;
-            return (
-              <div key={robot.id}
-                onClick={() => { if (!atLimit) { onChange(selected ? selectedIds.filter(id => id !== robot.id) : [...selectedIds, robot.id]); setOpen(false); }}}
-                style={{
-                  padding: '10px 14px', fontSize: '13px',
-                  cursor: atLimit ? 'not-allowed' : 'pointer',
-                  opacity: atLimit ? 0.5 : 1,
-                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
-                  color: selected ? '#4caf50' : '#1d1d1f',
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  borderBottom: '1px solid rgba(0,0,0,0.05)',
-                }}>
-                <input type="checkbox" checked={selected} readOnly
-                  style={{ accentColor: '#4caf50', margin: 0, pointerEvents: 'none' }} />
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontWeight: 600 }}>{robot.name}</span>
-                  <span style={{ color: '#6b7280', fontSize: '11px', marginLeft: '6px' }}>· {robot.id} · {robot.model}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {selectedIds.length > 0 && (
-        <>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-            {selectedIds.map(id => {
-              const robot = robotList.find(r => r.id === id);
-              return (
-                <span key={id} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  background: 'rgba(46,125,50,0.08)', border: '1px solid rgba(46,125,50,0.2)',
-                  borderRadius: '8px', padding: '4px 10px', fontSize: '12px',
-                }}>
-                  <span style={{ fontWeight: 600, color: '#2e7d32' }}>{robot?.name}</span>
-                  <span style={{ color: '#6b7280', fontSize: '11px' }}>{robot?.id}</span>
-                  <button type="button" onClick={(e) => { e.stopPropagation(); onChange(selectedIds.filter(id2 => id2 !== id)); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0 0 0 4px', fontSize: '14px', lineHeight: 1, display: 'flex' }}>
-                    ×
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-          <div style={{ fontSize: '11px', color: selectedIds.length >= maxCount ? '#ef4444' : '#6b7280', marginTop: '6px' }}>
-            {selectedIds.length >= maxCount
-              ? `Maximum of ${maxCount} robot(s) reached`
-              : `${selectedIds.length} of ${maxCount} robots selected`}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 export default function Farms() {
   const navigate = useNavigate();
   const { farms, addFarm, updateFarm, removeFarm } = useFarms();
-  const { robots, updateRobot } = useRobots();
+  const { robots } = useRobots();
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,9 +185,7 @@ export default function Farms() {
   const [editFarmErrors, setEditFarmErrors] = useState({});
   const [deleteFarm, setDeleteFarm] = useState(null);
   const [formCoordStrings, setFormCoordStrings] = useState(['', '', '']);
-  const [selectedRobotIds, setSelectedRobotIds] = useState([]);
   const [editFormCoordStrings, setEditFormCoordStrings] = useState(['', '', '']);
-  const [editSelectedRobotIds, setEditSelectedRobotIds] = useState([]);
   const soilTypeOpts = ['Clay', 'Loam', 'Sandy', 'Silty', 'Peaty', 'Chalky'];
 
   useEffect(() => {
@@ -302,10 +207,6 @@ export default function Farms() {
       if (!parsed) errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
       else if (parsed.error) errs[`coord${i}`] = parsed.error;
     });
-    const deviceCount = parseInt(form.devices, 10);
-    if (deviceCount > 0 && selectedRobotIds.length !== deviceCount) {
-      errs.robots = `Please select exactly ${deviceCount} robot(s) to match the Connected Devices count`;
-    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -321,23 +222,19 @@ export default function Farms() {
       owner: form.owner.trim(),
       crop: form.cropTypes.trim() || '—',
       soil: form.soil || '—',
-      robot: selectedRobotIds.join(', ') || '—',
+      robot: form.robot || '—',
       status: form.status,
       cls: form.status === 'Active' ? 'bg-brand-light text-brand-dark' : form.status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text',
       size: form.acreage ? `${form.acreage} acres` : '—',
       cropTypes: form.cropTypes.trim() || '—',
       devices: form.devices || '0',
     });
-    selectedRobotIds.forEach((robotId) => {
-      const robot = robots.find((r) => r.id === robotId);
-      if (robot) updateRobot(robot, { farm: form.name.trim(), status: 'Assigned' });
-    });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Robots: ${selectedRobotIds.join(', ') || '—'}, Status: ${form.status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Robots: ${form.robot || '—'}, Status: ${form.status}` });
     setShowAddModal(false);
     // TODO: Replace with real backend API call once backend is added.
   };
 
-  const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobotIds([]); setShowAddModal(true); };
+  const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -368,29 +265,25 @@ export default function Farms() {
       if (!parsed) errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
       else if (parsed.error) errs[`editCoord${i}`] = parsed.error;
     });
-    const deviceCount = parseInt(editFarmForm.devices, 10);
-    if (deviceCount > 0 && editSelectedRobotIds.length !== deviceCount) {
-      errs.editRobots = `Please select exactly ${deviceCount} robot(s) to match the Connected Devices count`;
-    }
     setEditFarmErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const openEditFarm = (farm) => {
-    const assignedRobots = robots.filter(r => r.farm === farm.name);
+    if (!farm) return;
     setEditFarmForm({
-      name: farm.name,
-      location: farm.location,
-      owner: farm.owner,
+      name: farm.name || '',
+      location: farm.location || '',
+      owner: farm.owner || '',
       cropTypes: farm.cropTypes || '',
       soil: farm.soil || '',
       acreage: farm.size ? farm.size.replace(' acres', '') : '',
       devices: farm.devices || '0',
       robot: farm.robot || '',
-      status: farm.status,
+      status: farm.status || 'Active',
     });
-    setEditFormCoordStrings(farm.coordinates && farm.coordinates.length === 3 ? farm.coordinates.map(c => `${c.lat}, ${c.lng}`) : ['', '', '']);
-    setEditSelectedRobotIds(assignedRobots.map(r => r.id));
+    const coords = farm.coordinates;
+    setEditFormCoordStrings(coords && coords.length === 3 ? coords.map(c => `${c.lat}, ${c.lng}`) : ['', '', '']);
     setEditFarmErrors({});
     setEditFarm(farm);
   };
@@ -400,18 +293,6 @@ export default function Farms() {
     if (!validateEditFarm()) return;
     const status = editFarmForm.status;
     const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text';
-    const previouslyAssignedRobots = robots.filter(r => r.farm === editFarm.name);
-    previouslyAssignedRobots.forEach((r) => {
-      if (!editSelectedRobotIds.includes(r.id)) {
-        updateRobot(r, { farm: '', status: 'Available' });
-      }
-    });
-    editSelectedRobotIds.forEach((robotId) => {
-      const robot = robots.find((r) => r.id === robotId);
-      if (robot && robot.farm !== editFarmForm.name.trim()) {
-        updateRobot(robot, { farm: editFarmForm.name.trim(), status: 'Assigned' });
-      }
-    });
     const parsedEditCoords = parsedEditPoints.filter(Boolean);
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
@@ -421,14 +302,13 @@ export default function Farms() {
       crop: editFarmForm.cropTypes.trim() || '—',
       cropTypes: editFarmForm.cropTypes.trim() || '—',
       soil: editFarmForm.soil || '—',
-      robot: editSelectedRobotIds.join(', ') || '—',
+      robot: editFarmForm.robot || '—',
       size: editFarmForm.acreage ? `${editFarmForm.acreage} acres` : '—',
       devices: editFarmForm.devices || '0',
       status,
       cls,
     });
-    // TODO: Replace with real backend API call to update robot assignment
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Robots: ${editSelectedRobotIds.join(', ') || '—'}, Status: ${status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Status: ${status}` });
     setEditFarm(null);
   };
 
@@ -478,6 +358,8 @@ export default function Farms() {
   useEffect(() => {
     if (computedAcreage !== null) {
       setForm(prev => ({ ...prev, acreage: computedAcreage.toFixed(2) }));
+    } else if (formCoordStrings.some(s => s.trim())) {
+      setForm(prev => ({ ...prev, acreage: '' }));
     }
   }, [computedAcreage]);
 
@@ -706,16 +588,27 @@ export default function Farms() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
+                      {computedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
                     </div>
-                    <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })} placeholder="e.g., 120"
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                    <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })}
+                      readOnly={computedAcreage !== null}
+                      placeholder="e.g., 120"
+                      style={{
+                        ...inputBase,
+                        background: computedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: computedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: computedAcreage !== null ? '#2e7d2e' : '#111827',
+                        fontWeight: computedAcreage !== null ? 600 : 400,
+                        cursor: computedAcreage !== null ? 'default' : 'text',
+                      }}
+                      onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Wifi size={12} style={{ color: '#9CA3AF' }} /> Connected Devices
                     </div>
-                    <input type="number" min="0" value={form.devices} onChange={(e) => { setForm({ ...form, devices: e.target.value }); setSelectedRobotIds([]); }} placeholder="0"
+                    <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0"
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
@@ -727,22 +620,9 @@ export default function Farms() {
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assigned Robot
                     </div>
-                    {(() => {
-                      const deviceCount = parseInt(form.devices, 10);
-                      if (deviceCount === 0) return <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No connected devices specified</div>;
-                      const availableRobots = robots.filter(r => r.status === 'Available' && (!r.farm || r.farm === ''));
-                      return (
-                        <RobotMultiSelect
-                          robots={availableRobots}
-                          selectedIds={selectedRobotIds}
-                          onChange={setSelectedRobotIds}
-                          maxCount={deviceCount}
-                        />
-                      );
-                    })()}
-                    {errors.robots && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '4px' }}>{errors.robots}</div>}
+                    <Select options={robotIds} value={form.robot} onChange={(v) => setForm({ ...form, robot: v })} placeholder="Select a robot" />
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
@@ -775,15 +655,6 @@ export default function Farms() {
                     );
                   })}
                 </div>
-                {computedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
               </div>
               </div>
 
@@ -872,37 +743,35 @@ export default function Farms() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
+                      {editComputedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
                     </div>
-                    <input type="number" min="0" value={editFarmForm.acreage} onChange={(e) => setEditFarmForm({ ...editFarmForm, acreage: e.target.value })} placeholder="e.g., 120"
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                    <input type="number" min="0" value={editFarmForm.acreage} onChange={(e) => setEditFarmForm({ ...editFarmForm, acreage: e.target.value })}
+                      readOnly={editComputedAcreage !== null}
+                      placeholder="e.g., 120"
+                      style={{
+                        ...inputBase,
+                        background: editComputedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: editComputedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: editComputedAcreage !== null ? '#2e7d2e' : '#111827',
+                        fontWeight: editComputedAcreage !== null ? 600 : 400,
+                        cursor: editComputedAcreage !== null ? 'default' : 'text',
+                      }}
+                      onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Wifi size={12} style={{ color: '#9CA3AF' }} /> Connected Devices
                     </div>
-                    <input type="number" min="0" value={editFarmForm.devices} onChange={(e) => { setEditFarmForm({ ...editFarmForm, devices: e.target.value }); setEditSelectedRobotIds([]); }} placeholder="0"
+                    <input type="number" min="0" value={editFarmForm.devices} onChange={(e) => setEditFarmForm({ ...editFarmForm, devices: e.target.value })} placeholder="0"
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assigned Robot
                     </div>
-                    {(() => {
-                      const deviceCount = parseInt(editFarmForm.devices, 10);
-                      if (deviceCount === 0) return <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No connected devices specified</div>;
-                      const availableRobots = robots.filter(r => r.status === 'Available' && (!r.farm || r.farm === '') || r.farm === editFarm?.name);
-                      return (
-                        <RobotMultiSelect
-                          robots={availableRobots}
-                          selectedIds={editSelectedRobotIds}
-                          onChange={setEditSelectedRobotIds}
-                          maxCount={deviceCount}
-                        />
-                      );
-                    })()}
-                    {editFarmErrors.editRobots && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '4px' }}>{editFarmErrors.editRobots}</div>}
+                    <Select options={robotIds} value={editFarmForm.robot} onChange={(v) => setEditFarmForm({ ...editFarmForm, robot: v })} placeholder="Select a robot" />
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
@@ -935,15 +804,6 @@ export default function Farms() {
                     );
                   })}
                 </div>
-                {editComputedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
               </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
