@@ -7,7 +7,7 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
-import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2 } from 'lucide-react';
+import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -83,6 +83,72 @@ function Select({ options, value, onChange, placeholder, style, onMouseEnter, on
   );
 }
 
+function FilterSelect({ label, options, value, onChange, width }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const isActive = value !== options[0];
+  return (
+    <div>
+      {label && (
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', display: 'block' }}>{label}</div>
+      )}
+      <div className="relative" ref={ref} style={{ width: width || '160px' }}>
+        <button type="button" onClick={() => setOpen((o) => !o)}
+          style={{
+            background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '8px',
+            color: '#374151', fontSize: '13px', padding: '8px 12px',
+            width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+            transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+            display: 'flex', alignItems: 'center',
+            borderLeft: isActive ? '2px solid #2e7d32' : '1px solid rgba(76,175,80,0.2)',
+          }}
+          onMouseEnter={(e) => { if (!open) { e.currentTarget.style.borderColor = 'rgba(76,175,80,0.4)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(46,125,50,0.1)'; } }}
+          onMouseLeave={(e) => { if (!open) { e.currentTarget.style.borderColor = isActive ? 'rgba(76,175,80,0.4)' : 'rgba(76,175,80,0.2)'; e.currentTarget.style.boxShadow = 'none'; } }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: value === options[0] ? '#9CA3AF' : '#374151' }}>
+            {value}
+          </span>
+          <ChevronDown size={14} style={{ flexShrink: 0, color: '#6B7280', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        </button>
+        {open && (
+          <div style={{
+            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+            maxHeight: '240px', overflowY: 'auto',
+            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}>
+            {options.map((opt) => {
+              const sel = opt === value;
+              return (
+                <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                  style={{
+                    padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                    background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                    color: sel ? '#4caf50' : '#1d1d1f',
+                    transition: 'background 0.15s, color 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                  onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+                >
+                  <span>{opt}</span>
+                  {sel && <Check size={12} color="#4caf50" />}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Farms() {
   const navigate = useNavigate();
   const { farms, addFarm, updateFarm, removeFarm } = useFarms();
@@ -90,8 +156,8 @@ export default function Farms() {
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [ownerFilter, setOwnerFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [ownerFilter, setOwnerFilter] = useState('All Owners');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
@@ -237,8 +303,8 @@ export default function Farms() {
   const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
-  const statusOptions = useMemo(() => ['All', ...new Set(farms.map(f => f.status).filter(Boolean))], [farms]);
-  const ownerOptions = useMemo(() => ['All', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
+  const statusOptions = useMemo(() => ['All Statuses', ...new Set(farms.map(f => f.status).filter(Boolean))], [farms]);
+  const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
 
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
@@ -249,10 +315,10 @@ export default function Farms() {
 
   const filteredFarms = useMemo(() => {
     let result = farms;
-    if (statusFilter !== 'All') {
+    if (statusFilter !== 'All Statuses') {
       result = result.filter(f => f.status === statusFilter);
     }
-    if (ownerFilter !== 'All') {
+    if (ownerFilter !== 'All Owners') {
       result = result.filter(f => f.owner === ownerFilter);
     }
     const term = searchTerm.toLowerCase().trim();
@@ -312,27 +378,31 @@ export default function Farms() {
           <div className="text-sm font-semibold text-primary mb-3">All Farms ({farms.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name, location, or owner..." aria-label="Search farms" className={inputClass} />
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <div>
-            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
-            <Select options={statusOptions} value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" />
-          </div>
-          <div>
-            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Owner</div>
-            <Select options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} placeholder="All Owners" />
-          </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
+          <FilterSelect label="STATUS" options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          <FilterSelect label="OWNER" options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} width="160px" />
         </div>
-        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
-          Showing {filteredFarms.length} of {farms.length} farms
-          {(statusFilter !== 'All' || ownerFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+        <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span>Showing {filteredFarms.length} of {farms.length} farms</span>
           {(searchTerm || statusFilter !== 'All' || ownerFilter !== 'All') && (
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setOwnerFilter('All'); }}
-              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+              style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
             >Clear Filters</span>
           )}
         </div>
         {farmRows.length === 0 ? (
-          <div className="py-12 text-center text-text-secondary text-sm">No farms found matching your criteria.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
+            <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No farms match your current filters</div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setOwnerFilter('All'); }}
+              style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >Clear Filters</span>
+          </div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
             <thead>

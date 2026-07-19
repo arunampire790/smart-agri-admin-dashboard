@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
+import { ChevronDown, Check } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -148,6 +149,72 @@ function FormFields({ form, setForm, errors, userNames }) {
   );
 }
 
+function FilterSelect({ label, options, value, onChange, width }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const isActive = value !== options[0];
+  return (
+    <div>
+      {label && (
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', display: 'block' }}>{label}</div>
+      )}
+      <div className="relative" ref={ref} style={{ width: width || '160px' }}>
+        <button type="button" onClick={() => setOpen((o) => !o)}
+          style={{
+            background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '8px',
+            color: '#374151', fontSize: '13px', padding: '8px 12px',
+            width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
+            transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
+            display: 'flex', alignItems: 'center',
+            borderLeft: isActive ? '2px solid #2e7d32' : '1px solid rgba(76,175,80,0.2)',
+          }}
+          onMouseEnter={(e) => { if (!open) { e.currentTarget.style.borderColor = 'rgba(76,175,80,0.4)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(46,125,50,0.1)'; } }}
+          onMouseLeave={(e) => { if (!open) { e.currentTarget.style.borderColor = isActive ? 'rgba(76,175,80,0.4)' : 'rgba(76,175,80,0.2)'; e.currentTarget.style.boxShadow = 'none'; } }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: value === options[0] ? '#9CA3AF' : '#374151' }}>
+            {value}
+          </span>
+          <ChevronDown size={14} style={{ flexShrink: 0, color: '#6B7280', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        </button>
+        {open && (
+          <div style={{
+            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
+            maxHeight: '240px', overflowY: 'auto',
+            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}>
+            {options.map((opt) => {
+              const sel = opt === value;
+              return (
+                <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                  style={{
+                    padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                    background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                    color: sel ? '#4caf50' : '#1d1d1f',
+                    transition: 'background 0.15s, color 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                  onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+                >
+                  <span>{opt}</span>
+                  {sel && <Check size={12} color="#4caf50" />}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Robots() {
   const navigate = useNavigate();
   const { robots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
@@ -158,9 +225,9 @@ export default function Robots() {
   const defaultFarmer = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [batteryFilter, setBatteryFilter] = useState('All');
-  const [farmFilter, setFarmFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [batteryFilter, setBatteryFilter] = useState('All Levels');
+  const [farmFilter, setFarmFilter] = useState('All Farms');
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
@@ -202,20 +269,19 @@ export default function Robots() {
 
   const filteredRobots = useMemo(() => {
     let result = robots;
-    if (statusFilter !== 'All') {
+    if (statusFilter !== 'All Statuses') {
       result = result.filter(r => r.status === statusFilter);
     }
-    if (batteryFilter !== 'All') {
+    if (batteryFilter !== 'All Levels') {
       result = result.filter(r => {
         const b = r.battery;
         if (batteryFilter === 'Critical (<20%)') return b < 20;
-        if (batteryFilter === 'Low (20-50%)') return b >= 20 && b <= 50;
-        if (batteryFilter === 'Medium (50-80%)') return b > 50 && b <= 80;
-        if (batteryFilter === 'High (>80%)') return b > 80;
+        if (batteryFilter === 'Low (<50%)') return b >= 20 && b < 50;
+        if (batteryFilter === 'Good (≥50%)') return b >= 50;
         return true;
       });
     }
-    if (farmFilter !== 'All') {
+    if (farmFilter !== 'All Farms') {
       result = result.filter(r => r.farm === farmFilter);
     }
     const term = searchTerm.toLowerCase().trim();
@@ -229,9 +295,9 @@ export default function Robots() {
     );
   }, [robots, searchTerm, statusFilter, batteryFilter, farmFilter]);
 
-  const statusFilterOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
-  const farmFilterOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.farm).filter(Boolean))], [robots]);
-  const batteryOptions = useMemo(() => ['All', 'Critical (<20%)', 'Low (20-50%)', 'Medium (50-80%)', 'High (>80%)'], []);
+  const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
+  const farmFilterOptions = useMemo(() => ['All Farms', ...new Set(robots.map(r => r.farm).filter(Boolean))], [robots]);
+  const batteryOptions = useMemo(() => ['All Levels', 'Critical (<20%)', 'Low (<50%)', 'Good (≥50%)'], []);
 
   return (
     <>
@@ -298,26 +364,18 @@ export default function Robots() {
           <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by name, ID, farmer, farm, or model..." aria-label="Search robots" className={inputClass} />
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <div>
-            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
-            <Select options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" />
-          </div>
-          <div>
-            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battery</div>
-            <Select options={batteryOptions} value={batteryFilter} onChange={setBatteryFilter} placeholder="All Levels" />
-          </div>
-          <div>
-            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Farm</div>
-            <Select options={farmFilterOptions} value={farmFilter} onChange={setFarmFilter} placeholder="All Farms" />
-          </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
+          <FilterSelect label="STATUS" options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          <FilterSelect label="BATTERY" options={batteryOptions} value={batteryFilter} onChange={setBatteryFilter} width="160px" />
+          <FilterSelect label="FARM" options={farmFilterOptions} value={farmFilter} onChange={setFarmFilter} width="160px" />
         </div>
-        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
-          Showing {filteredRobots.length} of {robots.length} robots
-          {(statusFilter !== 'All' || batteryFilter !== 'All' || farmFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
-          {(searchTerm || statusFilter !== 'All' || batteryFilter !== 'All' || farmFilter !== 'All') && (
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setBatteryFilter('All'); setFarmFilter('All'); }}
-              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+        <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span>Showing {filteredRobots.length} of {robots.length} robots</span>
+          {(searchTerm || statusFilter !== 'All Statuses' || batteryFilter !== 'All Levels' || farmFilter !== 'All Farms') && (
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); setFarmFilter('All Farms'); }}
+              style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
             >Clear Filters</span>
           )}
         </div>
@@ -337,7 +395,16 @@ export default function Robots() {
           </thead>
           <tbody>
             {filteredRobots.length === 0 ? (
-              <tr><td colSpan="8" className="text-center py-12 text-text-secondary text-sm">No robots match your search.</td></tr>
+              <tr><td colSpan="8"><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
+                <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No robots match your current filters</div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
+                <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); setFarmFilter('All Farms'); }}
+                  style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >Clear Filters</span>
+              </div></td></tr>
             ) : filteredRobots.map((r, i) => (
               <tr key={i}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
