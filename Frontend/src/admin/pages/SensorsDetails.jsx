@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import {
   mockSensorReadings, mockHistoryData, lastSynced,
@@ -29,6 +29,63 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
       }}
     >
       {children}
+    </div>
+  );
+}
+
+function Select({ options, value, onChange, placeholder, width }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div className="relative" ref={ref} style={width ? { width } : undefined}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
+        style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+      >
+        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder || 'Select...'}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] w-full mt-1 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}
+        >
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '12px 16px', fontSize: '14px',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                }}
+              >
+                <span>{opt}</span>
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -168,6 +225,8 @@ export default function SensorsDetails() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   });
 
+  const [robotNameFilter, setRobotNameFilter] = useState('All');
+
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
   const fleetStats = useMemo(() => {
@@ -192,6 +251,13 @@ export default function SensorsDetails() {
     }).length;
     return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length };
   }, [robots]);
+
+  const robotNameOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.name).filter(Boolean))], [robots]);
+
+  const filteredRobots = useMemo(() => {
+    if (robotNameFilter === 'All') return robots;
+    return robots.filter(r => r.name === robotNameFilter);
+  }, [robots, robotNameFilter]);
 
   if (!robots || robots.length === 0) {
     return (
@@ -407,9 +473,23 @@ export default function SensorsDetails() {
         </GlowCard>
       </div>
 
-      <div className="text-sm font-semibold text-primary mb-4">Robot Sensor Grid</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+        <div className="text-sm font-semibold text-primary">Robot Sensor Grid ({filteredRobots.length})</div>
+        <div>
+          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Robot</div>
+          <Select options={robotNameOptions} value={robotNameFilter} onChange={setRobotNameFilter} width="200px" />
+        </div>
+      </div>
+      {robotNameFilter !== 'All' && (
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredRobots.length} of {robots.length} robots
+          <span onClick={() => setRobotNameFilter('All')}
+            style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+          >Clear Filter</span>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {robots.map((r) => {
+        {filteredRobots.map((r) => {
           const rId = r.id;
           const readings = readingFor(rId);
           const isOnline = r.status !== 'Offline';

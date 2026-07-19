@@ -134,6 +134,10 @@ export default function Tasks() {
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [formErrors, setFormErrors] = useState({});
   const [profileUser, setProfileUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [farmerFilter, setFarmerFilter] = useState('All');
 
   const inputBase = {
     background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px',
@@ -204,12 +208,26 @@ export default function Tasks() {
   ], [totalTasks, pendingCount, inProgressCount, completedCount]);
 
   const filteredTasks = useMemo(() => {
-    if (activeTab === 'all') return tasks;
-    if (activeTab === 'pending') return tasks.filter((t) => t.status === 'Pending');
-    if (activeTab === 'inprog') return tasks.filter((t) => t.status === 'In Progress');
-    if (activeTab === 'done') return tasks.filter((t) => t.status === 'Completed');
-    return tasks;
-  }, [tasks, activeTab]);
+    let result = tasks;
+    if (activeTab === 'pending') result = result.filter((t) => t.status === 'Pending');
+    else if (activeTab === 'inprog') result = result.filter((t) => t.status === 'In Progress');
+    else if (activeTab === 'done') result = result.filter((t) => t.status === 'Completed');
+    if (priorityFilter !== 'All') result = result.filter(t => t.priority === priorityFilter);
+    if (typeFilter !== 'All') result = result.filter(t => t.type === typeFilter);
+    if (farmerFilter !== 'All') result = result.filter(t => t.assignedTo === farmerFilter);
+    const q = searchTerm.toLowerCase().trim();
+    if (q) {
+      result = result.filter(t => 
+        (t.title || '').toLowerCase().includes(q) || 
+        (t.assignedTo || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [tasks, activeTab, priorityFilter, typeFilter, farmerFilter, searchTerm]);
+
+  const priorityFilterOptions = useMemo(() => ['All', ...new Set(tasks.map(t => t.priority).filter(Boolean))], [tasks]);
+  const typeFilterOptions = useMemo(() => ['All', ...new Set(tasks.map(t => t.type).filter(Boolean))], [tasks]);
+  const farmerFilterOptions = useMemo(() => ['All', ...new Set(tasks.map(t => t.assignedTo).filter(Boolean))], [tasks]);
 
   return (
     <>
@@ -286,7 +304,31 @@ export default function Tasks() {
         </div>
 
         <div className="mb-4">
-          <input placeholder="Search tasks by title or assignee..." aria-label="Search tasks" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary" />
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search tasks by title or assignee..." aria-label="Search tasks" className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-white/60 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary" />
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Priority</div>
+            <SelectDropdown options={priorityFilterOptions} value={priorityFilter} onChange={setPriorityFilter} placeholder="All Priorities" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</div>
+            <SelectDropdown options={typeFilterOptions} value={typeFilter} onChange={setTypeFilter} placeholder="All Types" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Farmer</div>
+            <SelectDropdown options={farmerFilterOptions} value={farmerFilter} onChange={setFarmerFilter} placeholder="All Farmers" />
+          </div>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredTasks.length} of {tasks.length} tasks
+          {(priorityFilter !== 'All' || typeFilter !== 'All' || farmerFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+          {(searchTerm || priorityFilter !== 'All' || typeFilter !== 'All' || farmerFilter !== 'All') && (
+            <span onClick={() => { setSearchTerm(''); setPriorityFilter('All'); setTypeFilter('All'); setFarmerFilter('All'); }}
+              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+            >Clear Filters</span>
+          )}
         </div>
 
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>

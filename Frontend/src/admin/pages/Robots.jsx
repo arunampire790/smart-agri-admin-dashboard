@@ -158,6 +158,9 @@ export default function Robots() {
   const defaultFarmer = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [batteryFilter, setBatteryFilter] = useState('All');
+  const [farmFilter, setFarmFilter] = useState('All');
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
@@ -198,16 +201,37 @@ export default function Robots() {
   const offline = robots.filter((r) => r.status === 'Offline' || r.status === 'Inactive' || r.status === 'Lost').length;
 
   const filteredRobots = useMemo(() => {
+    let result = robots;
+    if (statusFilter !== 'All') {
+      result = result.filter(r => r.status === statusFilter);
+    }
+    if (batteryFilter !== 'All') {
+      result = result.filter(r => {
+        const b = r.battery;
+        if (batteryFilter === 'Critical (<20%)') return b < 20;
+        if (batteryFilter === 'Low (20-50%)') return b >= 20 && b <= 50;
+        if (batteryFilter === 'Medium (50-80%)') return b > 50 && b <= 80;
+        if (batteryFilter === 'High (>80%)') return b > 80;
+        return true;
+      });
+    }
+    if (farmFilter !== 'All') {
+      result = result.filter(r => r.farm === farmFilter);
+    }
     const term = searchTerm.toLowerCase().trim();
-    if (!term) return robots;
-    return robots.filter((r) =>
+    if (!term) return result;
+    return result.filter((r) =>
       (r.name || '').toLowerCase().includes(term) ||
       (r.id || '').toLowerCase().includes(term) ||
       (r.farmer || '').toLowerCase().includes(term) ||
       (r.farm || '').toLowerCase().includes(term) ||
       (r.model || '').toLowerCase().includes(term)
     );
-  }, [robots, searchTerm]);
+  }, [robots, searchTerm, statusFilter, batteryFilter, farmFilter]);
+
+  const statusFilterOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
+  const farmFilterOptions = useMemo(() => ['All', ...new Set(robots.map(r => r.farm).filter(Boolean))], [robots]);
+  const batteryOptions = useMemo(() => ['All', 'Critical (<20%)', 'Low (20-50%)', 'Medium (50-80%)', 'High (>80%)'], []);
 
   return (
     <>
@@ -273,6 +297,29 @@ export default function Robots() {
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by name, ID, farmer, farm, or model..." aria-label="Search robots" className={inputClass} />
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+            <Select options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battery</div>
+            <Select options={batteryOptions} value={batteryFilter} onChange={setBatteryFilter} placeholder="All Levels" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Farm</div>
+            <Select options={farmFilterOptions} value={farmFilter} onChange={setFarmFilter} placeholder="All Farms" />
+          </div>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredRobots.length} of {robots.length} robots
+          {(statusFilter !== 'All' || batteryFilter !== 'All' || farmFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+          {(searchTerm || statusFilter !== 'All' || batteryFilter !== 'All' || farmFilter !== 'All') && (
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setBatteryFilter('All'); setFarmFilter('All'); }}
+              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+            >Clear Filters</span>
+          )}
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
           <colgroup>

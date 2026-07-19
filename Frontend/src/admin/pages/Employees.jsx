@@ -81,6 +81,63 @@ const StatusDropdown = ({ value, onChange, options }) => {
   );
 };
 
+function Select({ options, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
+        style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+      >
+        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder || 'Select...'}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] w-full mt-1 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}
+        >
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '12px 16px', fontSize: '14px',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                }}
+              >
+                <span>{opt}</span>
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActivityLog({ employeeName }) {
   const entries = useMemo(() => {
     const log = getActivityLog();
@@ -213,6 +270,8 @@ export default function Employees() {
   const { currentUser } = useAuth();
   const { employees, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [roleFilter, setRoleFilter] = useState('All');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);
@@ -225,10 +284,16 @@ export default function Employees() {
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
 
   const filtered = useMemo(() => {
-    if (!searchTerm.trim()) return employees;
+    let result = employees;
+    if (statusFilter !== 'All') result = result.filter(e => e.status === statusFilter);
+    if (roleFilter !== 'All') result = result.filter(e => e.role === roleFilter);
+    if (!searchTerm.trim()) return result;
     const q = searchTerm.toLowerCase();
-    return employees.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
-  }, [employees, searchTerm]);
+    return result.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
+  }, [employees, searchTerm, statusFilter, roleFilter]);
+
+  const statusFilterOptions = useMemo(() => ['All', ...new Set(employees.map(e => e.status).filter(Boolean))], [employees]);
+  const roleFilterOptions = useMemo(() => ['All', ...new Set(employees.map(e => e.role).filter(Boolean))], [employees]);
 
   const openAdd = () => { setForm({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' }); setErrors({}); setShowAddModal(true); };
   const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, role: emp.role || 'Admin', status: emp.status }); setErrors({}); setEditEmployee(emp); };
@@ -335,6 +400,25 @@ export default function Employees() {
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1a2e1a] mb-3">All Employees ({employees.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search employees by name or email..." aria-label="Search employees" className={glassInput} />
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+            <Select options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</div>
+            <Select options={roleFilterOptions} value={roleFilter} onChange={setRoleFilter} placeholder="All Roles" />
+          </div>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filtered.length} of {employees.length} employees
+          {(statusFilter !== 'All' || roleFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+          {(searchTerm || statusFilter !== 'All' || roleFilter !== 'All') && (
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setRoleFilter('All'); }}
+              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+            >Clear Filters</span>
+          )}
         </div>
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No employees found matching your search.</div>

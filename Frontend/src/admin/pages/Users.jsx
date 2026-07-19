@@ -5,6 +5,63 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 
+function Select({ options, value, onChange, placeholder, width }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div className="relative" ref={ref} style={width ? { width } : undefined}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
+        style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+      >
+        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder}</span>
+        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-[100] w-full mt-1 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}
+        >
+          {options.map((opt) => {
+            const selected = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '12px 16px', fontSize: '14px',
+                  color: selected ? '#4caf50' : '#1d1d1f',
+                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
+                }}
+              >
+                <span>{opt}</span>
+                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 
@@ -74,7 +131,9 @@ export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
+  const statusOptions = useMemo(() => ['All', ...new Set(users.map(u => u.status).filter(Boolean))], [users]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewUser, setViewUser] = useState(null);
   const [editUser, setEditUser] = useState(null);
@@ -84,10 +143,16 @@ export default function Users() {
   const [errors, setErrors] = useState({});
 
   const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) return users;
-    const q = searchTerm.toLowerCase();
-    return users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-  }, [users, searchTerm]);
+    let result = users;
+    if (statusFilter !== 'All') {
+      result = result.filter(u => u.status === statusFilter);
+    }
+    const q = searchTerm.toLowerCase().trim();
+    if (q) {
+      result = result.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    }
+    return result;
+  }, [users, searchTerm, statusFilter]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') { setShowAddModal(false); setEditUser(null); setViewUser(null); } };
@@ -140,7 +205,7 @@ export default function Users() {
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
   const btnGhost = "text-xs px-3.5 py-1.5 border border-white/60 rounded-xl cursor-pointer bg-white/50 text-text-secondary font-medium transition-all duration-200 ease-in-out hover:scale-[1.02] active:scale-[0.98] hover:bg-white/80";
 
-  const statusOptions = ['Active', 'Inactive'];
+  const modalStatusOptions = ['Active', 'Inactive'];
 
   return (
     <>
@@ -158,6 +223,22 @@ export default function Users() {
         <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">All Users ({users.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email…" aria-label="Search users" className={glassInput} />
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+            <Select options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          </div>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredUsers.length} of {users.length} users
+          {statusFilter !== 'All' && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+          {(searchTerm || statusFilter !== 'All') && (
+            <span
+              onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
+              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+            >Clear Filters</span>
+          )}
         </div>
         {filteredUsers.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No users found matching your search.</div>
@@ -278,7 +359,7 @@ export default function Users() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
                     </div>
-                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={modalStatusOptions} />
                   </div>
                 </div>
               </div>
@@ -405,7 +486,7 @@ export default function Users() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
                     </div>
-                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={modalStatusOptions} />
                   </div>
                 </div>
               </div>

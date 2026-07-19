@@ -90,6 +90,8 @@ export default function Farms() {
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [ownerFilter, setOwnerFilter] = useState('All');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
@@ -235,6 +237,8 @@ export default function Farms() {
   const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
+  const statusOptions = useMemo(() => ['All', ...new Set(farms.map(f => f.status).filter(Boolean))], [farms]);
+  const ownerOptions = useMemo(() => ['All', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
 
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
@@ -243,20 +247,31 @@ export default function Farms() {
     { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots' },
   ];
 
+  const filteredFarms = useMemo(() => {
+    let result = farms;
+    if (statusFilter !== 'All') {
+      result = result.filter(f => f.status === statusFilter);
+    }
+    if (ownerFilter !== 'All') {
+      result = result.filter(f => f.owner === ownerFilter);
+    }
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return result;
+    return result.filter((f) =>
+      (f.name || '').toLowerCase().includes(term) ||
+      (f.owner || '').toLowerCase().includes(term) ||
+      (f.location || '').toLowerCase().includes(term) ||
+      (f.crop || '').toLowerCase().includes(term) ||
+      (f.status || '').toLowerCase().includes(term)
+    );
+  }, [farms, searchTerm, statusFilter, ownerFilter]);
+
   const farmRows = useMemo(() => {
-    const visible = !searchTerm.trim()
-      ? farms
-      : (() => {
-          const q = searchTerm.toLowerCase();
-          return farms.filter(
-            (f) => f.name.toLowerCase().includes(q) || f.location.toLowerCase().includes(q) || f.owner.toLowerCase().includes(q) || (f.cropTypes && f.cropTypes.toLowerCase().includes(q)) || (f.soil && f.soil.toLowerCase().includes(q)) || (f.robot && f.robot.toLowerCase().includes(q))
-          );
-        })();
-    return visible.map((farm) => {
+    return filteredFarms.map((farm) => {
       const connectedRobots = robots.filter((r) => r.farm === farm.name);
       return { farm, connectedCount: connectedRobots.length, status: getStatusLabel(connectedRobots) };
     });
-  }, [farms, robots, searchTerm]);
+  }, [filteredFarms, robots]);
 
   return (
     <>
@@ -296,6 +311,25 @@ export default function Farms() {
         <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">All Farms ({farms.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name, location, or owner..." aria-label="Search farms" className={inputClass} />
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+            <Select options={statusOptions} value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Owner</div>
+            <Select options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} placeholder="All Owners" />
+          </div>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
+          Showing {filteredFarms.length} of {farms.length} farms
+          {(statusFilter !== 'All' || ownerFilter !== 'All') && <span style={{ marginLeft: '8px', color: '#4caf50', fontSize: '11px' }}>● Filtered</span>}
+          {(searchTerm || statusFilter !== 'All' || ownerFilter !== 'All') && (
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setOwnerFilter('All'); }}
+              style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
+            >Clear Filters</span>
+          )}
         </div>
         {farmRows.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">No farms found matching your criteria.</div>
