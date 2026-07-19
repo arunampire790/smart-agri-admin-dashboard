@@ -7,7 +7,7 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
-import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check, Triangle } from 'lucide-react';
+import { MapPin, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check, Triangle } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
@@ -43,7 +43,7 @@ function getStatusLabel(connectedRobots) {
 function getIconConfig(label) {
   switch (label) {
     case 'Total Farms': return { Icon: MapPin, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
-    case 'Regions': return { Icon: Globe, bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' };
+    case 'Soil Types': return { Icon: Layers, bg: 'rgba(120,80,40,0.1)', color: '#78501f' };
     case 'Crop Types': return { Icon: Sprout, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     default: return { Icon: MapPin, bg: 'rgba(107,114,128,0.12)', color: '#6B7280' };
@@ -345,8 +345,15 @@ export default function Farms() {
   const labelStyle = { color: '#374151', fontWeight: 600, fontSize: '13px' };
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
-  const regions = useMemo(() => [...new Set(farms.map((f) => f.location.split(', ')[1] + ', ' + f.location.split(', ')[0]))], [farms]);
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
+  const uniqueSoilTypes = useMemo(() => {
+    return [...new Set(farms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
+  }, [farms]);
+  const soilSubtext = useMemo(() => {
+    if (uniqueSoilTypes.length === 0) return 'No soil data available';
+    const names = uniqueSoilTypes.slice(0, 3).join(', ');
+    return uniqueSoilTypes.length > 3 ? `${names} & ${uniqueSoilTypes.length - 3} more` : names;
+  }, [uniqueSoilTypes]);
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
@@ -363,7 +370,7 @@ export default function Farms() {
 
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
-    { val: String(regions.length), label: 'Regions' },
+    { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
     { val: String(cropTypes.length), label: 'Crop Types' },
     { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots' },
   ];
@@ -411,6 +418,7 @@ export default function Farms() {
                 <div>
                   <div className="text-xs font-semibold text-secondary mb-2">{card.label}</div>
                   <div className="text-3xl font-extrabold text-primary">{card.val}</div>
+                  {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', fontStyle: uniqueSoilTypes.length === 0 ? 'italic' : 'normal' }}>{card.sub}</div>}
                 </div>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                   <Icon size={18} color={color} />
