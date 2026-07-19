@@ -370,11 +370,14 @@ export default function Farms() {
 
   const filteredFarms = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
-    return farms
-      .filter(f => statusFilter === 'All Statuses' || f.status === statusFilter)
-      .filter(f => ownerFilter === 'All Owners' || f.owner === ownerFilter)
-      .filter(f => !search || (f.name || '').toLowerCase().includes(search) || (f.owner || '').toLowerCase().includes(search));
-  }, [farms, searchTerm, statusFilter, ownerFilter]);
+    return farms.filter(f => {
+      if (statusFilter === 'All Statuses') return true;
+      const connectedRobots = robots.filter((r) => r.farm === f.name);
+      return getStatusLabel(connectedRobots).label === statusFilter;
+    })
+    .filter(f => ownerFilter === 'All Owners' || f.owner === ownerFilter)
+    .filter(f => !search || (f.name || '').toLowerCase().includes(search) || (f.owner || '').toLowerCase().includes(search));
+  }, [farms, searchTerm, statusFilter, ownerFilter, robots]);
 
   const farmRows = useMemo(() => {
     return filteredFarms.map((farm) => {
