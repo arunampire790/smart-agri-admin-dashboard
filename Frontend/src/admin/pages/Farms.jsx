@@ -9,6 +9,7 @@ import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 import { MapPin, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check, Triangle } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
+import FarmMapPreview from '../components/FarmMapPreview';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -60,73 +61,6 @@ function parseCoordinate(value) {
   if (lat < -90 || lat > 90) return { error: 'Lat must be -90 to 90' };
   if (lng < -180 || lng > 180) return { error: 'Lng must be -180 to 180' };
   return { lat, lng };
-}
-
-function normalizeToSVG(points, svgWidth, svgHeight, padding = 30) {
-  const lats = points.map(p => p.lat);
-  const lngs = points.map(p => p.lng);
-  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-  return points.map(p => ({
-    x: ((p.lng - minLng) / (maxLng - minLng || 1)) * (svgWidth - padding * 2) + padding,
-    y: svgHeight - (((p.lat - minLat) / (maxLat - minLat || 1)) * (svgHeight - padding * 2) + padding)
-  }));
-}
-
-function FarmShapePreview({ points }) {
-  const containerStyle = {
-    width: '100%', height: '180px', background: '#f8fdf8',
-    border: '1px dashed rgba(46,125,50,0.3)', borderRadius: '12px',
-    position: 'relative', marginBottom: '16px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  };
-  const validPoints = points.filter(p => p && !p.error);
-  const allValid = validPoints.length === 3;
-  const degenerate = allValid && (
-    (validPoints[0].lat === validPoints[1].lat && validPoints[1].lat === validPoints[2].lat) ||
-    (validPoints[0].lng === validPoints[1].lng && validPoints[1].lng === validPoints[2].lng)
-  );
-
-  if (validPoints.length === 0) {
-    return (
-      <div style={containerStyle}>
-        <div style={{ textAlign: 'center' }}>
-          <MapPin size={24} style={{ color: '#9ca3af', margin: '0 auto' }} />
-          <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>Farm boundary will appear here</div>
-        </div>
-      </div>
-    );
-  }
-
-  const svgW = 500, svgH = 180;
-  const mapped = normalizeToSVG(validPoints, svgW, svgH);
-  const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
-
-  return (
-    <div style={containerStyle}>
-      <svg width="100%" height="180" viewBox={`0 0 ${svgW} ${svgH}`} style={{ position: 'absolute', inset: 0 }}>
-        {allValid && !degenerate && (
-          <polygon
-            points={mapped.map(p => `${p.x},${p.y}`).join(' ')}
-            fill="rgba(46,125,50,0.15)"
-            stroke="#2e7d32"
-            strokeWidth="2"
-          />
-        )}
-        {mapped.map((p, i) => (
-          <g key={i}>
-            <circle cx={p.x} cy={p.y} r="5" fill={pointColors[i]} />
-            <text x={p.x + 8} y={p.y - 4} fontSize="10" fill={pointColors[i]} fontWeight="600">{`P${i + 1}`}</text>
-          </g>
-        ))}
-      </svg>
-      {degenerate && (
-        <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', fontSize: '11px', color: '#d97706', background: 'rgba(217,119,6,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
-          ⚠ Points appear too close — try different coordinates
-        </div>
-      )}
-    </div>
-  );
 }
 
 const statusOpts = ['Active', 'Idle', 'Offline'];
@@ -448,6 +382,21 @@ export default function Farms() {
     return computeTriangleAreaAcres(parsedEditPoints[0], parsedEditPoints[1], parsedEditPoints[2]);
   }, [parsedEditPoints]);
 
+  const addNextPointIndex = (() => { const v = parsedAddPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
+  const editNextPointIndex = (() => { const v = parsedEditPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
+
+  const handleAddMapClick = (latlng, index) => {
+    const updated = [...formCoordStrings];
+    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+    setFormCoordStrings(updated);
+  };
+
+  const handleEditMapClick = (latlng, index) => {
+    const updated = [...editFormCoordStrings];
+    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+    setEditFormCoordStrings(updated);
+  };
+
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
     { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
@@ -718,7 +667,7 @@ export default function Farms() {
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmShapePreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} />
+                <FarmMapPreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} onMapClick={handleAddMapClick} nextPointIndex={addNextPointIndex} modalOpen={showAddModal} />
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
                 <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
@@ -905,7 +854,7 @@ export default function Farms() {
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmShapePreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} />
+                <FarmMapPreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} onMapClick={handleEditMapClick} nextPointIndex={editNextPointIndex} modalOpen={!!editFarm} />
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
                 <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
