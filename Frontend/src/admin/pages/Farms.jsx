@@ -7,7 +7,8 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
-import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
+import { MapPin, Globe, Sprout, Bot, Home, User, Ruler, Maximize, Wifi, Activity, Layers, Trash2, ChevronDown, Check, Triangle } from 'lucide-react';
+import { computeTriangleAreaAcres } from '../../utils/farmArea';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -170,9 +171,9 @@ export default function Farms() {
   const [editFarmForm, setEditFarmForm] = useState({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' });
   const [editFarmErrors, setEditFarmErrors] = useState({});
   const [deleteFarm, setDeleteFarm] = useState(null);
-  const [formCoordinates, setFormCoordinates] = useState([{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]);
+  const [formCoordStrings, setFormCoordStrings] = useState(['', '', '']);
   const [selectedRobotIds, setSelectedRobotIds] = useState([]);
-  const [editFormCoordinates, setEditFormCoordinates] = useState([{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]);
+  const [editFormCoordStrings, setEditFormCoordStrings] = useState(['', '', '']);
   const [editSelectedRobotIds, setEditSelectedRobotIds] = useState([]);
   const soilTypeOpts = ['Clay', 'Loam', 'Sandy', 'Silty', 'Peaty', 'Chalky'];
 
@@ -189,11 +190,10 @@ export default function Farms() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Farm name is required';
     if (!form.owner.trim()) errs.owner = 'Owner is required';
-    formCoordinates.forEach((coord, i) => {
-      if (!coord.lat && coord.lat !== 0) errs[`coord${i}lat`] = 'Latitude is required';
-      else if (isNaN(coord.lat) || coord.lat < -90 || coord.lat > 90) errs[`coord${i}lat`] = 'Must be between -90 and 90';
-      if (!coord.lng && coord.lng !== 0) errs[`coord${i}lng`] = 'Longitude is required';
-      else if (isNaN(coord.lng) || coord.lng < -180 || coord.lng > 180) errs[`coord${i}lng`] = 'Must be between -180 and 180';
+    formCoordStrings.forEach((str, i) => {
+      if (!str.trim()) { errs[`coord${i}`] = 'Coordinate is required'; return; }
+      const parsed = parseCoordString(str);
+      if (!parsed) errs[`coord${i}`] = 'Invalid format. Use: lat, lng (e.g. 36.7783, -119.4179)';
     });
     const deviceCount = parseInt(form.devices, 10);
     if (deviceCount > 0 && selectedRobotIds.length !== deviceCount) {
@@ -206,10 +206,11 @@ export default function Farms() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
+    const parsedCoords = formCoordStrings.map(s => parseCoordString(s)).filter(Boolean);
     addFarm({
       name: form.name.trim(),
       location: '',
-      coordinates: formCoordinates,
+      coordinates: parsedCoords.length === 3 ? parsedCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: form.owner.trim(),
       crop: form.cropTypes.trim() || '—',
       soil: form.soil || '—',
@@ -229,7 +230,8 @@ export default function Farms() {
     // TODO: Replace with real backend API call once backend is added.
   };
 
-  const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordinates([{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]); setSelectedRobotIds([]); setShowAddModal(true); };
+  const parseCoordString = (str) => { if (!str || !str.includes(',')) return null; const parts = str.split(',').map(v => parseFloat(v.trim())); if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null; if (parts[0] < -90 || parts[0] > 90 || parts[1] < -180 || parts[1] > 180) return null; return { lat: parts[0], lng: parts[1] }; };
+  const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobotIds([]); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -254,11 +256,10 @@ export default function Farms() {
     const errs = {};
     if (!editFarmForm.name.trim()) errs.name = 'Farm name is required';
     if (!editFarmForm.owner.trim()) errs.owner = 'Owner is required';
-    editFormCoordinates.forEach((coord, i) => {
-      if (!coord.lat && coord.lat !== 0) errs[`editCoord${i}lat`] = 'Latitude is required';
-      else if (isNaN(coord.lat) || coord.lat < -90 || coord.lat > 90) errs[`editCoord${i}lat`] = 'Must be between -90 and 90';
-      if (!coord.lng && coord.lng !== 0) errs[`editCoord${i}lng`] = 'Longitude is required';
-      else if (isNaN(coord.lng) || coord.lng < -180 || coord.lng > 180) errs[`editCoord${i}lng`] = 'Must be between -180 and 180';
+    editFormCoordStrings.forEach((str, i) => {
+      if (!str.trim()) { errs[`editCoord${i}`] = 'Coordinate is required'; return; }
+      const parsed = parseCoordString(str);
+      if (!parsed) errs[`editCoord${i}`] = 'Invalid format. Use: lat, lng (e.g. 36.7783, -119.4179)';
     });
     const deviceCount = parseInt(editFarmForm.devices, 10);
     if (deviceCount > 0 && editSelectedRobotIds.length !== deviceCount) {
@@ -281,7 +282,7 @@ export default function Farms() {
       robot: farm.robot || '',
       status: farm.status,
     });
-    setEditFarmCoordinates(farm.coordinates && farm.coordinates.length === 3 ? farm.coordinates : [{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]);
+    setEditFormCoordStrings(farm.coordinates && farm.coordinates.length === 3 ? farm.coordinates.map(c => `${c.lat}, ${c.lng}`) : ['', '', '']);
     setEditSelectedRobotIds(assignedRobots.map(r => r.id));
     setEditFarmErrors({});
     setEditFarm(farm);
@@ -304,10 +305,11 @@ export default function Farms() {
         updateRobot(robot, { farm: editFarmForm.name.trim(), status: 'Assigned' });
       }
     });
+    const parsedEditCoords = editFormCoordStrings.map(s => parseCoordString(s)).filter(Boolean);
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
       location: '',
-      coordinates: editFormCoordinates,
+      coordinates: parsedEditCoords.length === 3 ? parsedEditCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: editFarmForm.owner.trim(),
       crop: editFarmForm.cropTypes.trim() || '—',
       cropTypes: editFarmForm.cropTypes.trim() || '—',
@@ -348,6 +350,16 @@ export default function Farms() {
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
+  const computedAcreage = useMemo(() => {
+    const parsed = formCoordStrings.map(s => parseCoordString(s));
+    if (parsed.some(p => !p)) return null;
+    return computeTriangleAreaAcres(parsed[0], parsed[1], parsed[2]);
+  }, [formCoordStrings]);
+  const editComputedAcreage = useMemo(() => {
+    const parsed = editFormCoordStrings.map(s => parseCoordString(s));
+    if (parsed.some(p => !p)) return null;
+    return computeTriangleAreaAcres(parsed[0], parsed[1], parsed[2]);
+  }, [editFormCoordStrings]);
 
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
@@ -357,22 +369,11 @@ export default function Farms() {
   ];
 
   const filteredFarms = useMemo(() => {
-    let result = farms;
-    if (statusFilter !== 'All Statuses') {
-      result = result.filter(f => f.status === statusFilter);
-    }
-    if (ownerFilter !== 'All Owners') {
-      result = result.filter(f => f.owner === ownerFilter);
-    }
-    const term = searchTerm.toLowerCase().trim();
-    if (!term) return result;
-    return result.filter((f) =>
-      (f.name || '').toLowerCase().includes(term) ||
-      (f.owner || '').toLowerCase().includes(term) ||
-      (f.location || '').toLowerCase().includes(term) ||
-      (f.crop || '').toLowerCase().includes(term) ||
-      (f.status || '').toLowerCase().includes(term)
-    );
+    const search = searchTerm.toLowerCase().trim();
+    return farms
+      .filter(f => statusFilter === 'All Statuses' || f.status === statusFilter)
+      .filter(f => ownerFilter === 'All Owners' || f.owner === ownerFilter)
+      .filter(f => !search || (f.name || '').toLowerCase().includes(search) || (f.owner || '').toLowerCase().includes(search));
   }, [farms, searchTerm, statusFilter, ownerFilter]);
 
   const farmRows = useMemo(() => {
@@ -435,7 +436,7 @@ export default function Farms() {
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No farms match your current filters</div>
             <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); setOwnerFilter('All'); }}
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -487,7 +488,7 @@ export default function Farms() {
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <div className="flex gap-3 items-center">
                       <button title="Edit" onClick={() => openEditFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <i className="ph ph-pencil" />
+                        <i className="ph ph-pencil" style={{ pointerEvents: 'none' }} />
                       </button>
                       <button title="Delete" onClick={() => setDeleteFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-trash" />
@@ -545,6 +546,7 @@ export default function Farms() {
                     </div>
                     <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select an owner" />
                     {errors.owner && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.owner}</span>}
+                    {form.owner && (() => { const ownerRobots = robots.filter(r => r.farmer === form.owner); if (ownerRobots.length === 0) return <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No robots currently assigned to this farmer</div>; return (<div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px' }}><div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, marginBottom: '6px' }}>Robots assigned to {form.owner}:</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{ownerRobots.map(r => (<span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px' }}><span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.id}</span><span style={{ color: '#6b7280' }}>{r.model}</span><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Available' ? '#9CA3AF' : '#F59E0B', display: 'inline-block' }} /></span>))}</div></div>); })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -626,30 +628,33 @@ export default function Farms() {
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with map-based coordinate picker once available */}
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Coordinates</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Define the farm boundary using 3 GPS coordinate points</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter 3 GPS points to define the farm boundary. Format: latitude, longitude (e.g. 36.7783, -119.4179)</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                   {[0, 1, 2].map((i) => (
                     <div key={i}>
                       <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Point {i + 1}</div>
-                      <div style={{ marginBottom: '6px' }}>
-                        <input type="number" step="0.0001" value={formCoordinates[i].lat} onChange={(e) => { const updated = [...formCoordinates]; updated[i] = { ...updated[i], lat: e.target.value }; setFormCoordinates(updated); }}
-                          placeholder="e.g. 36.7783" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>Latitude</div>
-                        {errors[`coord${i}lat`] && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '2px' }}>{errors[`coord${i}lat`]}</div>}
-                      </div>
-                      <div>
-                        <input type="number" step="0.0001" value={formCoordinates[i].lng} onChange={(e) => { const updated = [...formCoordinates]; updated[i] = { ...updated[i], lng: e.target.value }; setFormCoordinates(updated); }}
-                          placeholder="e.g. -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>Longitude</div>
-                        {errors[`coord${i}lng`] && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '2px' }}>{errors[`coord${i}lng`]}</div>}
-                      </div>
+                      <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
+                        placeholder="e.g. 36.7783, -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
+                        onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                      {formCoordStrings[i] && parseCoordString(formCoordStrings[i]) && <span style={{ color: '#2e7d32', fontSize: '11px', marginTop: '2px', display: 'block' }}>✓</span>}
+                      {errors[`coord${i}`] && <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '2px' }}>{errors[`coord${i}`]}</div>}
                     </div>
                   ))}
                 </div>
+                {(() => {
+                  if (computedAcreage === null) return null;
+                  return (
+                    <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Ruler size={18} style={{ color: '#2e7d32', flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Estimated Farm Area</div>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</div>
+                        <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>Based on 3-point boundary approximation</div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               </div>
 
@@ -801,30 +806,33 @@ export default function Farms() {
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with map-based coordinate picker once available */}
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Coordinates</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Define the farm boundary using 3 GPS coordinate points</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter 3 GPS points to define the farm boundary. Format: latitude, longitude (e.g. 36.7783, -119.4179)</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                   {[0, 1, 2].map((i) => (
                     <div key={i}>
                       <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Point {i + 1}</div>
-                      <div style={{ marginBottom: '6px' }}>
-                        <input type="number" step="0.0001" value={editFormCoordinates[i].lat} onChange={(e) => { const updated = [...editFormCoordinates]; updated[i] = { ...updated[i], lat: e.target.value }; setEditFormCoordinates(updated); }}
-                          placeholder="e.g. 36.7783" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>Latitude</div>
-                        {editFarmErrors[`editCoord${i}lat`] && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '2px' }}>{editFarmErrors[`editCoord${i}lat`]}</div>}
-                      </div>
-                      <div>
-                        <input type="number" step="0.0001" value={editFormCoordinates[i].lng} onChange={(e) => { const updated = [...editFormCoordinates]; updated[i] = { ...updated[i], lng: e.target.value }; setEditFormCoordinates(updated); }}
-                          placeholder="e.g. -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>Longitude</div>
-                        {editFarmErrors[`editCoord${i}lng`] && <div style={{ fontSize: '10px', color: '#DC2626', marginTop: '2px' }}>{editFarmErrors[`editCoord${i}lng`]}</div>}
-                      </div>
+                      <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
+                        placeholder="e.g. 36.7783, -119.4179" style={{ ...inputBase, fontSize: '13px', padding: '6px 10px', height: '34px' }}
+                        onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
+                      />
+                      {editFormCoordStrings[i] && parseCoordString(editFormCoordStrings[i]) && <span style={{ color: '#2e7d32', fontSize: '11px', marginTop: '2px', display: 'block' }}>✓</span>}
+                      {editFarmErrors[`editCoord${i}`] && <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '2px' }}>{editFarmErrors[`editCoord${i}`]}</div>}
                     </div>
                   ))}
                 </div>
+                {(() => {
+                  if (editComputedAcreage === null) return null;
+                  return (
+                    <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Ruler size={18} style={{ color: '#2e7d32', flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Estimated Farm Area</div>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</div>
+                        <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>Based on 3-point boundary approximation</div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
