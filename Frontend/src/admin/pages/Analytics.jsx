@@ -334,7 +334,7 @@ export default function Analytics() {
     { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
-  const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && new Date(t.dueDate) < now);
+  const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
 
   const batterySorted = useMemo(() => {
     return [...robots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
@@ -344,9 +344,10 @@ export default function Analytics() {
     { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
     { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
     { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
-  ], [tasks]);
+  ].filter(d => d.value > 0), [tasks]);
 
-  const completionRate = tasks.length > 0 ? Math.round((statusData[2].value / tasks.length) * 100) : 0;
+  const completedCount = tasks.filter(t => t.status === 'Completed').length;
+  const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
   const needsCharging = robots.filter((r) => r.battery > 0 && r.battery < 50).length;
 
   const cardStyle = {
@@ -624,6 +625,9 @@ export default function Analytics() {
               </div>
             </div>
 
+            {statusData.length === 0 ? (
+              <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No tasks found</div>
+            ) : (
             <div className="relative flex items-center justify-center">
               <div style={{ width: '100%', maxWidth: '320px' }}>
                 <div className="relative flex items-center justify-center">
@@ -654,6 +658,7 @@ export default function Analytics() {
                 </div>
               </div>
             </div>
+            )}
 
             <div className="card-hover-link" onClick={() => navigate('/admin/tasks')} style={{
               marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
