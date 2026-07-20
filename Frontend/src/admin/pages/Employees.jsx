@@ -608,12 +608,6 @@ export default function Employees() {
                     </div>
                     <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
                   </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Activity size={12} color="#9CA3AF" /> Status
-                    </div>
-                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
-                  </div>
                 </div>
               </div>
 
