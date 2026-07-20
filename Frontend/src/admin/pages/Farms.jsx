@@ -367,30 +367,6 @@ export default function Farms() {
   const labelStyle = { color: '#374151', fontWeight: 600, fontSize: '13px' };
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
-  const uniqueCropTypes = useMemo(() => {
-    return [...new Set(farms.flatMap(f => (f.cropTypes || f.crop || '').split(',').map(s => s.trim()).filter(Boolean)))].sort();
-  }, [farms]);
-  const cropTypeSubtext = useMemo(() => {
-    if (uniqueCropTypes.length === 0) return 'No crop data available';
-    const names = uniqueCropTypes.slice(0, 3).join(', ');
-    return uniqueCropTypes.length > 3 ? `${names} & ${uniqueCropTypes.length - 3} more` : names;
-  }, [uniqueCropTypes]);
-  const uniqueSoilTypes = useMemo(() => {
-    return [...new Set(farms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
-  }, [farms]);
-  const soilSubtext = useMemo(() => {
-    if (uniqueSoilTypes.length === 0) return 'No soil data available';
-    const names = uniqueSoilTypes.slice(0, 3).join(', ');
-    return uniqueSoilTypes.length > 3 ? `${names} & ${uniqueSoilTypes.length - 3} more` : names;
-  }, [uniqueSoilTypes]);
-  const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
-  const activeRobotSubtext = useMemo(() => {
-    const total = robots.length;
-    if (total === 0) return 'No robots registered';
-    const idle = robots.filter(r => r.status === 'Idle').length;
-    const offline = robots.filter(r => r.status === 'Offline').length;
-    return `${activeRobotCount} active · ${idle} idle · ${offline} offline`;
-  }, [robots, activeRobotCount]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
   const parsedAddPoints = useMemo(() => formCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [formCoordStrings]);
@@ -438,7 +414,7 @@ export default function Farms() {
   const activeCardLabel = statusFilter !== 'All Statuses' ? statusFilter : ownerFilter !== 'All Owners' ? 'Total Farms' : 'Total Farms';
 
   const statCards = [
-    { val: String(farms.length), label: 'Total Farms', sub: `${farms.filter(f => f.status === 'Active').length} active \u00B7 ${farms.filter(f => f.status === 'Idle' || f.status === 'Offline').length} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
+    { val: String(filteredFarms.length), label: 'Total Farms', sub: `${visibleActiveFarms} active \u00B7 ${filteredFarms.length - visibleActiveFarms} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
     { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
     { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
     { val: String(activeRobotCount), label: 'Active Robots', sub: activeRobotSubtext, onClick: () => { setStatusFilter('Active'); } },
@@ -462,6 +438,34 @@ export default function Farms() {
       return { farm, connectedCount: connectedRobots.length, status: getStatusLabel(connectedRobots), assignedRobotIds };
     });
   }, [filteredFarms, robots]);
+
+  const visibleFarmNames = useMemo(() => new Set(filteredFarms.map(f => f.name)), [filteredFarms]);
+  const uniqueCropTypes = useMemo(() => {
+    return [...new Set(filteredFarms.flatMap(f => (f.cropTypes || f.crop || '').split(',').map(s => s.trim()).filter(Boolean)))].sort();
+  }, [filteredFarms]);
+  const cropTypeSubtext = useMemo(() => {
+    if (uniqueCropTypes.length === 0) return 'No crop data available';
+    const names = uniqueCropTypes.slice(0, 3).join(', ');
+    return uniqueCropTypes.length > 3 ? `${names} & ${uniqueCropTypes.length - 3} more` : names;
+  }, [uniqueCropTypes]);
+  const uniqueSoilTypes = useMemo(() => {
+    return [...new Set(filteredFarms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
+  }, [filteredFarms]);
+  const soilSubtext = useMemo(() => {
+    if (uniqueSoilTypes.length === 0) return 'No soil data available';
+    const names = uniqueSoilTypes.slice(0, 3).join(', ');
+    return uniqueSoilTypes.length > 3 ? `${names} & ${uniqueSoilTypes.length - 3} more` : names;
+  }, [uniqueSoilTypes]);
+  const visibleRobots = useMemo(() => (robots || []).filter(r => visibleFarmNames.has(r.farm)), [robots, visibleFarmNames]);
+  const activeRobotCount = useMemo(() => visibleRobots.filter(r => r.status === 'Active').length, [visibleRobots]);
+  const activeRobotSubtext = useMemo(() => {
+    const total = visibleRobots.length;
+    if (total === 0) return 'No robots registered';
+    const idle = visibleRobots.filter(r => r.status === 'Idle').length;
+    const offline = visibleRobots.filter(r => r.status === 'Offline').length;
+    return `${activeRobotCount} active · ${idle} idle · ${offline} offline`;
+  }, [visibleRobots, activeRobotCount]);
+  const visibleActiveFarms = useMemo(() => filteredFarms.filter(f => f.status === 'Active').length, [filteredFarms]);
 
   return (
     <>
