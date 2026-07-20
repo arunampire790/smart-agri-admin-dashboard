@@ -1,5 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
+import { useFarms } from '../../context/FarmContext';
+import { useTasks } from '../../context/TaskContext';
 import {
   mockSensorReadings, mockHistoryData, lastSynced,
 } from '../../data/mockSensorData';
@@ -9,7 +11,7 @@ import {
 } from 'recharts';
 import {
   Thermometer, Droplets, Waves, Radar, MapPin, Cpu,
-  ArrowLeft, Wifi, WifiOff, RefreshCw,
+  ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
 } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
@@ -219,6 +221,8 @@ const sensorStatusOk = (readings) => readings !== undefined && readings !== null
 
 export default function SensorsDetails() {
   const { robots } = useRobots();
+  const { farms } = useFarms();
+  const { tasks } = useTasks();
   const [selectedRobot, setSelectedRobot] = useState(null);
   const [lastSyncStr] = useState(() => {
     const d = lastSynced;
@@ -349,29 +353,80 @@ export default function SensorsDetails() {
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <MapPin size={16} color="#2e7d2e" /> WiFi Location
+              <MapPin size={16} color="#2e7d2e" /> Farm Map Coordinates
             </div>
-            {isOnline && readings ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
-                  style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                  <Wifi size={12} /> Tracking Active
-                </div>
-                <div className="p-4 rounded-xl w-full text-center"
-                  style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
-                  <MapPin size={24} color="#2e7d2e" className="mx-auto mb-2" />
-                  <div className="text-sm font-semibold text-primary">
-                    {readings.wifiLocation.lat.toFixed(4)}, {readings.wifiLocation.lng.toFixed(4)}
+            {(() => {
+              const farmCoords = farms.find(f => f.name === r.farm)?.coordinates;
+              if (!farmCoords || farmCoords.length === 0) return (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-4 rounded-xl w-full text-center" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
+                    <MapPin size={24} color="#9CA3AF" className="mx-auto mb-2" />
+                    <div className="text-sm text-text-secondary">No map coordinates available for this farm</div>
                   </div>
-                  <div className="text-[10px] text-text-secondary mt-1">{readings.wifiLocation.label}</div>
                 </div>
-                <div className="text-[9px] text-text-secondary">// TODO: Replace with real interactive map (Leaflet.js or Google Maps)</div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-[180px]">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>Sensor Offline</span>
-              </div>
-            )}
+              );
+              const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
+              const labels = ['Point 1', 'Point 2', 'Point 3'];
+              return (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
+                    style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+                    <MapPin size={12} /> {farmCoords.length} Boundary Points
+                  </div>
+                  <div className="p-4 rounded-xl w-full" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
+                    {farmCoords.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3 py-1.5" style={{ borderBottom: i < farmCoords.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: pointColors[i], flexShrink: 0 }} />
+                        <span className="text-[10px] font-semibold" style={{ color: pointColors[i], width: 44 }}>{labels[i]}</span>
+                        <span className="text-sm font-semibold text-primary">{c.lat.toFixed(4)}, {c.lng.toFixed(4)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </GlowCard>
+
+          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
+            <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
+              <Sprout size={16} color="#2e7d2e" /> Fertilizer & Water Resources
+            </div>
+            {(() => {
+              const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
+              if (farmTasks.length === 0) return (
+                <div className="flex flex-col items-center justify-center" style={{ minHeight: '100px' }}>
+                  <Sprout size={20} color="#9CA3AF" />
+                  <span className="text-xs text-text-secondary mt-2">No resource tasks assigned to {r.farm}</span>
+                </div>
+              );
+              const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
+              const totalWater = farmTasks.reduce((sum, t) => sum + (parseFloat(t.waterQuantity) || 0), 0);
+              return (
+                <div className="space-y-3">
+                  {totalFertilizer > 0 && (
+                    <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(76,175,80,0.06)', border: '1px solid rgba(76,175,80,0.12)' }}>
+                      <div className="flex items-center gap-2">
+                        <Sprout size={16} color="#2e7d2e" />
+                        <span className="text-sm font-medium text-primary">Fertilizer</span>
+                      </div>
+                      <span className="text-sm font-bold" style={{ color: '#2e7d2e' }}>{totalFertilizer.toFixed(1)} L</span>
+                    </div>
+                  )}
+                  {totalWater > 0 && (
+                    <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                      <div className="flex items-center gap-2">
+                        <Droplets size={16} color="#3B82F6" />
+                        <span className="text-sm font-medium text-primary">Water</span>
+                      </div>
+                      <span className="text-sm font-bold" style={{ color: '#3B82F6' }}>{totalWater.toFixed(1)} L</span>
+                    </div>
+                  )}
+                  <div className="text-[10px] text-text-secondary pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+                    Based on {farmTasks.length} task{farmTasks.length > 1 ? 's' : ''} assigned to this farm
+                  </div>
+                </div>
+              );
+            })()}
           </GlowCard>
         </div>
 
@@ -546,8 +601,14 @@ export default function SensorsDetails() {
                   </div>
                   <div className="flex items-center gap-1.5 pt-1">
                     <MapPin size={11} color="#5A7A5A" />
-                    <span className="text-[9px] text-text-secondary">({readings.wifiLocation.lat.toFixed(2)}, {readings.wifiLocation.lng.toFixed(2)})</span>
-                    <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 Active</span>
+                    {(() => {
+                      const fCoords = farms.find(f => f.name === r.farm)?.coordinates;
+                      if (fCoords && fCoords.length > 0) {
+                        return <span className="text-[9px] text-text-secondary">{fCoords[0].lat.toFixed(2)}, {fCoords[0].lng.toFixed(2)}</span>;
+                      }
+                      return <span className="text-[9px] text-text-secondary">No map coords</span>;
+                    })()}
+                    <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 Map</span>
                   </div>
                 </div>
               ) : (
