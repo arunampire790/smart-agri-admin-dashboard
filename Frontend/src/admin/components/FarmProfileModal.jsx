@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair } from 'lucide-react';
+import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair, ClipboardList, Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
+import { useTasks } from '../../context/TaskContext';
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.75)',
@@ -53,12 +54,34 @@ const gridStyle = {
   gap: '16px 32px',
 };
 
+const statusBadge = (status) => {
+  const map = {
+    'Active': { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
+    'Idle': { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'Offline': { bg: '#FEE2E2', color: '#991B1B', dot: '#EF4444' },
+    'Pending': { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'In Progress': { bg: '#DBEAFE', color: '#1E40AF', dot: '#3B82F6' },
+    'Completed': { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
+    'High': { bg: '#FEE2E2', color: '#991B1B', dot: '#EF4444' },
+    'Medium': { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'Low': { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
+  };
+  return map[status] || { bg: '#F3F4F6', color: '#6B7280', dot: '#9CA3AF' };
+};
+
+const taskTypeIcon = (type) => {
+  const icons = { 'Irrigation': '💧', 'Fertilizer': '🌱', 'Inspection': '🔍', 'Maintenance': '🔧', 'Harvest': '🌾', 'Planting': '🌿' };
+  return icons[type] || '📋';
+};
+
 export default function FarmProfileModal({ farm, onClose }) {
   const { robots } = useRobots();
   const { users } = useUsers();
+  const { tasks } = useTasks();
 
   const farmRobots = useMemo(() => (robots || []).filter(r => r.farm === farm?.name), [robots, farm?.name]);
   const ownerUser = useMemo(() => (users || []).find(u => u.name === farm?.owner), [users, farm?.owner]);
+  const farmTasks = useMemo(() => (tasks || []).filter(t => t.farm === farm?.name), [tasks, farm?.name]);
 
   const robotFleet = farmRobots.length > 0
     ? farmRobots.map(r => `${r.name} (${r.model || r.id})`).join(', ') : '\u2014';
@@ -67,7 +90,11 @@ export default function FarmProfileModal({ farm, onClose }) {
     ? farm.coordinates.map((c, i) => `P${i + 1}: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`).join(' | ')
     : '\u2014';
 
-  const initials = farm.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const pendingTasks = farmTasks.filter(t => t.status === 'Pending').length;
+  const inProgressTasks = farmTasks.filter(t => t.status === 'In Progress').length;
+  const completedTasks = farmTasks.filter(t => t.status === 'Completed').length;
+
+  const initials = (farm?.name || '').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <>{createPortal(
@@ -81,14 +108,14 @@ export default function FarmProfileModal({ farm, onClose }) {
               <span style={{ color: '#fff', fontSize: '16px', fontWeight: 700 }}>{initials}</span>
             </div>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{farm.name}</div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{farm.owner}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{farm?.name}</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{farm?.owner}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: farm.status === 'Active' ? '#D1FAE5' : farm.status === 'Idle' ? '#FEF3C7' : '#FEE2E2', color: farm.status === 'Active' ? '#065F46' : farm.status === 'Idle' ? '#92400E' : '#991B1B' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: farm.status === 'Active' ? '#10B981' : farm.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
-              {farm.status}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: statusBadge(farm?.status).bg, color: statusBadge(farm?.status).color }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusBadge(farm?.status).dot }} />
+              {farm?.status}
             </span>
             <button type="button" onClick={onClose} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
@@ -105,21 +132,21 @@ export default function FarmProfileModal({ farm, onClose }) {
           <div style={gridStyle}>
             <div>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Farm Name</div>
-              <div style={valStyle}>{farm.name}</div>
+              <div style={valStyle}>{farm?.name || '\u2014'}</div>
             </div>
             <div>
               <div style={labelRowStyle}><UsersIcon size={12} color="#9CA3AF" /> Owner</div>
-              <div style={valStyle}>{farm.owner}</div>
+              <div style={valStyle}>{farm?.owner || '\u2014'}</div>
             </div>
             <div>
               <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> Soil Type</div>
-              <div style={valStyle}>{farm.soil || '\u2014'}</div>
+              <div style={valStyle}>{farm?.soil || '\u2014'}</div>
             </div>
             <div>
               <div style={labelRowStyle}><Crosshair size={12} color="#9CA3AF" /> System Status</div>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: farm.status === 'Active' ? '#D1FAE5' : farm.status === 'Idle' ? '#FEF3C7' : '#FEE2E2', color: farm.status === 'Active' ? '#065F46' : farm.status === 'Idle' ? '#92400E' : '#991B1B' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: farm.status === 'Active' ? '#10B981' : farm.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
-                {farm.status}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: statusBadge(farm?.status).bg, color: statusBadge(farm?.status).color }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusBadge(farm?.status).dot }} />
+                {farm?.status}
               </span>
             </div>
           </div>
@@ -133,11 +160,11 @@ export default function FarmProfileModal({ farm, onClose }) {
           <div style={gridStyle}>
             <div>
               <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> Crop Types</div>
-              <div style={valStyle}>{farm.cropTypes || farm.crop || '\u2014'}</div>
+              <div style={valStyle}>{farm?.cropTypes || farm?.crop || '\u2014'}</div>
             </div>
             <div>
               <div style={labelRowStyle}><Map size={12} color="#9CA3AF" /> Farm Size</div>
-              <div style={valStyle}>{farm.size || '\u2014'}</div>
+              <div style={valStyle}>{farm?.size || '\u2014'}</div>
             </div>
             <div>
               <div style={labelRowStyle}><HardDrive size={12} color="#9CA3AF" /> Connected Devices</div>
@@ -165,6 +192,55 @@ export default function FarmProfileModal({ farm, onClose }) {
               <div style={valStyle}>{ownerUser ? `${ownerUser.email} \u00B7 ${ownerUser.phone}` : '\u2014'}</div>
             </div>
           </div>
+        </div>
+
+        <div style={cardStyle}>
+          <div style={sectionTitleStyle}>
+            <ClipboardList size={15} color="#2e7d32" />
+            <span style={sectionTitleTextStyle}>Tasks & Activities</span>
+          </div>
+          {farmTasks.length === 0 ? (
+            <div style={{ fontSize: '13px', color: '#6B7280', fontStyle: 'italic', padding: '8px 0' }}>No tasks assigned to this farm</div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                {[
+                  { label: 'Pending', count: pendingTasks, bg: '#FEF3C7', color: '#92400E' },
+                  { label: 'In Progress', count: inProgressTasks, bg: '#DBEAFE', color: '#1E40AF' },
+                  { label: 'Completed', count: completedTasks, bg: '#D1FAE5', color: '#065F46' },
+                ].map((item, idx) => (
+                  <div key={idx} style={{ flex: 1, textAlign: 'center', background: item.bg, borderRadius: '10px', padding: '10px 8px' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: item.color }}>{item.count}</div>
+                    <div style={{ fontSize: '9px', fontWeight: 700, color: item.color, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '2px' }}>{item.label}</div>
+                  </div>
+                ))}
+              </div>
+              {farmTasks.map((t, i) => {
+                const sb = statusBadge(t.priority);
+                const ss = statusBadge(t.status);
+                return (
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: i % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent', borderRadius: '10px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '16px' }}>{taskTypeIcon(t.type)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>{t.type}</span>
+                        <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#D1D5DB' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <Calendar size={10} color="#9CA3AF" />
+                          <span style={{ fontSize: '10px', color: '#9CA3AF' }}>{t.dueDate}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', background: sb.bg, color: sb.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t.priority}</span>
+                      <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', background: ss.bg, color: ss.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t.status}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
     </div>,
