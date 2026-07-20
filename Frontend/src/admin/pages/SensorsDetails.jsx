@@ -122,6 +122,21 @@ const ultrasonicStatus = (u) => {
   return { label: 'No Reading', color: '#9CA3AF', icon: '—' };
 };
 
+const fertilizerAlert = (level) => {
+  if (level <= 0) return { label: 'No Data', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
+  if (level < 10) return { label: 'Low', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
+  if (level <= 50) return { label: 'Moderate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
+  return { label: 'Excessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
+};
+
+const waterAlert = (level) => {
+  if (level <= 0) return { label: 'No Data', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
+  if (level < 100) return { label: 'Low', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
+  if (level <= 500) return { label: 'Moderate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
+  if (level <= 1000) return { label: 'Optimal', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', icon: '✓' };
+  return { label: 'Excessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
+};
+
 function SemiGauge({ value, max, unit, label, color, size = 160 }) {
   const ratio = Math.min(value / max, 1);
   const bgColor = '#E5E7EB';
@@ -389,40 +404,69 @@ export default function SensorsDetails() {
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Sprout size={16} color="#2e7d2e" /> Fertilizer & Water Resources
+              <Sprout size={16} color="#2e7d2e" /> Fertilizer & Water Alerts
             </div>
             {(() => {
               const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
               if (farmTasks.length === 0) return (
-                <div className="flex flex-col items-center justify-center" style={{ minHeight: '100px' }}>
-                  <Sprout size={20} color="#9CA3AF" />
+                <div className="flex flex-col items-center justify-center" style={{ minHeight: '120px' }}>
+                  <Sprout size={24} color="#9CA3AF" />
                   <span className="text-xs text-text-secondary mt-2">No resource tasks assigned to {r.farm}</span>
                 </div>
               );
               const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
               const totalWater = farmTasks.reduce((sum, t) => sum + (parseFloat(t.waterQuantity) || 0), 0);
+              const fAlert = fertilizerAlert(totalFertilizer);
+              const wAlert = waterAlert(totalWater);
               return (
                 <div className="space-y-3">
                   {totalFertilizer > 0 && (
-                    <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(76,175,80,0.06)', border: '1px solid rgba(76,175,80,0.12)' }}>
-                      <div className="flex items-center gap-2">
-                        <Sprout size={16} color="#2e7d2e" />
-                        <span className="text-sm font-medium text-primary">Fertilizer</span>
+                    <div className="p-3 rounded-xl" style={{ background: 'rgba(46,125,50,0.04)', border: '1px solid rgba(46,125,50,0.1)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Sprout size={16} color="#2e7d2e" />
+                          <span className="text-sm font-medium text-primary">Fertilizer</span>
+                        </div>
+                        <span className="text-sm font-bold" style={{ color: fAlert.color }}>{totalFertilizer.toFixed(1)} L</span>
                       </div>
-                      <span className="text-sm font-bold" style={{ color: '#2e7d2e' }}>{totalFertilizer.toFixed(1)} L</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                          <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalFertilizer / 100) * 100, 100)}%`, background: fAlert.color }} />
+                        </div>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: fAlert.bg, color: fAlert.color }}>
+                          {fAlert.icon} {fAlert.label}
+                        </span>
+                      </div>
                     </div>
                   )}
                   {totalWater > 0 && (
-                    <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)' }}>
-                      <div className="flex items-center gap-2">
-                        <Droplets size={16} color="#3B82F6" />
-                        <span className="text-sm font-medium text-primary">Water</span>
+                    <div className="p-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.1)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Droplets size={16} color="#3B82F6" />
+                          <span className="text-sm font-medium text-primary">Water</span>
+                        </div>
+                        <span className="text-sm font-bold" style={{ color: wAlert.color }}>{totalWater.toFixed(1)} L</span>
                       </div>
-                      <span className="text-sm font-bold" style={{ color: '#3B82F6' }}>{totalWater.toFixed(1)} L</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                          <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalWater / 1500) * 100, 100)}%`, background: wAlert.color }} />
+                        </div>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: wAlert.bg, color: wAlert.color }}>
+                          {wAlert.icon} {wAlert.label}
+                        </span>
+                      </div>
                     </div>
                   )}
-                  <div className="text-[10px] text-text-secondary pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                    Based on {farmTasks.length} task{farmTasks.length > 1 ? 's' : ''} assigned to this farm
+                  <div className="flex flex-wrap gap-1.5 pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+                    {farmTasks.map(t => {
+                      const statusColor = t.status === 'Completed' ? '#10B981' : t.status === 'In Progress' ? '#3B82F6' : '#F59E0B';
+                      return (
+                        <span key={t.id} className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: `${statusColor}10`, color: statusColor }}>
+                          {t.title}{t.fertilizerLevel != null ? ` (${parseFloat(t.fertilizerLevel).toFixed(1)}L)` : ''}{t.waterQuantity != null ? ` (${parseFloat(t.waterQuantity).toFixed(1)}L)` : ''}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               );
