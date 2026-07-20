@@ -435,11 +435,13 @@ export default function Farms() {
     setEditFormCoordStrings(updated);
   };
 
+  const activeCardLabel = statusFilter !== 'All Statuses' ? statusFilter : ownerFilter !== 'All Owners' ? 'Total Farms' : 'Total Farms';
+
   const statCards = [
-    { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
+    { val: String(farms.length), label: 'Total Farms', sub: `${farms.filter(f => f.status === 'Active').length} active \u00B7 ${farms.filter(f => f.status === 'Idle' || f.status === 'Offline').length} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
     { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
     { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
-    { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots', sub: activeRobotSubtext },
+    { val: String(activeRobotCount), label: 'Active Robots', sub: activeRobotSubtext, onClick: () => { setStatusFilter('Active'); } },
   ];
 
   const filteredFarms = useMemo(() => {
@@ -474,18 +476,23 @@ export default function Farms() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {statCards.map((card) => {
           const { Icon, bg, color } = getIconConfig(card.label);
+          const isActive = card.onClick && (card.label === 'Total Farms' ? (activeCardLabel === 'Total Farms') : (card.label === 'Active Robots' && statusFilter === 'Active'));
           return (
             <GlowCard
               key={card.label}
-              onClick={card.route ? () => navigate(card.route) : undefined}
+              onClick={card.onClick ? card.onClick : undefined}
               className="glass-card rounded-2xl p-5"
-              style={{ contentVisibility: 'auto' }}
+              style={{
+                contentVisibility: 'auto',
+                outline: isActive ? '2px solid #2e7d32' : 'none',
+                outlineOffset: '-1px',
+              }}
             >
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-secondary mb-2">{card.label}</div>
                   <div className="text-3xl font-extrabold text-primary">{card.val}</div>
-                  {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', fontStyle: uniqueSoilTypes.length === 0 ? 'italic' : 'normal' }}>{card.sub}</div>}
+                  {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>{card.sub}</div>}
                 </div>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                   <Icon size={18} color={color} />
