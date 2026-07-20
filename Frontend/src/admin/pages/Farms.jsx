@@ -413,13 +413,6 @@ export default function Farms() {
 
   const activeCardLabel = statusFilter !== 'All Statuses' ? statusFilter : ownerFilter !== 'All Owners' ? 'Total Farms' : 'Total Farms';
 
-  const statCards = [
-    { val: String(filteredFarms.length), label: 'Total Farms', sub: `${visibleActiveFarms} active \u00B7 ${filteredFarms.length - visibleActiveFarms} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
-    { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
-    { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
-    { val: String(activeRobotCount), label: 'Active Robots', sub: activeRobotSubtext, onClick: () => { setStatusFilter('Active'); } },
-  ];
-
   const filteredFarms = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
     return farms.filter(f => {
@@ -466,6 +459,13 @@ export default function Farms() {
     return `${activeRobotCount} active · ${idle} idle · ${offline} offline`;
   }, [visibleRobots, activeRobotCount]);
   const visibleActiveFarms = useMemo(() => filteredFarms.filter(f => f.status === 'Active').length, [filteredFarms]);
+
+  const statCards = [
+    { val: String(filteredFarms.length), label: 'Total Farms', sub: `${visibleActiveFarms} active \u00B7 ${filteredFarms.length - visibleActiveFarms} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
+    { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
+    { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
+    { val: String(activeRobotCount), label: 'Active Robots', sub: activeRobotSubtext, onClick: () => { setStatusFilter('Active'); } },
+  ];
 
   return (
     <>
