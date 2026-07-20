@@ -175,13 +175,13 @@ export default function Farms() {
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
-  const [form, setForm] = useState({ name: '', location: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
+  const [form, setForm] = useState({ name: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
   const [errors, setErrors] = useState({});
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
   const [editErrors, setEditErrors] = useState({});
   const [editFarm, setEditFarm] = useState(null);
-  const [editFarmForm, setEditFarmForm] = useState({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' });
+  const [editFarmForm, setEditFarmForm] = useState({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' });
   const [editFarmErrors, setEditFarmErrors] = useState({});
   const [deleteFarm, setDeleteFarm] = useState(null);
   const [formCoordStrings, setFormCoordStrings] = useState(['', '', '']);
@@ -239,7 +239,6 @@ export default function Farms() {
     });
     addFarm({
       name: form.name.trim(),
-      location: '',
       coordinates: parsedCoords.length === 3 ? parsedCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: form.owner.trim(),
       crop: form.cropTypes.trim() || '—',
@@ -257,7 +256,7 @@ export default function Farms() {
     // TODO: Replace with real backend API call once backend is added.
   };
 
-  const openAdd = () => { setForm({ name: '', location: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobots([]); setShowAddModal(true); };
+  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobots([]); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -296,7 +295,6 @@ export default function Farms() {
     if (!farm) return;
     setEditFarmForm({
       name: farm.name || '',
-      location: farm.location || '',
       owner: farm.owner || '',
       cropTypes: farm.cropTypes || '',
       soil: farm.soil || '',
@@ -330,7 +328,6 @@ export default function Farms() {
     });
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
-      location: '',
       coordinates: parsedEditCoords.length === 3 ? parsedEditCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: editFarmForm.owner.trim(),
       crop: editFarmForm.cropTypes.trim() || '—',
@@ -348,7 +345,8 @@ export default function Farms() {
   };
 
   const handleDeleteFarm = () => {
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Farm', target: deleteFarm.name, details: `Location: ${deleteFarm.location}` });
+    const coordsStr = (deleteFarm.coordinates || []).length ? deleteFarm.coordinates.map(c => `${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}`).join(' | ') : '—';
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Farm', target: deleteFarm.name, details: `Coordinates: ${coordsStr}` });
     removeFarm(deleteFarm);
     setDeleteFarm(null);
   };
@@ -485,7 +483,7 @@ export default function Farms() {
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">All Farms ({farms.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name, location, or owner..." aria-label="Search farms" className={inputClass} />
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name or owner..." aria-label="Search farms" className={inputClass} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
           <FilterSelect label="STATUS" options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
@@ -507,11 +505,20 @@ export default function Farms() {
             >Clear Filters</span>
           </div>
         ) : (
-          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
+          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '8%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farm Name</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Location</th>
                 <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Owner</th>
                 <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Crop Type</th>
                 <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Soil Type</th>
@@ -529,7 +536,6 @@ export default function Farms() {
                   style={{ transition: 'background 0.15s ease' }}
                 >
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{farm.name}</strong></td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.location}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}

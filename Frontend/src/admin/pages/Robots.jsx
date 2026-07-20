@@ -251,7 +251,7 @@ export default function Robots() {
     updateRobot(editRobot, { name: form.name.trim(), id: form.id.trim(), farm: form.farm, model: form.model, farmer: form.farmer, status: form.status });
     const targetFarm = farms.find((f) => f.name === form.farm);
     if (targetFarm) { updateFarm(targetFarm, { owner: form.farmer }); }
-    else { addFarm({ name: form.farm, owner: form.farmer, crop: '—', soil: '—', location: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
+    else { addFarm({ name: form.farm, owner: form.farmer, crop: '—', soil: '—', robot: '—', status: 'Inactive', cls: 'bg-[#7676801F] text-text-placeholder', size: '—', cropTypes: '—', devices: '0' }); }
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Robot', target: form.name.trim(), details: `ID: ${form.id.trim()}, Status: ${form.status}` });
     setEditRobot(null);
   };
