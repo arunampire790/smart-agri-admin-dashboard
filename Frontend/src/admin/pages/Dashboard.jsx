@@ -254,8 +254,8 @@ export default function Dashboard() {
                 <td className="px-4 py-4 border-b border-table-sep">
                   <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
                     style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.textDecoration = 'none'; }}
                   >{task.farm}</span>
                 </td>
                 <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>

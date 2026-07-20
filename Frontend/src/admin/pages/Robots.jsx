@@ -429,8 +429,8 @@ export default function Robots() {
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
                     style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
                   >{r.farm}</span>
                 </td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>

@@ -310,9 +310,9 @@ export default function SensorsDetails() {
           <div>
             <div className="text-2xl font-bold text-primary">{r.name}</div>
             <div className="text-sm text-text-secondary mt-0.5">{r.id} · <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
-              style={{ cursor: 'pointer', color: '#6B7280', transition: 'color 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+              style={{ cursor: 'pointer', color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
             >{r.farm}</span> · {r.model}</div>
           </div>
           <div className="ml-auto flex items-center gap-3">
@@ -632,9 +632,9 @@ export default function SensorsDetails() {
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-primary truncate">{r.name}</div>
                   <div className="text-[10px] text-text-secondary truncate mt-0.5">{r.id} · <span onClick={(e) => { e.stopPropagation(); const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
-                    style={{ cursor: 'pointer', color: '#6B7280', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                    style={{ cursor: 'pointer', color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
                   >{r.farm}</span></div>
                 </div>
                 <span className="w-2.5 h-2.5 rounded-full shrink-0 ml-2"

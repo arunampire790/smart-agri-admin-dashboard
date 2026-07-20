@@ -539,10 +539,11 @@ export default function Farms() {
                 >
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => setProfileFarm(farm)}
-                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
-                    ><strong className="text-primary font-medium">{farm.name}</strong></span>
+                      className="text-primary font-medium"
+                      style={{ cursor: 'pointer', fontWeight: 700, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.textDecoration = 'none'; }}
+                    >{farm.name}</span>
                   </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
