@@ -367,7 +367,14 @@ export default function Farms() {
   const labelStyle = { color: '#374151', fontWeight: 600, fontSize: '13px' };
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
-  const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
+  const uniqueCropTypes = useMemo(() => {
+    return [...new Set(farms.flatMap(f => (f.cropTypes || f.crop || '').split(',').map(s => s.trim()).filter(Boolean)))].sort();
+  }, [farms]);
+  const cropTypeSubtext = useMemo(() => {
+    if (uniqueCropTypes.length === 0) return 'No crop data available';
+    const names = uniqueCropTypes.slice(0, 3).join(', ');
+    return uniqueCropTypes.length > 3 ? `${names} & ${uniqueCropTypes.length - 3} more` : names;
+  }, [uniqueCropTypes]);
   const uniqueSoilTypes = useMemo(() => {
     return [...new Set(farms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
   }, [farms]);
@@ -377,6 +384,13 @@ export default function Farms() {
     return uniqueSoilTypes.length > 3 ? `${names} & ${uniqueSoilTypes.length - 3} more` : names;
   }, [uniqueSoilTypes]);
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
+  const activeRobotSubtext = useMemo(() => {
+    const total = robots.length;
+    if (total === 0) return 'No robots registered';
+    const idle = robots.filter(r => r.status === 'Idle').length;
+    const offline = robots.filter(r => r.status === 'Offline').length;
+    return `${activeRobotCount} active · ${idle} idle · ${offline} offline`;
+  }, [robots, activeRobotCount]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
   const parsedAddPoints = useMemo(() => formCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [formCoordStrings]);
@@ -424,8 +438,8 @@ export default function Farms() {
   const statCards = [
     { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
     { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
-    { val: String(cropTypes.length), label: 'Crop Types' },
-    { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots' },
+    { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
+    { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots', sub: activeRobotSubtext },
   ];
 
   const filteredFarms = useMemo(() => {
