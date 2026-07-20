@@ -13,6 +13,7 @@ import {
   Thermometer, Droplets, Waves, Radar, MapPin, Cpu,
   ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
 } from 'lucide-react';
+import FarmProfileModal from '../components/FarmProfileModal';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -245,6 +246,7 @@ export default function SensorsDetails() {
   });
 
   const [farmFilter, setFarmFilter] = useState('All Farms');
+  const [profileFarm, setProfileFarm] = useState(null);
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
@@ -307,7 +309,11 @@ export default function SensorsDetails() {
           </button>
           <div>
             <div className="text-2xl font-bold text-primary">{r.name}</div>
-            <div className="text-sm text-text-secondary mt-0.5">{r.id} · {r.farm} · {r.model}</div>
+            <div className="text-sm text-text-secondary mt-0.5">{r.id} · <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+              style={{ cursor: 'pointer', color: '#6B7280', transition: 'color 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+            >{r.farm}</span> · {r.model}</div>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5"
@@ -625,7 +631,11 @@ export default function SensorsDetails() {
               <div className="flex items-center justify-between mb-3">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-primary truncate">{r.name}</div>
-                  <div className="text-[10px] text-text-secondary truncate mt-0.5">{r.id} · {r.farm}</div>
+                  <div className="text-[10px] text-text-secondary truncate mt-0.5">{r.id} · <span onClick={(e) => { e.stopPropagation(); const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+                    style={{ cursor: 'pointer', color: '#6B7280', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                  >{r.farm}</span></div>
                 </div>
                 <span className="w-2.5 h-2.5 rounded-full shrink-0 ml-2"
                   style={{ background: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
@@ -712,6 +722,7 @@ export default function SensorsDetails() {
           );
         })}
       </div>
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

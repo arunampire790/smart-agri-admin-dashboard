@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
+import FarmProfileModal from '../components/FarmProfileModal';
 import { ChevronDown, Check } from 'lucide-react';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
@@ -231,6 +232,7 @@ export default function Robots() {
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
+  const [profileFarm, setProfileFarm] = useState(null);
   const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farmer: defaultFarmer, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
@@ -424,7 +426,13 @@ export default function Robots() {
                     <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
                   )}
                 </td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.farm}</td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                  >{r.farm}</span>
+                </td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex items-center gap-2">
@@ -532,6 +540,7 @@ export default function Robots() {
       )}
 
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

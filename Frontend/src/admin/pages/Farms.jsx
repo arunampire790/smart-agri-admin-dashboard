@@ -7,6 +7,7 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
+import FarmProfileModal from '../components/FarmProfileModal';
 import { MapPin, Sprout, Bot, Home, User, Ruler, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import FarmMapPreview from '../components/FarmMapPreview';
@@ -175,6 +176,7 @@ export default function Farms() {
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
+  const [profileFarm, setProfileFarm] = useState(null);
   const [form, setForm] = useState({ name: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
   const [errors, setErrors] = useState({});
   const [editUser, setEditUser] = useState(null);
@@ -535,7 +537,13 @@ export default function Farms() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{farm.name}</strong></td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <span onClick={() => setProfileFarm(farm)}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                    ><strong className="text-primary font-medium">{farm.name}</strong></span>
+                  </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
@@ -1179,6 +1187,7 @@ export default function Farms() {
         document.body
       )}
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} onEdit={(user) => { setProfileUser(null); openEdit(user); }} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

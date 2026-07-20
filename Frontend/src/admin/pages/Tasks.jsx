@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import DatePicker from '../components/DatePicker';
 import UserProfileModal from '../components/UserProfileModal';
+import FarmProfileModal from '../components/FarmProfileModal';
 import { ClipboardList, FileText, User, MapPin, Tag, AlertCircle, Calendar, Check, ChevronDown, Droplets, Sprout, Search, Wrench, Wheat, Trash2 } from 'lucide-react';
 
 const priorityStyles = {
@@ -200,6 +201,7 @@ export default function Tasks() {
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [formErrors, setFormErrors] = useState({});
   const [profileUser, setProfileUser] = useState(null);
+  const [profileFarm, setProfileFarm] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All Priorities');
   const [typeFilter, setTypeFilter] = useState('All Types');
@@ -448,7 +450,13 @@ export default function Tasks() {
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{task.assignedTo}</span>
                   </td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.farm}</td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                    >{task.farm}</span>
+                  </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span>
@@ -648,6 +656,7 @@ export default function Tasks() {
         document.body
       )}
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }
