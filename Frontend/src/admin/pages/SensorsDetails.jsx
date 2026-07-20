@@ -268,8 +268,11 @@ export default function SensorsDetails() {
       const u = readingFor(r.id)?.ultrasonic;
       return u !== undefined && u < 30;
     }).length;
-    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length };
-  }, [robots]);
+    const farmTasks = (tasks || []);
+    const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
+    const totalWater = farmTasks.reduce((sum, t) => sum + (parseFloat(t.waterQuantity) || 0), 0);
+    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length, totalFertilizer, totalWater };
+  }, [robots, tasks]);
 
   const farmOptions = useMemo(() => ['All Farms', ...[...new Set(robots.map(r => r.farm).filter(Boolean))].sort()], [robots]);
 
@@ -514,7 +517,7 @@ export default function SensorsDetails() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
@@ -556,6 +559,28 @@ export default function SensorsDetails() {
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(239,68,68,0.12)' }}>
               <Radar size={16} color="#EF4444" />
+            </div>
+          </div>
+        </GlowCard>
+        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">Total Fertilizer</div>
+              <div className="text-xl font-extrabold" style={{ color: fertilizerAlert(fleetStats.totalFertilizer).color }}>{fleetStats.totalFertilizer.toFixed(1)}L</div>
+            </div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(46,125,50,0.12)' }}>
+              <Sprout size={16} color="#2e7d2e" />
+            </div>
+          </div>
+        </GlowCard>
+        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">Total Water</div>
+              <div className="text-xl font-extrabold" style={{ color: waterAlert(fleetStats.totalWater).color }}>{fleetStats.totalWater.toFixed(1)}L</div>
+            </div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+              <Droplets size={16} color="#3B82F6" />
             </div>
           </div>
         </GlowCard>
@@ -654,6 +679,29 @@ export default function SensorsDetails() {
                     })()}
                     <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 Map</span>
                   </div>
+                  {(() => {
+                    const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
+                    if (farmTasks.length === 0) return null;
+                    const totalF = farmTasks.reduce((s, t) => s + (parseFloat(t.fertilizerLevel) || 0), 0);
+                    const totalW = farmTasks.reduce((s, t) => s + (parseFloat(t.waterQuantity) || 0), 0);
+                    const fA = fertilizerAlert(totalF);
+                    const wA = waterAlert(totalW);
+                    return (
+                      <div className="flex items-center gap-2 pt-1.5 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+                        {totalF > 0 && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: fA.bg, color: fA.color }}>
+                            <Sprout size={9} className="inline mr-0.5" style={{ verticalAlign: 'middle' }} />{totalF.toFixed(1)}L
+                          </span>
+                        )}
+                        {totalW > 0 && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: wA.bg, color: wA.color }}>
+                            <Droplets size={9} className="inline mr-0.5" style={{ verticalAlign: 'middle' }} />{totalW.toFixed(1)}L
+                          </span>
+                        )}
+                        <span className="text-[7px] text-text-secondary ml-auto">{farmTasks.length} task{farmTasks.length > 1 ? 's' : ''}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-[120px]">
