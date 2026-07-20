@@ -212,8 +212,8 @@ export default function Farms() {
     return () => document.removeEventListener('mousedown', handler);
   }, [editRobotDropdownOpen]);
 
-  const userNames = users.length ? users.map((u) => u.name) : [];
-  const robotIds = robots.length ? robots.map((r) => r.id) : [];
+  const userNames = (users || []).length ? (users || []).map((u) => u.name) : [];
+  const robotIds = (robots || []).length ? (robots || []).map((r) => r.id) : [];
 
   const validate = () => {
     const errs = {};
@@ -610,7 +610,7 @@ export default function Farms() {
                     </div>
                     <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select an owner" />
                     {errors.owner && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.owner}</span>}
-                    {form.owner && (() => { const ownerRobots = robots.filter(r => r.farmer === form.owner); if (ownerRobots.length === 0) return <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No robots currently assigned to this farmer</div>; return (<div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px' }}><div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, marginBottom: '6px' }}>Robots assigned to {form.owner}:</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{ownerRobots.map(r => (<span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px' }}><span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.id}</span><span style={{ color: '#6b7280' }}>{r.model}</span><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Available' ? '#9CA3AF' : '#F59E0B', display: 'inline-block' }} /></span>))}</div></div>); })()}
+                    {form.owner && (() => { const ownerRobots = (robots || []).filter(r => r.farmer === form.owner); if (ownerRobots.length === 0) return <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No robots currently assigned to this farmer</div>; return (<div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px' }}><div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, marginBottom: '6px' }}>Robots assigned to {form.owner}:</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{ownerRobots.map(r => (<span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px' }}><span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.id}</span><span style={{ color: '#6b7280' }}>{r.model}</span><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Available' ? '#9CA3AF' : '#F59E0B', display: 'inline-block' }} /></span>))}</div></div>); })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -659,7 +659,7 @@ export default function Farms() {
                     </div>
                     {(() => {
                       const maxRobots = parseInt(form.devices, 10) || 0;
-                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available').sort((a, b) => a.name.localeCompare(b.name));
+                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available').filter(r => r.name).sort((a, b) => a.name.localeCompare(b.name));
                       return (
                         <>
                           <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>
@@ -901,7 +901,7 @@ export default function Farms() {
                     </div>
                     {(() => {
                       const maxRobots = parseInt(editFarmForm.devices, 10) || 0;
-                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available' || r.farm === editFarm?.name).sort((a, b) => a.name.localeCompare(b.name));
+                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available' || r.farm === editFarm?.name).filter(r => r.name).sort((a, b) => a.name.localeCompare(b.name));
                       return (
                         <>
                           <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>

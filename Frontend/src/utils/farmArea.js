@@ -10,5 +10,5 @@ export function computeTriangleAreaAcres(p1, p2, p3) {
   const areaSqMeters = 0.5 * Math.abs(
     x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)
   );
-  return (areaSqMeters * 0.000247105).toFixed(2);
+  return parseFloat((areaSqMeters * 0.000247105).toFixed(2));
 }
