@@ -134,3 +134,16 @@ input, textarea, [contenteditable] {
 .content-visibility-auto {
   content-visibility: auto;
 }
+
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-shadow-pane,
+.leaflet-overlay-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane {
+  z-index: 1 !important;
+}
+.leaflet-control {
+  z-index: 2 !important;
+}
