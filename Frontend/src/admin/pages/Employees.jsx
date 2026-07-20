@@ -337,7 +337,6 @@ export default function Employees() {
   const { employees, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const [roleFilter, setRoleFilter] = useState('All Roles');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);
@@ -352,14 +351,12 @@ export default function Employees() {
   const filtered = useMemo(() => {
     let result = employees;
     if (statusFilter !== 'All Statuses') result = result.filter(e => e.status === statusFilter);
-    if (roleFilter !== 'All Roles') result = result.filter(e => e.role === roleFilter);
     if (!searchTerm.trim()) return result;
     const q = searchTerm.toLowerCase();
     return result.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
-  }, [employees, searchTerm, statusFilter, roleFilter]);
+  }, [employees, searchTerm, statusFilter]);
 
   const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(employees.map(e => e.status).filter(Boolean))], [employees]);
-  const roleFilterOptions = useMemo(() => ['All Roles', ...new Set(employees.map(e => e.role).filter(Boolean))], [employees]);
 
   const openAdd = () => { setForm({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' }); setErrors({}); setShowAddModal(true); };
   const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, role: emp.role || 'Admin', status: emp.status }); setErrors({}); setEditEmployee(emp); };
@@ -469,12 +466,11 @@ export default function Employees() {
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
           <FilterSelect label="STATUS" options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
-          <FilterSelect label="ROLE" options={roleFilterOptions} value={roleFilter} onChange={setRoleFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <span>Showing {filtered.length} of {employees.length} employees</span>
-          {(searchTerm || statusFilter !== 'All Statuses' || roleFilter !== 'All Roles') && (
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setRoleFilter('All Roles'); }}
+          {(searchTerm || statusFilter !== 'All Statuses') && (
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
@@ -486,7 +482,7 @@ export default function Employees() {
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No employees match your current filters</div>
             <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setRoleFilter('All Roles'); }}
+            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
