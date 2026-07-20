@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair, ClipboardList, Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair, ClipboardList, Calendar, AlertCircle, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useTasks } from '../../context/TaskContext';
+import { computeTriangleAreaAcres } from '../../utils/farmArea';
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.75)',
@@ -69,10 +70,21 @@ const statusBadge = (status) => {
   return map[status] || { bg: '#F3F4F6', color: '#6B7280', dot: '#9CA3AF' };
 };
 
-const taskTypeIcon = (type) => {
-  const icons = { 'Irrigation': '💧', 'Fertilizer': '🌱', 'Inspection': '🔍', 'Maintenance': '🔧', 'Harvest': '🌾', 'Planting': '🌿' };
-  return icons[type] || '📋';
+const taskTypeMeta = (type) => {
+  const map = {
+    'Irrigation': { icon: 'Droplets', color: '#3B82F6' },
+    'Fertilizer': { icon: 'Sprout', color: '#10B981' },
+    'Inspection': { icon: 'Search', color: '#8B5CF6' },
+    'Maintenance': { icon: 'Wrench', color: '#F59E0B' },
+    'Harvest': { icon: 'Wheat', color: '#F97316' },
+    'Planting': { icon: 'Seedling', color: '#22C55E' },
+  };
+  return map[type] || { icon: 'ClipboardList', color: '#6B7280' };
 };
+
+const TaskDot = ({ color }) => (
+  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+);
 
 export default function FarmProfileModal({ farm, onClose }) {
   const { robots } = useRobots();
@@ -85,10 +97,21 @@ export default function FarmProfileModal({ farm, onClose }) {
 
   const robotFleet = farmRobots.length > 0
     ? farmRobots.map(r => `${r.name} (${r.model || r.id})`).join(', ') : '\u2014';
-  const deviceCount = farm?.devices || '0';
+  const deviceCountDynamic = farmRobots.length;
   const coordsStr = (farm?.coordinates || []).length === 3
     ? farm.coordinates.map((c, i) => `P${i + 1}: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`).join(' | ')
     : '\u2014';
+
+  const computedAcreage = useMemo(() => {
+    const coords = farm?.coordinates;
+    if (!coords || coords.length !== 3) return null;
+    if (!coords.every(c => c && typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng))) return null;
+    try {
+      return computeTriangleAreaAcres(coords[0], coords[1], coords[2]);
+    } catch { return null; }
+  }, [farm?.coordinates]);
+
+  const displaySize = computedAcreage !== null ? `${computedAcreage.toFixed(2)} acres` : (farm?.size || '\u2014');
 
   const pendingTasks = farmTasks.filter(t => t.status === 'Pending').length;
   const inProgressTasks = farmTasks.filter(t => t.status === 'In Progress').length;
@@ -164,11 +187,11 @@ export default function FarmProfileModal({ farm, onClose }) {
             </div>
             <div>
               <div style={labelRowStyle}><Map size={12} color="#9CA3AF" /> Farm Size</div>
-              <div style={valStyle}>{farm?.size || '\u2014'}</div>
+              <div style={valStyle}>{displaySize}</div>
             </div>
             <div>
               <div style={labelRowStyle}><HardDrive size={12} color="#9CA3AF" /> Connected Devices</div>
-              <div style={valStyle}>{deviceCount}</div>
+              <div style={valStyle}>{deviceCountDynamic}</div>
             </div>
             <div>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Boundary Coordinates</div>
@@ -203,28 +226,35 @@ export default function FarmProfileModal({ farm, onClose }) {
             <div style={{ fontSize: '13px', color: '#6B7280', fontStyle: 'italic', padding: '8px 0' }}>No tasks assigned to this farm</div>
           ) : (
             <>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '18px' }}>
                 {[
-                  { label: 'Pending', count: pendingTasks, bg: '#FEF3C7', color: '#92400E' },
-                  { label: 'In Progress', count: inProgressTasks, bg: '#DBEAFE', color: '#1E40AF' },
-                  { label: 'Completed', count: completedTasks, bg: '#D1FAE5', color: '#065F46' },
+                  { label: 'Total', count: farmTasks.length, bg: 'rgba(46,125,50,0.08)', color: '#2e7d32', icon: ClipboardList },
+                  { label: 'Pending', count: pendingTasks, bg: 'rgba(245,158,11,0.1)', color: '#92400E', icon: Clock },
+                  { label: 'In Progress', count: inProgressTasks, bg: 'rgba(59,130,246,0.1)', color: '#1E40AF', icon: AlertCircle },
+                  { label: 'Completed', count: completedTasks, bg: 'rgba(16,185,129,0.1)', color: '#065F46', icon: CheckCircle2 },
                 ].map((item, idx) => (
-                  <div key={idx} style={{ flex: 1, textAlign: 'center', background: item.bg, borderRadius: '10px', padding: '10px 8px' }}>
+                  <div key={idx} style={{ flex: 1, textAlign: 'center', background: item.bg, borderRadius: '12px', padding: '12px 8px', border: '1px solid rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
+                      <item.icon size={16} color={item.color} />
+                    </div>
                     <div style={{ fontSize: '18px', fontWeight: 800, color: item.color }}>{item.count}</div>
                     <div style={{ fontSize: '9px', fontWeight: 700, color: item.color, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '2px' }}>{item.label}</div>
                   </div>
                 ))}
               </div>
               {farmTasks.map((t, i) => {
+                const meta = taskTypeMeta(t.type);
                 const sb = statusBadge(t.priority);
                 const ss = statusBadge(t.status);
                 return (
-                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: i % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent', borderRadius: '10px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '16px' }}>{taskTypeIcon(t.type)}</span>
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: i % 2 === 0 ? 'rgba(255,255,255,0.5)' : 'transparent', borderRadius: '12px', marginBottom: '4px', border: '1px solid rgba(255,255,255,0.3)' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${meta.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <TaskDot color={meta.color} />
+                    </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>{t.type}</span>
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: meta.color }}>{t.type}</span>
                         <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#D1D5DB' }} />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                           <Calendar size={10} color="#9CA3AF" />
