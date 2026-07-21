@@ -5,7 +5,7 @@ import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
-  Thermometer, Droplets, CloudRain, Leaf,
+  Thermometer, Droplets, CloudRain,
   ChevronDown, Check, Bot, ClipboardList,
 } from 'lucide-react';
 import {
@@ -331,7 +331,6 @@ export default function Analytics() {
     { key: 'temperature', label: 'Temperature', unit: '°C', icon: Thermometer, color: '#f97316', badgeBg: 'rgba(249,115,22,0.12)' },
     { key: 'soilMoisture', label: 'Soil Moisture', unit: '%', icon: Droplets, color: '#3b82f6', badgeBg: 'rgba(59,130,246,0.12)' },
     { key: 'humidity', label: 'Humidity', unit: '%', icon: CloudRain, color: '#06b6d4', badgeBg: 'rgba(6,182,212,0.12)' },
-    { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
   const filteredRobots = useMemo(() => {
@@ -520,7 +519,7 @@ export default function Analytics() {
               <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
             {sensorConfigs.map((s) => {
               const readings = sensorReadings[s.key];
               const lastVal = readings[readings.length - 1];
