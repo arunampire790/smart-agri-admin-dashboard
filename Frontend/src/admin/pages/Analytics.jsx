@@ -531,13 +531,14 @@ export default function Analytics() {
                 <div key={s.key} className="card-hover-sensor" style={{
                   background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
                   borderRadius: '14px', padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  display: 'flex', flexDirection: 'column',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexShrink: 0 }}>
                     <div style={{ background: s.badgeBg, borderRadius: '8px', padding: '6px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <s.icon size={14} color={s.color} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 600, fontSize: '13px', color: '#1a1a1a' }}>{s.label}</span>
                         <span style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{lastVal}{s.unit}</span>
                         <span style={{ fontSize: '12px', color: trend === 'up' ? '#2e7d2e' : '#ef4444' }}>{trend === 'up' ? '\u2191' : '\u2193'}</span>
@@ -555,7 +556,7 @@ export default function Analytics() {
                       {renderChart(chartData[s.key], 'value', s.color, graphType)}
                     </ResponsiveContainer>
                   </div>
-                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`Trend over time — shows how ${s.label.toLowerCase()} changes throughout the day for ${selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.`}>
+                  <div title={`Trend over time — shows how ${s.label.toLowerCase()} changes throughout the day for ${selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.`} style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '8px', textAlign: 'center', flexShrink: 0 }}>
                     Trend over time — shows how {s.label.toLowerCase()} changes throughout the day for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.
                   </div>
                 </div>
