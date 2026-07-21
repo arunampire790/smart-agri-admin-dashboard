@@ -6,7 +6,7 @@ import { useTasks } from '../../context/TaskContext';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
   Thermometer, Droplets, CloudRain, Leaf,
-  ChevronDown, Check,
+  ChevronDown, Check, Bot, ClipboardList,
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -334,21 +334,31 @@ export default function Analytics() {
     { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
-  const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
+  const filteredRobots = useMemo(() => {
+    if (selectedFarmName === 'All Farms') return (robots || []);
+    return (robots || []).filter(r => r.farm === selectedFarmName);
+  }, [robots, selectedFarmName]);
+
+  const filteredTasks = useMemo(() => {
+    if (selectedFarmName === 'All Farms') return (tasks || []);
+    return (tasks || []).filter(t => t.farm === selectedFarmName);
+  }, [tasks, selectedFarmName]);
+
+  const overdueTasks = filteredTasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
 
   const batterySorted = useMemo(() => {
-    return [...robots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
-  }, [robots]);
+    return [...filteredRobots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
+  }, [filteredRobots]);
 
   const statusData = useMemo(() => [
-    { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
-    { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
-    { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
-  ].filter(d => d.value > 0), [tasks]);
+    { name: 'Pending', value: filteredTasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
+    { name: 'In Progress', value: filteredTasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
+    { name: 'Completed', value: filteredTasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
+  ].filter(d => d.value > 0), [filteredTasks]);
 
-  const completedCount = tasks.filter(t => t.status === 'Completed').length;
-  const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
-  const needsCharging = robots.filter((r) => r.battery > 0 && r.battery < 50).length;
+  const completedCount = filteredTasks.filter(t => t.status === 'Completed').length;
+  const completionRate = filteredTasks.length > 0 ? Math.round((completedCount / filteredTasks.length) * 100) : 0;
+  const needsCharging = filteredRobots.filter((r) => r.battery > 0 && r.battery < 50).length;
 
   const cardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
@@ -567,12 +577,18 @@ export default function Analytics() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
               <span className="card-hover-link" style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
-                Click any robot →
+                {selectedFarmName === 'All Farms' ? 'Click any robot →' : 'Click to view details →'}
               </span>
             </div>
-            <div style={sectionSub}>Sorted by battery level (lowest first)</div>
+            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? 'Sorted by battery level (lowest first)' : `Robots assigned to ${selectedFarmName} — click to view details →`}</div>
             <div>
-              {batterySorted.map((r) => {
+              {filteredRobots.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
+                  <Bot size={32} color="#9CA3AF" />
+                  <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>{selectedFarmName === 'All Farms' ? 'No robots registered' : `No robots assigned to ${selectedFarmName}`}</div>
+                  <div style={{ color: '#9CA3AF', fontSize: '12px' }}>Select a different farm or assign robots in Robot Management</div>
+                </div>
+              ) : batterySorted.map((r) => {
                 const barColor = r.battery < 20 ? '#ef4444' : r.battery < 50 ? '#f97316' : '#22C55E';
                 const statusLabel = r.battery < 20 ? 'Critical' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
                 const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
@@ -601,18 +617,20 @@ export default function Analytics() {
               marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
               fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#f97316' : '#2e7d32',
             }}>
-              {needsCharging} robots need charging soon →
+              {selectedFarmName === 'All Farms'
+                ? `${needsCharging} of ${filteredRobots.length} robots need charging soon →`
+                : `${filteredRobots.length} robot(s) assigned to ${selectedFarmName} — ${needsCharging} need charging →`}
             </div>
           </div>
 
           {/* Right: Task Operations */}
           <div style={cardStyle}>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
-            <div style={sectionSub}>Status breakdown across all tasks</div>
+            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? 'Status breakdown across all tasks' : `Tasks assigned to ${selectedFarmName}`}</div>
 
             <div style={{ display: 'flex', gap: '20px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={filteredTasks.length} decimals={0} /></div>
                 <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tasks</div>
               </div>
               <div>
@@ -625,7 +643,13 @@ export default function Analytics() {
               </div>
             </div>
 
-            {statusData.length === 0 ? (
+            {filteredTasks.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
+                <ClipboardList size={32} color="#9CA3AF" />
+                <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>{selectedFarmName === 'All Farms' ? 'No tasks found' : `No tasks found for ${selectedFarmName}`}</div>
+                <div style={{ color: '#9CA3AF', fontSize: '12px' }}>Select a different farm or assign tasks in Task Management</div>
+              </div>
+            ) : statusData.length === 0 ? (
               <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No tasks found</div>
             ) : (
             <div className="relative flex items-center justify-center">
@@ -642,7 +666,7 @@ export default function Analytics() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={filteredTasks.length} decimals={0} /></div>
                       <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
                     </div>
                   </div>
