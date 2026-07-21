@@ -585,7 +585,7 @@ export default function Analytics() {
               {filteredRobots.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
                   <Bot size={32} color="#9CA3AF" />
-                  <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>No robots assigned to {selectedFarmName}</div>
+                  <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>{selectedFarmName === 'All Farms' ? 'No robots registered' : `No robots assigned to ${selectedFarmName}`}</div>
                   <div style={{ color: '#9CA3AF', fontSize: '12px' }}>Select a different farm or assign robots in Robot Management</div>
                 </div>
               ) : batterySorted.map((r) => {
