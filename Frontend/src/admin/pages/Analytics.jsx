@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
+import { useT } from '../../i18n';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
   Thermometer, Droplets, CloudRain, Leaf,
@@ -97,6 +98,7 @@ const SENSOR_DATA = (() => {
 })();
 
 function Select({ label, options, value, onChange, width }) {
+  const t = useT('analytics');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -128,7 +130,7 @@ function Select({ label, options, value, onChange, width }) {
           onMouseLeave={(e) => { if (!open) e.currentTarget.style.borderColor = '#D1D5DB'; }}
         >
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: selected ? '#111827' : '#9CA3AF' }}>
-            {selected ? selected.label : 'Select...'}
+            {selected ? selected.label : t('selectPlaceholder')}
           </span>
           <ChevronDown size={14} style={{ position: 'absolute', right: '8px', top: '50%', transform: `translateY(-50%) rotate(${open ? '180deg' : '0deg'})`, color: '#6B7280', transition: 'transform 0.2s ease', flexShrink: 0 }} />
         </button>
@@ -218,6 +220,7 @@ function AnimatedValue({ value, duration = 600, decimals = 0 }) {
 
 export default function Analytics() {
   const navigate = useNavigate();
+  const t = useT('analytics');
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { tasks } = useTasks();
@@ -318,20 +321,20 @@ export default function Analytics() {
   }, [sensorReadings]);
 
   const farmOptions = useMemo(() => {
-    return [{ value: 'All Farms', label: 'All Farms' }, ...farms.map((f) => ({ value: f.name, label: f.name }))];
+    return [{ value: 'All Farms', label: t('allFarms') }, ...farms.map((f) => ({ value: f.name, label: f.name }))];
   }, [farms]);
 
   const graphOptions = [
-    { value: 'line', label: 'Line Chart' },
-    { value: 'bar', label: 'Bar Chart' },
-    { value: 'area', label: 'Area Chart' },
+    { value: 'line', label: t('lineChart') },
+    { value: 'bar', label: t('barChart') },
+    { value: 'area', label: t('areaChart') },
   ];
 
   const sensorConfigs = [
-    { key: 'temperature', label: 'Temperature', unit: '°C', icon: Thermometer, color: '#f97316', badgeBg: 'rgba(249,115,22,0.12)' },
-    { key: 'soilMoisture', label: 'Soil Moisture', unit: '%', icon: Droplets, color: '#3b82f6', badgeBg: 'rgba(59,130,246,0.12)' },
-    { key: 'humidity', label: 'Humidity', unit: '%', icon: CloudRain, color: '#06b6d4', badgeBg: 'rgba(6,182,212,0.12)' },
-    { key: 'npk', label: 'NPK Level', unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
+    { key: 'temperature', label: t('temperature'), unit: '°C', icon: Thermometer, color: '#f97316', badgeBg: 'rgba(249,115,22,0.12)' },
+    { key: 'soilMoisture', label: t('soilMoisture'), unit: '%', icon: Droplets, color: '#3b82f6', badgeBg: 'rgba(59,130,246,0.12)' },
+    { key: 'humidity', label: t('humidity'), unit: '%', icon: CloudRain, color: '#06b6d4', badgeBg: 'rgba(6,182,212,0.12)' },
+    { key: 'npk', label: t('npkLevel'), unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
   const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
@@ -416,20 +419,25 @@ export default function Analytics() {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }, [harvestInfo]);
 
+  const growthLabelMap = { 'Healthy': t('healthy'), 'Needs Attention': t('needsAttention'), 'Critical': t('critical') };
+  const sensorStatusMap = { 'Critical': t('critical'), 'Low': t('low'), 'High': t('high'), 'Normal': t('normal'), 'Optimal': t('optimal') };
+  const taskStatusMap = { 'Pending': t('pending'), 'In Progress': t('inProgress'), 'Completed': t('completed') };
+  const farmDisplayName = selectedFarmName === 'All Farms' ? t('allFarmsLower') : selectedFarmName;
+
   return (
     <>
       <div className="mb-6">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div className="text-2xl font-bold text-primary">
-              Analytics{selectedFarm ? ` \u2014 ${selectedFarm.name} (${selectedFarm.cropTypes})` : ''}
+              {t('title')}{selectedFarm ? ` \u2014 ${selectedFarm.name} (${selectedFarm.cropTypes})` : ''}
             </div>
             <div className="text-sm text-text-secondary mt-1">
-              Real-time sensor data and performance metrics across all farms
+              {t('subtitle')}
             </div>
           </div>
           <Select
-            label="Select Farm"
+            label={t('selectFarm')}
             options={farmOptions}
             value={selectedFarmName}
             onChange={setSelectedFarmName}
@@ -441,8 +449,8 @@ export default function Analytics() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* SECTION 1: Crop Performance */}
         <div data-section="crop" className="section-entrance" style={{ animationDelay: '0s' }}>
-          <div style={sectionTitle}>Crop Performance</div>
-          <div style={sectionSub}>Key metrics for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}</div>
+          <div style={sectionTitle}>{t('cropPerformance')}</div>
+          <div style={sectionSub}>{t('keyMetrics').replace('{farm}', farmDisplayName)}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {/* Card 1 */}
             <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'growth' ? null : 'growth')}>
@@ -452,9 +460,9 @@ export default function Analytics() {
                   <CheckCircle size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Growth Status</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: growthStatus.color }}>{growthStatus.label}</div>
-              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}><AnimatedValue value={growthStatus.pct} decimals={0} />% optimal</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('growthStatus')}</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: growthStatus.color }}>{growthLabelMap[growthStatus.label]}</div>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}><AnimatedValue value={growthStatus.pct} decimals={0} />{t('percentOptimal')}</div>
             </div>
             {/* Card 2 */}
             <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'harvest' ? null : 'harvest')}>
@@ -464,9 +472,9 @@ export default function Analytics() {
                   <Calendar size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Harvest In</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('harvestIn')}</div>
               <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}>
-                {harvestInfo ? <><AnimatedValue value={harvestInfo.days} decimals={0} /> Days</> : '--'}
+                {harvestInfo ? <><AnimatedValue value={harvestInfo.days} decimals={0} /> {t('days')}</> : '--'}
               </div>
               <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>
                 {harvestInfo ? (selectedFarm ? harvestDateStr : `${harvestDateStr} \u2014 ${harvestInfo.farmName}`) : ''}
@@ -480,8 +488,8 @@ export default function Analytics() {
                   <TrendingUp size={18} color="#f97316" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Yield</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> Tons</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('yieldLabel')}</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> {t('tons')}</div>
               <div style={{ color: '#2e7d2e', fontSize: '12px', marginTop: '2px' }}>↑ +15%</div>
             </div>
             {/* Card 4 */}
@@ -492,9 +500,9 @@ export default function Analytics() {
                   <DollarSign size={18} color="#2e7d2e" />
                 </div>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>Net Profit</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('netProfit')}</div>
               <div style={{ fontSize: '28px', fontWeight: 700, color: '#2e7d2e' }}>$<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
-              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>Revenue: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{t('revenue')}: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
             </div>
           </div>
         </div>
@@ -503,11 +511,11 @@ export default function Analytics() {
         <div data-section="sensors" className="section-entrance" style={{ animationDelay: '0.1s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
             <div>
-              <div style={sectionTitle}>Sensor Analytics</div>
-              <div style={sectionSub}>24-hour readings at ~2.4 hour intervals</div>
+              <div style={sectionTitle}>{t('sensorAnalytics')}</div>
+              <div style={sectionSub}>{t('sensorSubtitle')}</div>
             </div>
             <div className="card-hover-select">
-              <Select label="Graph Type" options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
+              <Select label={t('graphType')} options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -538,7 +546,7 @@ export default function Analytics() {
                       fontSize: '10px', fontWeight: 600, padding: '4px 10px', borderRadius: '9999px',
                       background: `${status.color}18`, color: status.color, flexShrink: 0,
                     }}>
-                      {status.label}
+                      {sensorStatusMap[status.label]}
                     </span>
                   </div>
                   <div key={graphType} className="chart-fade">
@@ -546,8 +554,8 @@ export default function Analytics() {
                       {renderChart(chartData[s.key], 'value', s.color, graphType)}
                     </ResponsiveContainer>
                   </div>
-                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`Trend over time — shows how ${s.label.toLowerCase()} changes throughout the day for ${selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.`}>
-                    Trend over time — shows how {s.label.toLowerCase()} changes throughout the day for {selectedFarmName === 'All Farms' ? 'all farms' : selectedFarmName}.
+                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t('trendTooltip').replace('{sensor}', s.label.toLowerCase()).replace('{farm}', farmDisplayName)}>
+                    {t('trendTooltip').replace('{sensor}', s.label.toLowerCase()).replace('{farm}', farmDisplayName)}
                   </div>
                 </div>
               );
@@ -557,7 +565,7 @@ export default function Analytics() {
 
         {/* SECTION 3: Fleet Overview */}
         <div style={{ border: 'none', borderTop: '1px solid rgba(76,175,80,0.12)', margin: '4px 0' }} />
-        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>Fleet Overview</div>
+        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t('fleetOverview')}</div>
 
         {/* SECTION 4: Fleet Intelligence */}
         <div data-section="fleet" className="section-entrance" style={{ animationDelay: '0.4s' }}>
@@ -565,16 +573,16 @@ export default function Analytics() {
           {/* Left: Battery Health */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>Battery Health — Full Fleet</span>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{t('batteryHealthTitle')}</span>
               <span className="card-hover-link" style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
-                Click any robot →
+                {t('clickAnyRobot')} →
               </span>
             </div>
-            <div style={sectionSub}>Sorted by battery level (lowest first)</div>
+            <div style={sectionSub}>{t('sortedByBattery')}</div>
             <div>
               {batterySorted.map((r) => {
                 const barColor = r.battery < 20 ? '#ef4444' : r.battery < 50 ? '#f97316' : '#22C55E';
-                const statusLabel = r.battery < 20 ? 'Critical' : r.battery < 50 ? 'Low' : r.battery < 80 ? 'Good' : 'Excellent';
+                const statusLabel = r.battery < 20 ? t('critical') : r.battery < 50 ? t('low') : r.battery < 80 ? t('good') : t('excellent');
                 const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
 
                 return (
@@ -601,32 +609,32 @@ export default function Analytics() {
               marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
               fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#f97316' : '#2e7d32',
             }}>
-              {needsCharging} robots need charging soon →
+              {t('robotsNeedCharging').replace('{count}', needsCharging)} →
             </div>
           </div>
 
           {/* Right: Task Operations */}
           <div style={cardStyle}>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>Task Operations</div>
-            <div style={sectionSub}>Status breakdown across all tasks</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>{t('taskOperations')}</div>
+            <div style={sectionSub}>{t('statusBreakdown')}</div>
 
             <div style={{ display: 'flex', gap: '20px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
-                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tasks</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalTasks')}</div>
               </div>
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={completionRate} decimals={0} />%</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completion Rate</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('completionRate')}</div>
               </div>
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 700, color: overdueTasks.length > 0 ? '#ef4444' : '#1a1a1a' }}>{overdueTasks.length}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overdue</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('overdue')}</div>
               </div>
             </div>
 
             {statusData.length === 0 ? (
-              <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No tasks found</div>
+              <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>{t('noTasksFound')}</div>
             ) : (
             <div className="relative flex items-center justify-center">
               <div style={{ width: '100%', maxWidth: '320px' }}>
@@ -643,7 +651,7 @@ export default function Analytics() {
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
                       <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={tasks.length} decimals={0} /></div>
-                      <div style={{ fontSize: '10px', color: '#6b7280' }}>Total Tasks</div>
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>{t('totalTasks')}</div>
                     </div>
                   </div>
                 </div>
@@ -651,7 +659,7 @@ export default function Analytics() {
                   {statusData.map((entry) => (
                     <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: '12px', color: '#374151' }}>{entry.name}</span>
+                      <span style={{ fontSize: '12px', color: '#374151' }}>{taskStatusMap[entry.name]}</span>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a1a1a' }}>{entry.value}</span>
                     </div>
                   ))}
@@ -664,7 +672,7 @@ export default function Analytics() {
               marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
               textAlign: 'right', cursor: 'pointer', color: '#2e7d32', fontSize: '12px', fontWeight: 500,
             }}>
-              View all tasks →
+              {t('viewAllTasks')} →
             </div>
           </div>
           </div>

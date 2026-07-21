@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '../../i18n';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -28,6 +29,7 @@ const POPOVER_HEIGHT = 326;
 const GAP = 6;
 
 export default function DatePicker({ value, onChange }) {
+  const t = useT('common');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState('day');
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
@@ -253,11 +255,11 @@ export default function DatePicker({ value, onChange }) {
             <button type="button" onClick={clearClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease' }} tabIndex={-1}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Clear</button>
+            >{t('clear')}</button>
             <button type="button" onClick={todayClick} className="cursor-pointer bg-none border-none" style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.15s ease' }} tabIndex={-1}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#F3F4F6'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Today</button>
+            >{t('today')}</button>
           </div>
         </div>,
         </div>,

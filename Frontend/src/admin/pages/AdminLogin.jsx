@@ -1,10 +1,16 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sprout } from 'lucide-react';
+import { useT } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@smartagri.com');
-  const [password, setPassword] = useState('admin123');
+  const t = useT('login');
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const [flowStep, setFlowStep] = useState('login');
@@ -18,12 +24,20 @@ export default function AdminLogin() {
 
   const codeInputRefs = useRef([]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === 'admin@smartagri.com' && password === 'admin123') {
+    if (submitting) return;
+    setLoginError('');
+    setSubmitting(true);
+    try {
+      // Verifies email + password against the backend (JWT). Only navigates on success.
+      await login(email.trim(), password);
       navigate('/admin/dashboard');
-    } else {
-      alert('Invalid credentials. Use demo credentials shown below.');
+    } catch (err) {
+      // 401 = wrong credentials; anything else is likely the backend being unreachable.
+      setLoginError(err.status === 401 ? t('invalidCredentials') : t('loginFailed'));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -70,17 +84,17 @@ export default function AdminLogin() {
       setConfirmPassword('');
       setPasswordError('');
     } else {
-      setCodeError('Invalid code. Please try again.');
+      setCodeError(t('invalidCode'));
     }
   };
 
   const handleResetPassword = () => {
     if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters.');
+      setPasswordError(t('passwordTooShort'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match.');
+      setPasswordError(t('passwordsDoNotMatch'));
       return;
     }
     setFlowStep('success');
@@ -161,22 +175,22 @@ export default function AdminLogin() {
             <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 4px 16px rgba(46,125,50,0.25)' }}>
               <Sprout size={24} color="#ffffff" strokeWidth={2} />
             </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>Smart Agriculture</div>
-            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4, marginBottom: 28 }}>Admin Panel · Sign in to continue</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>{t('appTitle')}</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4, marginBottom: 28 }}>{t('subtitle')}</div>
           </div>
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email</label>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('email')}</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com" className="login-input" style={inputStyle}
+                placeholder={t('emailPlaceholder')} className="login-input" style={inputStyle}
                 onFocus={inputFocus} onBlur={inputBlur}
                 onMouseEnter={inputHover} onMouseLeave={inputLeave}
               />
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Password</label>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('password')}</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" className="login-input" style={inputStyle}
                 onFocus={inputFocus} onBlur={inputBlur}
@@ -190,21 +204,22 @@ export default function AdminLogin() {
                 style={{ color: '#2e7d2e', fontSize: 13, fontWeight: 500, transition: 'color 0.15s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
-              >Forgot Password?</button>
+              >{t('forgotPassword')}</button>
             </div>
 
-            <button type="submit" style={primaryBtn}
-              onMouseEnter={primaryBtnEnter}
-              onMouseLeave={primaryBtnLeave}
-              onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(26,58,42,0.2)'; }}
-              onMouseUp={(e) => { primaryBtnEnter(e); }}
-            >Sign in</button>
-          </form>
+            {loginError && (
+              <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+                {loginError}
+              </div>
+            )}
 
-          <div style={{ marginTop: 16, padding: '10px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
-            <span style={{ color: '#166534', fontWeight: 700, fontSize: 13 }}>Demo:</span>
-            <span style={{ color: '#15803d', fontSize: 13, marginLeft: 4 }}>admin@smartagri.com / admin123</span>
-          </div>
+            <button type="submit" disabled={submitting} style={{ ...primaryBtn, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+              onMouseEnter={(e) => { if (!submitting) primaryBtnEnter(e); }}
+              onMouseLeave={primaryBtnLeave}
+              onMouseDown={(e) => { if (!submitting) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(26,58,42,0.2)'; } }}
+              onMouseUp={(e) => { if (!submitting) primaryBtnEnter(e); }}
+            >{submitting ? t('signingIn') : t('signIn')}</button>
+          </form>
         </div>
       </div>
 
@@ -216,16 +231,16 @@ export default function AdminLogin() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: '#1a1a1a' }}>
-                  {flowStep === 'email' && 'Reset Password'}
-                  {flowStep === 'code' && 'Check Your Email'}
-                  {flowStep === 'reset' && 'Create New Password'}
-                  {flowStep === 'success' && 'Password Reset'}
+                  {flowStep === 'email' && t('resetPasswordTitle')}
+                  {flowStep === 'code' && t('checkEmailTitle')}
+                  {flowStep === 'reset' && t('createNewPasswordTitle')}
+                  {flowStep === 'success' && t('passwordResetTitle')}
                 </div>
                 <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2, marginBottom: 20 }}>
-                  {flowStep === 'email' && 'Enter your email to receive a reset code'}
-                  {flowStep === 'code' && 'Enter the 6-digit code sent to your email'}
-                  {flowStep === 'reset' && 'Your new password must be at least 8 characters'}
-                  {flowStep === 'success' && 'Your password has been reset successfully'}
+                  {flowStep === 'email' && t('resetPasswordSubtitle')}
+                  {flowStep === 'code' && t('checkEmailSubtitle')}
+                  {flowStep === 'reset' && t('createNewPasswordSubtitle')}
+                  {flowStep === 'success' && t('passwordResetSubtitle')}
                 </div>
               </div>
               <button type="button" onClick={closeFlow} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#6b7280', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -237,9 +252,9 @@ export default function AdminLogin() {
             {flowStep === 'email' && (
               <div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email Address</label>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('emailAddress')}</label>
                   <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="Enter your email" style={inputStyle}
+                    placeholder={t('enterEmailPlaceholder')} style={inputStyle}
                     onFocus={inputFocus} onBlur={inputBlur}
                     onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
@@ -247,20 +262,20 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
-                >Send Code</button>
+                >{t('sendCode')}</button>
               </div>
             )}
 
             {flowStep === 'code' && (
               <div>
                 <div style={{ marginBottom: 4, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)', fontSize: 13, color: '#374151' }}>
-                  A verification code has been sent to <strong>{resetEmail || 'your email'}</strong>.
+                  {t('codeSentPrefix')}<strong>{resetEmail || t('yourEmail')}</strong>{t('codeSentSuffix')}
                 </div>
                 <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: '#f0f5f0', fontSize: 13, color: '#6b7280' }}>
-                  Demo Code: <strong style={{ color: '#1a1a1a', letterSpacing: '0.1em' }}>{generatedCode}</strong>
+                  {t('demoCode')} <strong style={{ color: '#1a1a1a', letterSpacing: '0.1em' }}>{generatedCode}</strong>
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Verification Code</label>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('verificationCode')}</label>
                   <div className="flex justify-center gap-2">
                     {codeDigits.map((digit, i) => (
                       <input key={i} type="text" inputMode="numeric" maxLength={1} value={digit}
@@ -282,24 +297,24 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
-                >Verify Code</button>
+                >{t('verifyCode')}</button>
               </div>
             )}
 
             {flowStep === 'reset' && (
               <div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>New Password</label>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('newPassword')}</label>
                   <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password" style={inputStyle}
+                    placeholder={t('enterNewPasswordPlaceholder')} style={inputStyle}
                     onFocus={inputFocus} onBlur={inputBlur}
                     onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Confirm New Password</label>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('confirmNewPassword')}</label>
                   <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password" style={inputStyle}
+                    placeholder={t('confirmNewPasswordPlaceholder')} style={inputStyle}
                     onFocus={inputFocus} onBlur={inputBlur}
                     onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
@@ -308,7 +323,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
-                >Reset Password</button>
+                >{t('resetPasswordButton')}</button>
               </div>
             )}
 
@@ -320,12 +335,12 @@ export default function AdminLogin() {
                   </div>
                 </div>
                 <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>
-                  Your password has been reset successfully. You can now sign in with your new password.
+                  {t('passwordResetSuccessMessage')}
                 </div>
                 <button type="button" onClick={closeFlow} style={primaryBtn}
                   onMouseEnter={primaryBtnEnter}
                   onMouseLeave={primaryBtnLeave}
-                >Back to Sign In</button>
+                >{t('backToSignIn')}</button>
               </div>
             )}
 
@@ -334,7 +349,7 @@ export default function AdminLogin() {
                 <button type="button" onClick={closeFlow} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#2e7d2e', transition: 'color 0.15s ease' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
-                >Back to Sign In</button>
+                >{t('backToSignIn')}</button>
               </div>
             )}
           </div>

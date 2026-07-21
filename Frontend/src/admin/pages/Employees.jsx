@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { logActivity, getActivityLog } from '../../utils/activityLogger';
+import { useT } from '../../i18n';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const inputClass = "add-input-field";
@@ -205,6 +206,7 @@ function FilterSelect({ label, options, value, onChange, width }) {
 }
 
 function ActivityLog({ employeeName }) {
+  const t = useT('employees');
   const entries = useMemo(() => {
     const log = getActivityLog();
     return log.filter((entry) => entry.target === employeeName);
@@ -247,9 +249,9 @@ function ActivityLog({ employeeName }) {
     const d = new Date(ts);
     const now = new Date();
     const diff = now - d;
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    if (diff < 60000) return t('justNow');
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}${t('minutesAgo')}`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}${t('hoursAgo')}`;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
@@ -257,7 +259,7 @@ function ActivityLog({ employeeName }) {
     return (
       <div className="flex flex-col items-center py-12 text-text-placeholder">
         <i className="ph ph-clock-counter-clockwise text-4xl mb-3 opacity-50" />
-        <p className="text-sm font-medium">No activity recorded yet for this employee.</p>
+        <p className="text-sm font-medium">{t('noActivity')}</p>
       </div>
     );
   }
@@ -278,7 +280,7 @@ function ActivityLog({ employeeName }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-semibold text-primary">{entry.userName}</span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || t('system')}</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
               </div>
               <div style={{ marginTop: '10px' }}>
@@ -323,16 +325,18 @@ function ActivityLog({ employeeName }) {
 }
 
 function AccessDenied() {
+  const t = useT('employees');
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <i className="ph ph-shield-warning text-6xl text-text-placeholder mb-4" />
-      <h2 className="text-xl font-bold text-[#1a2e1a] mb-2">Access Denied</h2>
-      <p className="text-sm text-text-secondary">You don't have permission to view this page.</p>
+      <h2 className="text-xl font-bold text-[#1a2e1a] mb-2">{t('accessDenied')}</h2>
+      <p className="text-sm text-text-secondary">{t('accessDeniedDesc')}</p>
     </div>
   );
 }
 
 export default function Employees() {
+  const t = useT('employees');
   const { currentUser } = useAuth();
   const { employees, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
@@ -367,10 +371,10 @@ export default function Employees() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Full name is required';
-    if (!form.email.trim()) errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email format';
-    if (!form.phone.trim()) errs.phone = 'Phone number is required';
+    if (!form.name.trim()) errs.name = t('errName');
+    if (!form.email.trim()) errs.email = t('errEmailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('errEmailInvalid');
+    if (!form.phone.trim()) errs.phone = t('errPhone');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -454,55 +458,55 @@ export default function Employees() {
       `}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-bold text-[#000000]">Employee Management</div>
-          <div className="text-sm text-text-secondary mt-1">Manage admin-level staff accounts</div>
+          <div className="text-2xl font-bold text-[#000000]">{t('title')}</div>
+          <div className="text-sm text-text-secondary mt-1">{t('subtitle')}</div>
         </div>
         <button onClick={openAdd} className={btnPrimary}>
-          <i className="ph ph-plus" /> Add Employee
+          <i className="ph ph-plus" /> {t('addEmployee')}
         </button>
       </div>
 
       <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
-          <div className="text-sm font-semibold text-[#1a2e1a] mb-3">All Employees ({employees.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search employees by name or email..." aria-label="Search employees" className={glassInput} />
+          <div className="text-sm font-semibold text-[#1a2e1a] mb-3">{t('allEmployees')} ({employees.length})</div>
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={glassInput} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
-          <FilterSelect label="STATUS" options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
-          <FilterSelect label="ROLE" options={roleFilterOptions} value={roleFilter} onChange={setRoleFilter} width="160px" />
+          <FilterSelect label={t('statusLabel')} options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          <FilterSelect label={t('roleLabel')} options={roleFilterOptions} value={roleFilter} onChange={setRoleFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span>Showing {filtered.length} of {employees.length} employees</span>
+          <span>{t('showingPrefix')} {filtered.length} {t('showingOf')} {employees.length} {t('showingSuffix')}</span>
           {(searchTerm || statusFilter !== 'All Statuses' || roleFilter !== 'All Roles') && (
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setRoleFilter('All Roles'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
-            >Clear Filters</span>
+            >{t('clearFilters')}</span>
           )}
         </div>
         {filtered.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No employees match your current filters</div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('noMatchTitle')}</div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('noMatchDesc')}</div>
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setRoleFilter('All Roles'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Clear Filters</span>
+            >{t('clearFilters')}</span>
           </div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Name</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Email</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Phone</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Role</th>
-                <th className="text-center px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Status</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Joined</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Actions</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colName')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colEmail')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colPhone')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colRole')}</th>
+                <th className="text-center px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colStatus')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colJoined')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -531,10 +535,10 @@ export default function Employees() {
                   <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.joined}</td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                     <div className="flex gap-3 items-center">
-                      <button title="Edit" onClick={() => openEdit(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('editTooltip')} onClick={() => openEdit(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-pencil" />
                       </button>
-                      <button title="Delete" onClick={() => openDelete(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('deleteTooltip')} onClick={() => openDelete(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-trash" />
                       </button>
                     </div>
@@ -558,8 +562,8 @@ export default function Employees() {
                   <UserPlus size={20} color="#fff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New Employee</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Create a new admin staff account.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('addModalTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('addModalDesc')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -572,30 +576,30 @@ export default function Employees() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <User size={15} color="#4caf50" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Employee Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} color="#9CA3AF" /> Name
+                      <User size={12} color="#9CA3AF" /> {t('fieldName')}
                     </div>
-                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('placeholderName')}
                       className={glassInput}
                     />
                     {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Mail size={12} color="#9CA3AF" /> Email
+                      <Mail size={12} color="#9CA3AF" /> {t('fieldEmail')}
                     </div>
-                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t('placeholderEmail')}
                       className={glassInput}
                     />
                     {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Phone size={12} color="#9CA3AF" /> Phone
+                      <Phone size={12} color="#9CA3AF" /> {t('fieldPhone')}
                     </div>
                     <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
                       className={glassInput}
@@ -604,13 +608,13 @@ export default function Employees() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Shield size={12} color="#9CA3AF" /> Role
+                      <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
                     <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Activity size={12} color="#9CA3AF" /> Status
+                      <Activity size={12} color="#9CA3AF" /> {t('fieldStatus')}
                     </div>
                     <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
                   </div>
@@ -625,7 +629,7 @@ export default function Employees() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -634,7 +638,7 @@ export default function Employees() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <Check size={16} /> Save Employee
+                  <Check size={16} /> {t('saveEmployee')}
                 </button>
               </div>
             </form>
@@ -655,8 +659,8 @@ export default function Employees() {
                   <UserPen size={20} color="#fff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit Employee Details</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Update information for {editEmployee.name}.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('editModalTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('editModalDescPrefix')} {editEmployee.name}{t('editModalDescSuffix')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setEditEmployee(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -669,30 +673,30 @@ export default function Employees() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <User size={15} color="#4caf50" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Employee Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} color="#9CA3AF" /> Name
+                      <User size={12} color="#9CA3AF" /> {t('fieldName')}
                     </div>
-                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('placeholderName')}
                       className={glassInput}
                     />
                     {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Mail size={12} color="#9CA3AF" /> Email
+                      <Mail size={12} color="#9CA3AF" /> {t('fieldEmail')}
                     </div>
-                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t('placeholderEmail')}
                       className={glassInput}
                     />
                     {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Phone size={12} color="#9CA3AF" /> Phone
+                      <Phone size={12} color="#9CA3AF" /> {t('fieldPhone')}
                     </div>
                     <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
                       className={glassInput}
@@ -701,13 +705,13 @@ export default function Employees() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Shield size={12} color="#9CA3AF" /> Role
+                      <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
                     <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Activity size={12} color="#9CA3AF" /> Status
+                      <Activity size={12} color="#9CA3AF" /> {t('fieldStatus')}
                     </div>
                     <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
                   </div>
@@ -722,7 +726,7 @@ export default function Employees() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -731,7 +735,7 @@ export default function Employees() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <Check size={16} /> Save Changes
+                  <Check size={16} /> {t('saveChanges')}
                 </button>
               </div>
             </form>
@@ -751,8 +755,8 @@ export default function Employees() {
                   <Clock size={20} color="#fff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Activity Log — {viewActivity.name}</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>All actions performed by this employee.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('activityModalTitle')} — {viewActivity.name}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('activityModalDesc')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setViewActivity(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -763,7 +767,7 @@ export default function Employees() {
             <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                 <Activity size={15} color="#4caf50" />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activity History</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('activityHistory')}</span>
               </div>
               <ActivityLog employeeName={viewActivity.name} />
             </div>
@@ -776,16 +780,16 @@ export default function Employees() {
       {deleteEmployee && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="text-lg font-bold text-primary mb-2">Delete Employee?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('deleteTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              Are you sure you want to delete <strong className="text-primary font-medium">{deleteEmployee.name}</strong>? This action cannot be undone.
+              {t('deleteConfirmPrefix')} <strong className="text-primary font-medium">{deleteEmployee.name}</strong>{t('deleteConfirmSuffix')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteEmployee(null)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
-                <Trash2 size={14} /> Delete
+                <Trash2 size={14} /> {t('deleteButton')}
               </button>
             </div>
           </div>

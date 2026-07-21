@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { User, Mail, Shield, Activity, Pencil, X, Check } from 'lucide-react';
 import { logActivity } from '../../utils/activityLogger';
+import { useT } from '../../i18n';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 
@@ -55,6 +56,7 @@ const gridStyle = {
 };
 
 const RoleDropdown = ({ value, onChange }) => {
+  const t = useT('profile');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const options = ['Master Admin', 'Admin'];
@@ -71,7 +73,7 @@ const RoleDropdown = ({ value, onChange }) => {
         className={glassInput}
         style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        <span>{value || 'Select role'}</span>
+        <span>{value || t('adminSelectRole')}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -112,6 +114,7 @@ const RoleDropdown = ({ value, onChange }) => {
 };
 
 export default function AdminProfileModal({ currentName, currentEmail, onClose, onSave }) {
+  const t = useT('profile');
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(currentName || 'Admin User');
   const [email, setEmail] = useState(currentEmail || 'admin@smartagri.com');
@@ -172,7 +175,7 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {!editing && (
-              <button type="button" onClick={() => setEditing(true)} title="Edit profile"
+              <button type="button" onClick={() => setEditing(true)} title={t('adminEditProfile')}
                 style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#9CA3AF', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#10B981'; e.currentTarget.style.transform = 'scale(1.15)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
@@ -189,27 +192,27 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
         <div style={cardStyle}>
           <div style={sectionTitleStyle}>
             <Shield size={15} color="#10B981" />
-            <span style={sectionTitleTextStyle}>Admin Information</span>
+            <span style={sectionTitleTextStyle}>{t('adminInformation')}</span>
           </div>
           <div style={gridStyle}>
             <div>
-              <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> Name</div>
+              <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> {t('adminName')}</div>
               {editing ? (
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter full name" className={glassInput} />
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('adminEnterFullName')} className={glassInput} />
               ) : (
                 <div style={valStyle}>{name}</div>
               )}
             </div>
             <div>
-              <div style={labelRowStyle}><Mail size={12} color="#9CA3AF" /> Email</div>
+              <div style={labelRowStyle}><Mail size={12} color="#9CA3AF" /> {t('adminEmail')}</div>
               {editing ? (
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" className={glassInput} />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('adminEnterEmail')} className={glassInput} />
               ) : (
                 <div style={valStyle}>{email}</div>
               )}
             </div>
             <div>
-              <div style={labelRowStyle}><Shield size={12} color="#9CA3AF" /> Role</div>
+              <div style={labelRowStyle}><Shield size={12} color="#9CA3AF" /> {t('adminRole')}</div>
               {editing ? (
                 <RoleDropdown value={role} onChange={setRole} />
               ) : (
@@ -219,10 +222,10 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
               )}
             </div>
             <div>
-              <div style={labelRowStyle}><Activity size={12} color="#9CA3AF" /> System Status</div>
+              <div style={labelRowStyle}><Activity size={12} color="#9CA3AF" /> {t('adminSystemStatus')}</div>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: '#D1FAE5', color: '#065F46' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
-                Active
+                {t('adminActive')}
               </span>
             </div>
           </div>
@@ -236,7 +239,7 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
               onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
               onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >Cancel</button>
+            >{t('adminCancel')}</button>
             <button type="button" onClick={handleSave}
               style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
@@ -244,7 +247,7 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
               onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
               onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
             >
-              <Check size={16} /> Save Changes
+              <Check size={16} /> {t('adminSaveChanges')}
             </button>
           </div>
         )}

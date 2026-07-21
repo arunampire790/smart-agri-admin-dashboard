@@ -1,0 +1,171 @@
+// Robot Assignment page.
+export default {
+  en: {
+    title: 'Robot Assignment',
+    subtitle: 'Generate, assign, and track agricultural robots',
+    generateRobot: 'Generate Robots',
+
+    // Stat cards
+    totalRobots: 'Total Robots',
+    available: 'Available',
+    assigned: 'Assigned',
+    needsAttention: 'Needs Attention',
+
+    // Registry table
+    allRobots: 'All Robots',
+    searchPlaceholder: 'Search by robot ID, farmer, status, or model...',
+    tabAll: 'All',
+    tabAvailable: 'Available',
+    tabAssigned: 'Assigned',
+    tabActive: 'Active',
+    tabMaintenance: 'Maintenance',
+    tabLost: 'Lost',
+    noRobotsFound: 'No robots found',
+    colRobotId: 'Robot ID',
+    colQrCode: 'QR Code',
+    colFarmerAssigned: 'Farmer Assigned',
+    colModel: 'Model',
+    colStatus: 'Status',
+    colRegistered: 'Registered',
+    colActions: 'Actions',
+    unassigned: 'Unassigned',
+    qrFailed: '⚠ Failed',
+    viewQrTooltip: 'View QR code for {id}',
+    editAssignmentTooltip: 'Edit assignment',
+    deleteRobotTooltip: 'Delete robot',
+
+    // Assignment history
+    assignmentHistory: 'Assignment History',
+    assignmentHistorySub: 'Recent robot generation and assignment activity',
+    histColRobotId: 'Robot ID',
+    histColAction: 'Action',
+    histColFarmer: 'Farmer',
+    histColPerformedBy: 'Performed By',
+    histColDate: 'Date',
+    showLess: 'Show Less',
+    viewAll: 'View All ({n})',
+    toastSuccess: 'Generated {count} robot(s): {first} to {last}',
+
+    // Generate modal
+    generateRobotsTitle: 'Generate Robots',
+    generateRobotsSub: 'Create new robots with auto-generated IDs and QR codes',
+    robotDetails: 'Robot Details',
+    numberOfRobots: 'Number of Robots',
+    quantityPlaceholder: 'e.g. 5',
+    quantityError: 'Enter a quantity between 1 and 100',
+    generateHint: 'Will create {n} robot(s): {first} to {last}',
+    robotModel: 'Robot Model',
+    selectModel: 'Select model',
+    cancel: 'Cancel',
+    generate: 'Generate',
+    generateBtnCount: 'Generate {n}',
+
+    // QR modal
+    qrCodeTitle: 'QR Code',
+    qrCodeSub: 'Scan to identify this robot',
+    downloadQr: 'Download',
+    printQr: 'Print',
+
+    // Edit modal
+    editRobotAssignment: 'Edit Robot Assignment',
+    assignmentDetails: 'Assignment Details',
+    farmer: 'Farmer',
+    selectFarmer: 'Select farmer',
+    status: 'Status',
+    selectStatus: 'Select status',
+    model: 'Model',
+    notes: 'Notes',
+    notesPlaceholder: 'Optional notes...',
+    saveAssignment: 'Save Assignment',
+
+    // Delete modal
+    deleteRobotTitle: 'Delete Robot?',
+    deleteConfirmPre: 'Are you sure you want to delete ',
+    deleteConfirmPost: '? This action cannot be undone.',
+    deleteRobotBtn: 'Delete',
+  },
+  ja: {
+    title: 'ロボット割り当て',
+    subtitle: '農業ロボットの生成・割り当て・追跡',
+    generateRobot: 'ロボットを生成',
+
+    // Stat cards
+    totalRobots: '総ロボット数',
+    available: '利用可能',
+    assigned: '割り当て済み',
+    needsAttention: '要対応',
+
+    // Registry table
+    allRobots: 'すべてのロボット',
+    searchPlaceholder: 'ロボットID・農家・ステータス・モデルで検索...',
+    tabAll: 'すべて',
+    tabAvailable: '利用可能',
+    tabAssigned: '割り当て済み',
+    tabActive: '稼働中',
+    tabMaintenance: 'メンテナンス',
+    tabLost: '紛失',
+    noRobotsFound: 'ロボットが見つかりません',
+    colRobotId: 'ロボットID',
+    colQrCode: 'QRコード',
+    colFarmerAssigned: '割り当て農家',
+    colModel: 'モデル',
+    colStatus: 'ステータス',
+    colRegistered: '登録日',
+    colActions: '操作',
+    unassigned: '未割り当て',
+    qrFailed: '⚠ 失敗',
+    viewQrTooltip: '{id} のQRコードを表示',
+    editAssignmentTooltip: '割り当てを編集',
+    deleteRobotTooltip: 'ロボットを削除',
+
+    // Assignment history
+    assignmentHistory: '割り当て履歴',
+    assignmentHistorySub: '最近のロボット生成・割り当て履歴',
+    histColRobotId: 'ロボットID',
+    histColAction: 'アクション',
+    histColFarmer: '農家',
+    histColPerformedBy: '実行者',
+    histColDate: '日付',
+    showLess: '折りたたむ',
+    viewAll: 'すべて表示（{n}）',
+    toastSuccess: '{count}台のロボットを生成しました：{first}〜{last}',
+
+    // Generate modal
+    generateRobotsTitle: 'ロボットを生成',
+    generateRobotsSub: 'IDとQRコードを自動生成して新しいロボットを作成',
+    robotDetails: 'ロボット詳細',
+    numberOfRobots: 'ロボット数',
+    quantityPlaceholder: '例：5',
+    quantityError: '1〜100の数量を入力してください',
+    generateHint: '{n}台のロボットを作成します：{first}〜{last}',
+    robotModel: 'ロボットモデル',
+    selectModel: 'モデルを選択',
+    cancel: 'キャンセル',
+    generate: '生成',
+    generateBtnCount: '{n}台を生成',
+
+    // QR modal
+    qrCodeTitle: 'QRコード',
+    qrCodeSub: 'スキャンしてこのロボットを識別',
+    downloadQr: 'ダウンロード',
+    printQr: '印刷',
+
+    // Edit modal
+    editRobotAssignment: 'ロボット割り当てを編集',
+    assignmentDetails: '割り当て詳細',
+    farmer: '農家',
+    selectFarmer: '農家を選択',
+    status: 'ステータス',
+    selectStatus: 'ステータスを選択',
+    model: 'モデル',
+    notes: 'メモ',
+    notesPlaceholder: '任意のメモ...',
+    saveAssignment: '割り当てを保存',
+
+    // Delete modal
+    deleteRobotTitle: 'ロボットを削除しますか？',
+    deleteConfirmPre: '',
+    deleteConfirmPost: ' を削除してもよろしいですか？この操作は元に戻せません。',
+    deleteRobotBtn: '削除',
+  },
+};

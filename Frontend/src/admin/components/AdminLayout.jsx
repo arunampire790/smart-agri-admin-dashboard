@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useT } from '../../i18n';
 import GlobalHeader from './GlobalHeader';
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const t = useT('nav');
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
   const [robotsOpen, setRobotsOpen] = useState(false);
   const [employeesOpen, setEmployeesOpen] = useState(false);
@@ -85,8 +87,8 @@ export default function AdminLayout() {
             <i className="ph ph-sprout" style={{ color: '#fff', fontSize: 17 }} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff' }}>Smart Agriculture</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Admin Panel</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff' }}>{t('brand')}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{t('adminPanel')}</div>
           </div>
         </div>
         <div style={{ margin: '0 18px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }} />
@@ -99,7 +101,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Dashboard</span>
+            <span>{t('dashboard')}</span>
           </div>
 
           <div
@@ -109,7 +111,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Analytics</span>
+            <span>{t('analytics')}</span>
           </div>
 
           <div>
@@ -120,7 +122,7 @@ export default function AdminLayout() {
               onMouseEnter={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
               onMouseLeave={(e) => { if (!isRobotsActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
             >
-              <span>Robots</span>
+              <span>{t('robots')}</span>
               <i
                 className="ph ph-caret-down"
                 style={{
@@ -141,7 +143,7 @@ export default function AdminLayout() {
                     onMouseEnter={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
                     onMouseLeave={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
                   >
-                    Robot Sensor Details
+                    {t('robotSensorDetails')}
                   </div>
                   <div
                     onClick={() => navigate('/admin/robot-assignment')}
@@ -150,7 +152,7 @@ export default function AdminLayout() {
                     onMouseEnter={(e) => { if (!isActive('/admin/robot-assignment')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
                     onMouseLeave={(e) => { if (!isActive('/admin/robot-assignment')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
                   >
-                    Robot Assignment
+                    {t('robotAssignment')}
                   </div>
                 </>
               )}
@@ -163,7 +165,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Users</span>
+            <span>{t('users')}</span>
           </div>
 
           <div
@@ -173,7 +175,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Farms</span>
+            <span>{t('farms')}</span>
           </div>
 
           <div
@@ -183,7 +185,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Tasks</span>
+            <span>{t('tasks')}</span>
           </div>
 
           {isMasterAdmin && (
@@ -195,7 +197,7 @@ export default function AdminLayout() {
                 onMouseEnter={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
                 onMouseLeave={(e) => { if (!isEmployeesActive) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
               >
-                <span>Employees</span>
+                <span>{t('employees')}</span>
                 <i
                   className="ph ph-caret-down"
                   style={{
@@ -215,7 +217,7 @@ export default function AdminLayout() {
                   onMouseEnter={(e) => { if (!isActive('/admin/activity-log')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
                   onMouseLeave={(e) => { if (!isActive('/admin/activity-log')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; } }}
                 >
-                  Audit Log
+                  {t('auditLog')}
                 </div>
               )}
             </div>
@@ -228,7 +230,7 @@ export default function AdminLayout() {
             onMouseEnter={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
             onMouseLeave={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
           >
-            <span>Settings</span>
+            <span>{t('settings')}</span>
           </div>
         </nav>
 

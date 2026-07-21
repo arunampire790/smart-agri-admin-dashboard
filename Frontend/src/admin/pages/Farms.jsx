@@ -10,6 +10,7 @@ import UserProfileModal from '../components/UserProfileModal';
 import { MapPin, Sprout, Bot, Home, User, Ruler, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import FarmMapPreview from '../components/FarmMapPreview';
+import { useT } from '../../i18n';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -164,6 +165,14 @@ function FilterSelect({ label, options, value, onChange, width }) {
 }
 
 export default function Farms() {
+  const t = useT('farms');
+  const statLabelKeys = { 'Total Farms': 'statTotalFarms', 'Soil Types': 'statSoilTypes', 'Crop Types': 'statCropTypes', 'Active Robots': 'statActiveRobots' };
+  const coordErrText = (msg) => {
+    if (msg === 'Use format: lat, lng') return t('errCoordFormat');
+    if (msg === 'Lat must be -90 to 90') return t('errLatRange');
+    if (msg === 'Lng must be -180 to 180') return t('errLngRange');
+    return msg;
+  };
   const navigate = useNavigate();
   const { farms, addFarm, updateFarm, removeFarm } = useFarms();
   const { robots, updateRobot } = useRobots();
@@ -217,12 +226,12 @@ export default function Farms() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Farm name is required';
-    if (!form.owner.trim()) errs.owner = 'Owner is required';
+    if (!form.name.trim()) errs.name = t('errFarmNameRequired');
+    if (!form.owner.trim()) errs.owner = t('errOwnerRequired');
     formCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
+      if (!str.trim()) { errs[`coord${i}`] = t('errCoordsRequired'); return; }
       const parsed = parseCoordinate(str);
-      if (!parsed) errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
+      if (!parsed) errs[`coord${i}`] = t('errCoordsRequired');
       else if (parsed.error) errs[`coord${i}`] = parsed.error;
     });
     setErrors(errs);
@@ -260,10 +269,10 @@ export default function Farms() {
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
-    if (!editForm.name.trim()) errs.name = 'Full name is required';
-    if (!editForm.email.trim()) errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) errs.email = 'Invalid email format';
-    if (!editForm.phone.trim()) errs.phone = 'Phone number is required';
+    if (!editForm.name.trim()) errs.name = t('errFullNameRequired');
+    if (!editForm.email.trim()) errs.email = t('errEmailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) errs.email = t('errEmailInvalid');
+    if (!editForm.phone.trim()) errs.phone = t('errPhoneRequired');
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -279,12 +288,12 @@ export default function Farms() {
 
   const validateEditFarm = () => {
     const errs = {};
-    if (!editFarmForm.name.trim()) errs.name = 'Farm name is required';
-    if (!editFarmForm.owner.trim()) errs.owner = 'Owner is required';
+    if (!editFarmForm.name.trim()) errs.name = t('errFarmNameRequired');
+    if (!editFarmForm.owner.trim()) errs.owner = t('errOwnerRequired');
     editFormCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
+      if (!str.trim()) { errs[`editCoord${i}`] = t('errCoordsRequired'); return; }
       const parsed = parseCoordinate(str);
-      if (!parsed) errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
+      if (!parsed) errs[`editCoord${i}`] = t('errCoordsRequired');
       else if (parsed.error) errs[`editCoord${i}`] = parsed.error;
     });
     setEditFarmErrors(errs);
@@ -370,10 +379,10 @@ export default function Farms() {
     return [...new Set(farms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
   }, [farms]);
   const soilSubtext = useMemo(() => {
-    if (uniqueSoilTypes.length === 0) return 'No soil data available';
+    if (uniqueSoilTypes.length === 0) return t('noSoilData');
     const names = uniqueSoilTypes.slice(0, 3).join(', ');
-    return uniqueSoilTypes.length > 3 ? `${names} & ${uniqueSoilTypes.length - 3} more` : names;
-  }, [uniqueSoilTypes]);
+    return uniqueSoilTypes.length > 3 ? `${names} ${t('andCountMore').replace('{count}', uniqueSoilTypes.length - 3)}` : names;
+  }, [uniqueSoilTypes, t]);
   const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
@@ -449,10 +458,10 @@ export default function Farms() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-bold text-primary">Farm Management</div>
-          <div className="text-sm text-text-secondary mt-1">View and manage agricultural properties</div>
+          <div className="text-2xl font-bold text-primary">{t('farmManagement')}</div>
+          <div className="text-sm text-text-secondary mt-1">{t('pageSubtitle')}</div>
         </div>
-        <button onClick={openAdd} className={btnPrimary}><i className="ph ph-plus" /> Add Farm</button>
+        <button onClick={openAdd} className={btnPrimary}><i className="ph ph-plus" /> {t('addFarm')}</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -467,7 +476,7 @@ export default function Farms() {
             >
               <div className="relative z-10 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-semibold text-secondary mb-2">{card.label}</div>
+                  <div className="text-xs font-semibold text-secondary mb-2">{t(statLabelKeys[card.label])}</div>
                   <div className="text-3xl font-extrabold text-primary">{card.val}</div>
                   {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', fontStyle: uniqueSoilTypes.length === 0 ? 'italic' : 'normal' }}>{card.sub}</div>}
                 </div>
@@ -482,27 +491,27 @@ export default function Farms() {
 
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
-          <div className="text-sm font-semibold text-primary mb-3">All Farms ({farms.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search farms by name or owner..." aria-label="Search farms" className={inputClass} />
+          <div className="text-sm font-semibold text-primary mb-3">{t('allFarms')} ({farms.length})</div>
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={inputClass} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
-          <FilterSelect label="STATUS" options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
-          <FilterSelect label="OWNER" options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} width="160px" />
+          <FilterSelect label={t('filterStatus')} options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          <FilterSelect label={t('filterOwner')} options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span>Showing {filteredFarms.length} of {farms.length} farms</span>
+          <span>{t('showingCount').replace('{shown}', filteredFarms.length).replace('{total}', farms.length)}</span>
 
         </div>
         {farmRows.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No farms match your current filters</div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('noFarmsMatch')}</div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('tryAdjusting')}</div>
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Clear Filters</span>
+            >{t('clearFilters')}</span>
           </div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
@@ -518,14 +527,14 @@ export default function Farms() {
             </colgroup>
             <thead>
               <tr>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farm Name</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Owner</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Crop Type</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Soil Type</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>Connected Devices</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Assigned Robot</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Status</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Actions</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarmName')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colOwner')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colCropType')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colSoilType')}</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>{t('colConnectedDevices')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAssignedRobot')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colStatus')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -557,10 +566,10 @@ export default function Farms() {
                   </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <div className="flex gap-3 items-center">
-                      <button title="Edit" onClick={() => openEditFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('tooltipEdit')} onClick={() => openEditFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-pencil" style={{ pointerEvents: 'none' }} />
                       </button>
-                      <button title="Delete" onClick={() => setDeleteFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('tooltipDelete')} onClick={() => setDeleteFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-trash" />
                       </button>
                     </div>
@@ -583,8 +592,8 @@ export default function Farms() {
                   <i className="ph ph-robot text-white text-lg" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New Farm</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Enter details to register a new farm.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('addNewFarm')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('addFarmSubtitle')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -597,14 +606,14 @@ export default function Farms() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px', overflow: 'visible' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <Sprout size={15} style={{ color: '#4caf50' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('farmInformation')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Home size={12} style={{ color: '#9CA3AF' }} /> Farm Name
+                      <Home size={12} style={{ color: '#9CA3AF' }} /> {t('fieldFarmName')}
                     </div>
-                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g., Green Valley Farm"
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('phFarmName')}
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                     {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
@@ -612,28 +621,28 @@ export default function Farms() {
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} style={{ color: '#9CA3AF' }} /> Owner
+                      <User size={12} style={{ color: '#9CA3AF' }} /> {t('fieldOwner')}
                     </div>
-                    <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder="Select an owner" />
+                    <Select options={userNames} value={form.owner} onChange={(v) => setForm({ ...form, owner: v })} placeholder={t('phSelectOwner')} />
                     {errors.owner && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.owner}</span>}
-                    {form.owner && (() => { const ownerRobots = (robots || []).filter(r => r.farmer === form.owner); if (ownerRobots.length === 0) return <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>No robots currently assigned to this farmer</div>; return (<div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px' }}><div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, marginBottom: '6px' }}>Robots assigned to {form.owner}:</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{ownerRobots.map(r => (<span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px' }}><span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.id}</span><span style={{ color: '#6b7280' }}>{r.model}</span><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Available' ? '#9CA3AF' : '#F59E0B', display: 'inline-block' }} /></span>))}</div></div>); })()}
+                    {form.owner && (() => { const ownerRobots = (robots || []).filter(r => r.farmer === form.owner); if (ownerRobots.length === 0) return <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{t('noRobotsForFarmer')}</div>; return (<div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '8px', padding: '8px 12px', marginTop: '8px' }}><div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600, marginBottom: '6px' }}>{t('robotsAssignedTo').replace('{owner}', form.owner)}</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{ownerRobots.map(r => (<span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid rgba(46,125,50,0.15)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px' }}><span style={{ fontWeight: 600, color: '#1a1a1a' }}>{r.id}</span><span style={{ color: '#6b7280' }}>{r.model}</span><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.status === 'Active' ? '#4caf50' : r.status === 'Available' ? '#9CA3AF' : '#F59E0B', display: 'inline-block' }} /></span>))}</div></div>); })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Sprout size={12} style={{ color: '#9CA3AF' }} /> Crop Types
+                      <Sprout size={12} style={{ color: '#9CA3AF' }} /> {t('fieldCropTypes')}
                     </div>
-                    <input value={form.cropTypes} onChange={(e) => setForm({ ...form, cropTypes: e.target.value })} placeholder="e.g., Wheat, Barley"
+                    <input value={form.cropTypes} onChange={(e) => setForm({ ...form, cropTypes: e.target.value })} placeholder={t('phCropTypes')}
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
-                      {computedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
+                      <Ruler size={12} style={{ color: '#9CA3AF' }} /> {t('fieldTotalAcreage')}
+                      {computedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
                     </div>
                     <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })}
                       readOnly={computedAcreage !== null}
-                      placeholder="e.g., 120"
+                      placeholder={t('phAcreage')}
                       style={{
                         ...inputBase,
                         background: computedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
@@ -647,7 +656,7 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> Connected Devices
+                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> {t('fieldConnectedDevices')}
                     </div>
                     <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0"
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
@@ -655,13 +664,13 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Layers size={12} style={{ color: '#9CA3AF' }} /> Soil Type
+                      <Layers size={12} style={{ color: '#9CA3AF' }} /> {t('fieldSoilType')}
                     </div>
-                    <Select options={soilTypeOpts} value={form.soil} onChange={(v) => setForm({ ...form, soil: v })} placeholder="Select soil type" />
+                    <Select options={soilTypeOpts} value={form.soil} onChange={(v) => setForm({ ...form, soil: v })} placeholder={t('phSelectSoil')} />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }} data-robot-dropdown-add>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('fieldAssignExtraRobots')}
                     </div>
                     {(() => {
                       const maxRobots = parseInt(form.devices, 10) || 0;
@@ -669,7 +678,7 @@ export default function Farms() {
                       return (
                         <>
                           <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>
-                            {maxRobots === 0 ? "Enter connected devices count above to enable robot assignment" : `Select up to ${maxRobots} robot${maxRobots > 1 ? 's' : ''} based on connected devices count`}
+                            {maxRobots === 0 ? t('robotAssignHint') : t('selectUpToRobots').replace('{count}', maxRobots)}
                           </p>
                           <div style={{ position: 'relative' }}>
                             <button type="button" disabled={maxRobots === 0} onClick={() => setRobotDropdownOpen(prev => !prev)}
@@ -682,7 +691,7 @@ export default function Farms() {
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                               }}
                             >
-                              <span>{selectedRobots.length === 0 ? 'Select robots...' : `${selectedRobots.length} robot${selectedRobots.length > 1 ? 's' : ''} selected`}</span>
+                              <span>{selectedRobots.length === 0 ? t('selectRobotsPlaceholder') : t('robotsSelected').replace('{count}', selectedRobots.length)}</span>
                               <ChevronDown size={16} color="#6b7280" />
                             </button>
                             {robotDropdownOpen && maxRobots > 0 && (
@@ -693,7 +702,7 @@ export default function Farms() {
                                 zIndex: 9999, maxHeight: '180px', overflowY: 'auto'
                               }}>
                                 {unassignedRobots.length === 0 ? (
-                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>No available robots to assign</div>
+                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>{t('noAvailableRobots')}</div>
                                 ) : unassignedRobots.map(robot => {
                                   const isSelected = selectedRobots.includes(robot.id);
                                   const isDisabled = !isSelected && selectedRobots.length >= maxRobots;
@@ -743,7 +752,7 @@ export default function Farms() {
                             </div>
                           )}
                           {selectedRobots.length >= maxRobots && maxRobots > 0 && (
-                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>Maximum robots reached (limit: {maxRobots})</p>
+                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>{t('maxRobotsReached').replace('{count}', maxRobots)}</p>
                           )}
                         </>
                       );
@@ -753,13 +762,13 @@ export default function Farms() {
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
                 <FarmMapPreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} onMapClick={handleAddMapClick} nextPointIndex={addNextPointIndex} modalOpen={showAddModal} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('farmBoundaryPoints')}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>{t('boundaryHint')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                   {[
-                    { label: 'Point 1', color: '#2e7d32', key: 'coord0' },
-                    { label: 'Point 2', color: '#1d6fa8', key: 'coord1' },
-                    { label: 'Point 3', color: '#9333ea', key: 'coord2' },
+                    { label: `${t('point')} 1`, color: '#2e7d32', key: 'coord0' },
+                    { label: `${t('point')} 2`, color: '#1d6fa8', key: 'coord1' },
+                    { label: `${t('point')} 3`, color: '#9333ea', key: 'coord2' },
                   ].map((cfg, i) => {
                     const parsed = parseCoordinate(formCoordStrings[i]);
                     const statusValid = parsed && !parsed.error;
@@ -770,7 +779,7 @@ export default function Farms() {
                           <MapPin size={13} color={cfg.color} /> {cfg.label}
                         </div>
                         <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
-                          placeholder="lat, lng" style={inputBase}
+                          placeholder={t('phLatLng')} style={inputBase}
                           onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                         />
                         {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
@@ -800,7 +809,7 @@ export default function Farms() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -809,7 +818,7 @@ export default function Farms() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <i className="ph ph-check" /> Add Farm
+                  <i className="ph ph-check" /> {t('addFarmBtn')}
                 </button>
               </div>
             </form>
@@ -827,8 +836,8 @@ export default function Farms() {
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit Farm</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Update details for {editFarm.name}.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('editFarmTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('editFarmSubtitle').replace('{name}', editFarm.name)}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setEditFarm(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -840,14 +849,14 @@ export default function Farms() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px', overflow: 'visible' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <Sprout size={15} style={{ color: '#4caf50' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Farm Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('farmInformation')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Home size={12} style={{ color: '#9CA3AF' }} /> Farm Name
+                      <Home size={12} style={{ color: '#9CA3AF' }} /> {t('fieldFarmName')}
                     </div>
-                    <input value={editFarmForm.name} onChange={(e) => setEditFarmForm({ ...editFarmForm, name: e.target.value })} placeholder="e.g., Green Valley Farm"
+                    <input value={editFarmForm.name} onChange={(e) => setEditFarmForm({ ...editFarmForm, name: e.target.value })} placeholder={t('phFarmName')}
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                     {editFarmErrors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{editFarmErrors.name}</span>}
@@ -855,33 +864,33 @@ export default function Farms() {
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} style={{ color: '#9CA3AF' }} /> Owner
+                      <User size={12} style={{ color: '#9CA3AF' }} /> {t('fieldOwner')}
                     </div>
-                    <Select options={userNames} value={editFarmForm.owner} onChange={(v) => setEditFarmForm({ ...editFarmForm, owner: v })} placeholder="Select an owner" />
+                    <Select options={userNames} value={editFarmForm.owner} onChange={(v) => setEditFarmForm({ ...editFarmForm, owner: v })} placeholder={t('phSelectOwner')} />
                     {editFarmErrors.owner && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{editFarmErrors.owner}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Sprout size={12} style={{ color: '#9CA3AF' }} /> Crop Types
+                      <Sprout size={12} style={{ color: '#9CA3AF' }} /> {t('fieldCropTypes')}
                     </div>
-                    <input value={editFarmForm.cropTypes} onChange={(e) => setEditFarmForm({ ...editFarmForm, cropTypes: e.target.value })} placeholder="e.g., Wheat, Barley"
+                    <input value={editFarmForm.cropTypes} onChange={(e) => setEditFarmForm({ ...editFarmForm, cropTypes: e.target.value })} placeholder={t('phCropTypes')}
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Layers size={12} style={{ color: '#9CA3AF' }} /> Soil Type
+                      <Layers size={12} style={{ color: '#9CA3AF' }} /> {t('fieldSoilType')}
                     </div>
-                    <Select options={soilTypeOpts} value={editFarmForm.soil} onChange={(v) => setEditFarmForm({ ...editFarmForm, soil: v })} placeholder="Select soil type" />
+                    <Select options={soilTypeOpts} value={editFarmForm.soil} onChange={(v) => setEditFarmForm({ ...editFarmForm, soil: v })} placeholder={t('phSelectSoil')} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
-                      {editComputedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
+                      <Ruler size={12} style={{ color: '#9CA3AF' }} /> {t('fieldTotalAcreage')}
+                      {editComputedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
                     </div>
                     <input type="number" min="0" value={editFarmForm.acreage} onChange={(e) => setEditFarmForm({ ...editFarmForm, acreage: e.target.value })}
                       readOnly={editComputedAcreage !== null}
-                      placeholder="e.g., 120"
+                      placeholder={t('phAcreage')}
                       style={{
                         ...inputBase,
                         background: editComputedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
@@ -895,7 +904,7 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> Connected Devices
+                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> {t('fieldConnectedDevices')}
                     </div>
                     <input type="number" min="0" value={editFarmForm.devices} onChange={(e) => setEditFarmForm({ ...editFarmForm, devices: e.target.value })} placeholder="0"
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
@@ -903,7 +912,7 @@ export default function Farms() {
                   </div>
                   <div style={{ gridColumn: '1 / -1' }} data-robot-dropdown-edit>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Assign Extra Robots
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('fieldAssignExtraRobots')}
                     </div>
                     {(() => {
                       const maxRobots = parseInt(editFarmForm.devices, 10) || 0;
@@ -911,7 +920,7 @@ export default function Farms() {
                       return (
                         <>
                           <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>
-                            {maxRobots === 0 ? "Enter connected devices count above to enable robot assignment" : `Select up to ${maxRobots} robot${maxRobots > 1 ? 's' : ''} based on connected devices count`}
+                            {maxRobots === 0 ? t('robotAssignHint') : t('selectUpToRobots').replace('{count}', maxRobots)}
                           </p>
                           <div style={{ position: 'relative' }}>
                             <button type="button" disabled={maxRobots === 0} onClick={() => setEditRobotDropdownOpen(prev => !prev)}
@@ -924,7 +933,7 @@ export default function Farms() {
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                               }}
                             >
-                              <span>{editSelectedRobots.length === 0 ? 'Select robots...' : `${editSelectedRobots.length} robot${editSelectedRobots.length > 1 ? 's' : ''} selected`}</span>
+                              <span>{editSelectedRobots.length === 0 ? t('selectRobotsPlaceholder') : t('robotsSelected').replace('{count}', editSelectedRobots.length)}</span>
                               <ChevronDown size={16} color="#6b7280" />
                             </button>
                             {editRobotDropdownOpen && maxRobots > 0 && (
@@ -935,7 +944,7 @@ export default function Farms() {
                                 zIndex: 9999, maxHeight: '180px', overflowY: 'auto'
                               }}>
                                 {unassignedRobots.length === 0 ? (
-                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>No available robots to assign</div>
+                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>{t('noAvailableRobots')}</div>
                                 ) : unassignedRobots.map(robot => {
                                   const isSelected = editSelectedRobots.includes(robot.id);
                                   const isDisabled = !isSelected && editSelectedRobots.length >= maxRobots;
@@ -985,7 +994,7 @@ export default function Farms() {
                             </div>
                           )}
                           {editSelectedRobots.length >= maxRobots && maxRobots > 0 && (
-                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>Maximum robots reached (limit: {maxRobots})</p>
+                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>{t('maxRobotsReached').replace('{count}', maxRobots)}</p>
                           )}
                         </>
                       );
@@ -995,13 +1004,13 @@ export default function Farms() {
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
                 <FarmMapPreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} onMapClick={handleEditMapClick} nextPointIndex={editNextPointIndex} modalOpen={!!editFarm} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('farmBoundaryPoints')}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>{t('boundaryHint')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                   {[
-                    { label: 'Point 1', color: '#2e7d32', key: 'editCoord0' },
-                    { label: 'Point 2', color: '#1d6fa8', key: 'editCoord1' },
-                    { label: 'Point 3', color: '#9333ea', key: 'editCoord2' },
+                    { label: `${t('point')} 1`, color: '#2e7d32', key: 'editCoord0' },
+                    { label: `${t('point')} 2`, color: '#1d6fa8', key: 'editCoord1' },
+                    { label: `${t('point')} 3`, color: '#9333ea', key: 'editCoord2' },
                   ].map((cfg, i) => {
                     const parsed = parseCoordinate(editFormCoordStrings[i]);
                     const statusValid = parsed && !parsed.error;
@@ -1012,7 +1021,7 @@ export default function Farms() {
                           <MapPin size={13} color={cfg.color} /> {cfg.label}
                         </div>
                         <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
-                          placeholder="lat, lng" style={inputBase}
+                          placeholder={t('phLatLng')} style={inputBase}
                           onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                         />
                         {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
@@ -1041,7 +1050,7 @@ export default function Farms() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -1050,7 +1059,7 @@ export default function Farms() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <i className="ph ph-check" /> Update Farm
+                  <i className="ph ph-check" /> {t('updateFarmBtn')}
                 </button>
               </div>
             </form>
@@ -1061,16 +1070,16 @@ export default function Farms() {
       {deleteFarm && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteFarm(null)}>
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="text-lg font-bold text-primary mb-2">Delete Farm?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('deleteFarmTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              Are you sure you want to delete <strong className="text-primary font-medium">{deleteFarm.name}</strong>? This action cannot be undone.
+              {t('deleteConfirmPre')}<strong className="text-primary font-medium">{deleteFarm.name}</strong>{t('deleteConfirmPost')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteFarm(null)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleDeleteFarm} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
-                <Trash2 size={14} /> Delete
+                <Trash2 size={14} /> {t('deleteFarmBtn')}
               </button>
             </div>
           </div>
@@ -1088,8 +1097,8 @@ export default function Farms() {
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit User Details</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Update information for {editUser.name}.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('editUserTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('editUserSubtitle').replace('{name}', editUser.name)}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setEditUser(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -1102,14 +1111,14 @@ export default function Farms() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('userInformation')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Name
+                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldName')}
                     </div>
-                    <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Enter full name"
+                    <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder={t('phFullName')}
                       style={inputBase}
                       onFocus={inputFocus}
                       onBlur={inputBlur}
@@ -1120,9 +1129,9 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> Email
+                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldEmail')}
                     </div>
-                    <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="Enter email address"
+                    <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder={t('phEmail')}
                       style={inputBase}
                       onFocus={inputFocus}
                       onBlur={inputBlur}
@@ -1133,9 +1142,9 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> Phone
+                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldPhone')}
                     </div>
-                    <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} placeholder="+1-555-xxxx"
+                    <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} placeholder={t('phPhone')}
                       style={inputBase}
                       onFocus={inputFocus}
                       onBlur={inputBlur}
@@ -1146,7 +1155,7 @@ export default function Farms() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
+                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldStatus')}
                     </div>
                     <Select value={editForm.status} onChange={(v) => setEditForm({ ...editForm, status: v })} options={userStatusOpts} />
                   </div>
@@ -1161,7 +1170,7 @@ export default function Farms() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -1170,7 +1179,7 @@ export default function Farms() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <i className="ph ph-check" /> Save Changes
+                  <i className="ph ph-check" /> {t('saveChanges')}
                 </button>
               </div>
             </form>

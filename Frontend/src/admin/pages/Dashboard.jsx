@@ -7,6 +7,7 @@ import { useTaskStore } from '../../stores/taskStore';
 import UserProfileModal from '../components/UserProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, MapPin } from 'lucide-react';
+import { useT } from '../../i18n';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -48,7 +49,9 @@ const farmRegs = [
   { label: 'Jun', pct: 100, val: 36 },
 ];
 
-const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks }) => (
+const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks }) => {
+  const t = useT('dashboard');
+  return (
   <div className="relative flex items-center justify-center">
     <ResponsiveContainer width="100%" height={180}>
       <PieChart>
@@ -62,13 +65,16 @@ const TaskDonut = memo(({ activeCount, pendingCount, completedCount, totalTasks 
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="text-center">
         <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: 'var(--color-text-primary)' }}>{totalTasks}</div>
-        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>Total</div>
+        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>{t('total')}</div>
       </div>
     </div>
   </div>
-));
+  );
+});
 
-const RobotDonut = memo(({ onlineCount, idleCount, offlineCount, totalRobots }) => (
+const RobotDonut = memo(({ onlineCount, idleCount, offlineCount, totalRobots }) => {
+  const t = useT('dashboard');
+  return (
   <div className="relative flex items-center justify-center">
     <ResponsiveContainer width="100%" height={180}>
       <PieChart>
@@ -82,14 +88,16 @@ const RobotDonut = memo(({ onlineCount, idleCount, offlineCount, totalRobots }) 
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="text-center">
         <div className="text-2xl font-extrabold leading-none mb-0.5" style={{ color: 'var(--color-text-primary)' }}>{totalRobots}</div>
-        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>Total</div>
+        <div className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>{t('total')}</div>
       </div>
     </div>
   </div>
-));
+  );
+});
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const t = useT('dashboard');
   const { users } = useUsers();
   const { farms } = useFarms();
   const { robots } = useRobots();
@@ -107,8 +115,8 @@ export default function Dashboard() {
   return (
     <>
       <div className="mb-6">
-        <div className="text-2xl font-bold text-primary">Dashboard</div>
-        <div className="text-sm text-text-secondary mt-1">Welcome back — here's what's happening today</div>
+        <div className="text-2xl font-bold text-primary">{t('dashboard')}</div>
+        <div className="text-sm text-text-secondary mt-1">{t('welcomeBack')}</div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-4">
@@ -119,9 +127,9 @@ export default function Dashboard() {
         >
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Total Users</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('totalUsers')}</div>
               <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{users.length}</div>
-              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>↑ +12% from last month</div>
+              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>{t('usersTrend')}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(76,175,80,0.12)' }}>
               <Users size={18} color="#2e7d2e" />
@@ -135,9 +143,9 @@ export default function Dashboard() {
         >
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Total Farms</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('totalFarms')}</div>
               <div className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text-primary)' }}>{farms.length}</div>
-              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>↑ +8% from last month</div>
+              <div className="text-xs leading-relaxed" style={{ color: '#2e7d2e' }}>{t('farmsTrend')}</div>
             </div>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(76,175,80,0.12)' }}>
               <MapPin size={18} color="#2e7d2e" />
@@ -148,7 +156,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <GlowCard onClick={() => navigate('/admin/tasks')} className="glass-card rounded-2xl p-5">
-          <div className="text-sm font-semibold text-primary mb-3">Task Lifecycle</div>
+          <div className="text-sm font-semibold text-primary mb-3">{t('taskLifecycle')}</div>
           <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
           <div className="flex justify-center gap-5 text-xs mt-1">
             {[{ name: 'Active', value: activeCount, color: '#4caf50' }, { name: 'Pending', value: pendingCount, color: '#D97706' }, { name: 'Completed', value: completedCount, color: '#0D9488' }].map((item) => (
@@ -161,7 +169,7 @@ export default function Dashboard() {
           </div>
         </GlowCard>
         <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5">
-          <div className="text-sm font-semibold text-primary mb-3">Robot Status</div>
+          <div className="text-sm font-semibold text-primary mb-3">{t('robotStatus')}</div>
           <RobotDonut onlineCount={activeRobots} idleCount={idleRobots} offlineCount={offlineRobots} totalRobots={robots.length} />
           <div className="flex justify-center gap-4 text-xs mt-1">
             {[{ name: 'Online', value: activeRobots, color: '#22C55E' }, { name: 'Idle', value: idleRobots, color: '#F59E0B' }, { name: 'Offline', value: offlineRobots, color: '#EF4444' }].map((item) => (
@@ -177,7 +185,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
-          <div className="text-sm font-semibold text-primary mb-4">User Growth Over Time</div>
+          <div className="text-sm font-semibold text-primary mb-4">{t('userGrowth')}</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={userGrowth} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
@@ -195,7 +203,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
-          <div className="text-sm font-semibold text-primary mb-4">Farm Registrations</div>
+          <div className="text-sm font-semibold text-primary mb-4">{t('farmRegistrations')}</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={farmRegs} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
               <defs>
@@ -216,22 +224,22 @@ export default function Dashboard() {
 
       <div className="glass-card rounded-2xl p-5 mb-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-semibold text-primary">Recent Tasks</div>
+          <div className="text-sm font-semibold text-primary">{t('recentTasks')}</div>
           <button onClick={() => navigate('/admin/tasks')} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 font-medium"
             style={{ color: '#5a7a5a', border: '1px solid rgba(76,175,80,0.2)', background: '#ffffff', transition: 'all 0.2s ease' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; e.currentTarget.style.borderColor = '#4caf50'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.borderColor = 'rgba(76,175,80,0.2)'; }}>
-            <i className="ph ph-arrow-right" /> View all
+            <i className="ph ph-arrow-right" /> {t('viewAll')}
           </button>
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Task</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">User</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Farm</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Priority</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">Status</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colTask')}</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colUser')}</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colFarm')}</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colPriority')}</th>
+              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colStatus')}</th>
             </tr>
           </thead>
           <tbody>

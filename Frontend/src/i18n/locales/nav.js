@@ -1,0 +1,33 @@
+// Sidebar navigation
+export default {
+  en: {
+    brand: 'Smart Agriculture',
+    adminPanel: 'Admin Panel',
+    dashboard: 'Dashboard',
+    analytics: 'Analytics',
+    robots: 'Robots',
+    robotSensorDetails: 'Robot Sensor Details',
+    robotAssignment: 'Robot Assignment',
+    users: 'Users',
+    farms: 'Farms',
+    tasks: 'Tasks',
+    employees: 'Employees',
+    auditLog: 'Audit Log',
+    settings: 'Settings',
+  },
+  ja: {
+    brand: 'スマート農業',
+    adminPanel: '管理パネル',
+    dashboard: 'ダッシュボード',
+    analytics: '分析',
+    robots: 'ロボット',
+    robotSensorDetails: 'ロボットセンサー詳細',
+    robotAssignment: 'ロボット割り当て',
+    users: 'ユーザー',
+    farms: '農場',
+    tasks: 'タスク',
+    employees: '従業員',
+    auditLog: '監査ログ',
+    settings: '設定',
+  },
+};

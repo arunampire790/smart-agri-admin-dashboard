@@ -11,6 +11,7 @@ from .models import (
     Recommendation,
     Task,
     ActivityLog,
+    RobotHistory,
 )
 from .serializers import (
     FarmerSerializer,
@@ -23,6 +24,7 @@ from .serializers import (
     RecommendationSerializer,
     TaskSerializer,
     ActivityLogSerializer,
+    RobotHistorySerializer,
 )
 
 
@@ -32,7 +34,7 @@ class FarmerViewSet(viewsets.ModelViewSet):
 
 
 class FarmViewSet(viewsets.ModelViewSet):
-    queryset = Farm.objects.select_related("farmer").all().order_by("-created_at")
+    queryset = Farm.objects.all().order_by("-created_at")
     serializer_class = FarmSerializer
 
 
@@ -47,8 +49,13 @@ class CropViewSet(viewsets.ModelViewSet):
 
 
 class RobotViewSet(viewsets.ModelViewSet):
-    queryset = Robot.objects.select_related("farm").all().order_by("-created_at")
+    queryset = Robot.objects.all().order_by("id")
     serializer_class = RobotSerializer
+
+
+class RobotHistoryViewSet(viewsets.ModelViewSet):
+    queryset = RobotHistory.objects.all().order_by("-date", "-created_at")
+    serializer_class = RobotHistorySerializer
 
 
 class SensorDataViewSet(viewsets.ModelViewSet):

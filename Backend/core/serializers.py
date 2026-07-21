@@ -11,6 +11,7 @@ from .models import (
     Recommendation,
     Task,
     ActivityLog,
+    RobotHistory,
 )
 
 
@@ -21,13 +22,30 @@ class FarmerSerializer(serializers.ModelSerializer):
 
 
 class FarmSerializer(serializers.ModelSerializer):
-    # Read-only convenience field so the frontend can show the owner name
-    # without a second request.
-    farmer_name = serializers.CharField(source="farmer.full_name", read_only=True)
+    # Expose the exact camelCase keys the frontend already uses, so the
+    # React contexts need no field renaming.
+    cropTypes = serializers.CharField(
+        source="crop_types", required=False, allow_blank=True
+    )
+    assignedRobots = serializers.JSONField(source="assigned_robots", required=False)
 
     class Meta:
         model = Farm
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "owner",
+            "crop",
+            "cropTypes",
+            "soil",
+            "robot",
+            "assignedRobots",
+            "status",
+            "size",
+            "devices",
+            "coordinates",
+            "created_at",
+        ]
 
 
 class SoilSerializer(serializers.ModelSerializer):
@@ -43,15 +61,34 @@ class CropSerializer(serializers.ModelSerializer):
 
 
 class RobotSerializer(serializers.ModelSerializer):
-    farm_name = serializers.CharField(source="farm.farm_name", read_only=True)
-
     class Meta:
         model = Robot
-        fields = "__all__"
+        # Exact shape the frontend already uses.
+        fields = [
+            "id",
+            "name",
+            "model",
+            "status",
+            "farmer",
+            "farm",
+            "battery",
+            "registered",
+            "notes",
+            "created_at",
+        ]
+
+
+class RobotHistorySerializer(serializers.ModelSerializer):
+    # camelCase key to match the frontend history objects.
+    robotId = serializers.CharField(source="robot_id")
+
+    class Meta:
+        model = RobotHistory
+        fields = ["id", "robotId", "action", "farmer", "by", "date"]
 
 
 class SensorDataSerializer(serializers.ModelSerializer):
-    robot_code = serializers.CharField(source="robot.robot_code", read_only=True)
+    robot_code = serializers.CharField(source="robot.id", read_only=True)
 
     class Meta:
         model = SensorData
@@ -71,8 +108,8 @@ class RecommendationSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    farm_name = serializers.CharField(source="farm.farm_name", read_only=True)
-    robot_code = serializers.CharField(source="robot.robot_code", read_only=True)
+    farm_name = serializers.CharField(source="farm.name", read_only=True)
+    robot_code = serializers.CharField(source="robot.id", read_only=True)
 
     class Meta:
         model = Task
@@ -80,7 +117,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class ActivityLogSerializer(serializers.ModelSerializer):
-    robot_code = serializers.CharField(source="robot.robot_code", read_only=True)
+    robot_code = serializers.CharField(source="robot.id", read_only=True)
 
     class Meta:
         model = ActivityLog

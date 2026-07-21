@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "./i18n/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext";
 import { FarmProvider } from "./context/FarmContext";
@@ -8,9 +9,11 @@ import { ActivityLogProvider } from "./context/ActivityLogContext";
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminRoutes from "./routes/AdminRoutes";
 import UserRoutes from "./routes/UserRoutes";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <UserProvider>
         <FarmProvider>
@@ -22,7 +25,7 @@ function App() {
                     <Route path="/" element={<AdminLogin />} />
                     <Route path="/login" element={<AdminLogin />} />
                     <Route path="/user/*" element={<UserRoutes />} />
-                    <Route path="/admin/*" element={<AdminRoutes />} />
+                    <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
                   </Routes>
                 </BrowserRouter>
               </ActivityLogProvider>
@@ -31,6 +34,7 @@ function App() {
         </FarmProvider>
       </UserProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 

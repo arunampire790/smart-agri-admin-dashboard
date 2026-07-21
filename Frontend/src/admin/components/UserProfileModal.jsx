@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { User, Mail, Phone, CheckCircle2, MapPin, Layers, Bot, Clock, Users as UsersIcon, Map, X } from 'lucide-react';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
+import { useT } from '../../i18n';
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.75)',
@@ -54,6 +55,7 @@ const gridStyle = {
 };
 
 export default function UserProfileModal({ user, onClose }) {
+  const t = useT('profile');
   const { farms } = useFarms();
   const { robots } = useRobots();
 
@@ -109,23 +111,23 @@ export default function UserProfileModal({ user, onClose }) {
         <div style={cardStyle}>
           <div style={sectionTitleStyle}>
             <UsersIcon size={15} color="#10B981" />
-            <span style={sectionTitleTextStyle}>Core Identity Matrix</span>
+            <span style={sectionTitleTextStyle}>{t('userCoreIdentityMatrix')}</span>
           </div>
           <div style={gridStyle}>
             <div>
-              <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> Name</div>
+              <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> {t('userName')}</div>
               <div style={valStyle}>{user.name}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><Mail size={12} color="#9CA3AF" /> Email</div>
+              <div style={labelRowStyle}><Mail size={12} color="#9CA3AF" /> {t('userEmail')}</div>
               <div style={valStyle}>{user.email}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><Phone size={12} color="#9CA3AF" /> Phone</div>
+              <div style={labelRowStyle}><Phone size={12} color="#9CA3AF" /> {t('userPhone')}</div>
               <div style={valStyle}>{user.phone}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><CheckCircle2 size={12} color="#9CA3AF" /> System Status</div>
+              <div style={labelRowStyle}><CheckCircle2 size={12} color="#9CA3AF" /> {t('userSystemStatus')}</div>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: user.status === 'Active' ? '#D1FAE5' : '#FEE2E2', color: user.status === 'Active' ? '#065F46' : '#991B1B' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: user.status === 'Active' ? '#10B981' : '#EF4444' }} />
                 {user.status}
@@ -138,19 +140,19 @@ export default function UserProfileModal({ user, onClose }) {
         <div style={cardStyle}>
           <div style={sectionTitleStyle}>
             <Map size={15} color="#10B981" />
-            <span style={sectionTitleTextStyle}>Farm Details Infrastructure</span>
+            <span style={sectionTitleTextStyle}>{t('userFarmDetailsInfrastructure')}</span>
           </div>
           <div style={gridStyle}>
             <div>
-              <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Primary Farm Anchor</div>
+              <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> {t('userPrimaryFarmAnchor')}</div>
               <div style={valStyle}>{primaryFarm}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> Crop Types</div>
+              <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> {t('userCropTypes')}</div>
               <div style={valStyle}>{sectors}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><Map size={12} color="#9CA3AF" /> Total Acreage</div>
+              <div style={labelRowStyle}><Map size={12} color="#9CA3AF" /> {t('userTotalAcreage')}</div>
               <div style={valStyle}>{totalAcreage}</div>
             </div>
           </div>
@@ -160,15 +162,15 @@ export default function UserProfileModal({ user, onClose }) {
         <div style={cardStyle}>
           <div style={sectionTitleStyle}>
             <Bot size={15} color="#10B981" />
-            <span style={sectionTitleTextStyle}>Assigned Robots Dynamic Data</span>
+            <span style={sectionTitleTextStyle}>{t('userAssignedRobotsDynamicData')}</span>
           </div>
           <div style={gridStyle}>
             <div>
-              <div style={labelRowStyle}><Bot size={12} color="#9CA3AF" /> Robot Fleet</div>
+              <div style={labelRowStyle}><Bot size={12} color="#9CA3AF" /> {t('userRobotFleet')}</div>
               <div style={{ ...valStyle, wordBreak: 'break-word' }}>{robotFleet}</div>
             </div>
             <div>
-              <div style={labelRowStyle}><Clock size={12} color="#9CA3AF" /> Last Sync Timestamp</div>
+              <div style={labelRowStyle}><Clock size={12} color="#9CA3AF" /> {t('userLastSyncTimestamp')}</div>
               <div style={valStyle}>{lastSync}</div>
             </div>
           </div>

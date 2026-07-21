@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 import { ChevronDown, Check } from 'lucide-react';
+import { useT } from '../../i18n';
 
 function FilterSelect({ label, options, value, onChange, width }) {
   const [open, setOpen] = useState(false);
@@ -140,6 +141,7 @@ const StatusDropdown = ({ value, onChange, options }) => {
 export default function Users() {
   const { users, addUser, removeUser, updateUser } = useUsers();
   const { currentUser } = useAuth();
+  const t = useT('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
@@ -177,10 +179,10 @@ export default function Users() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Full name is required';
-    if (!form.email.trim()) errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email format';
-    if (!form.phone.trim()) errs.phone = 'Phone number is required';
+    if (!form.name.trim()) errs.name = t('errName');
+    if (!form.email.trim()) errs.email = t('errEmailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('errEmailInvalid');
+    if (!form.phone.trim()) errs.phone = t('errPhone');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -221,54 +223,54 @@ export default function Users() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-bold text-primary">User Management</div>
-          <div className="text-sm text-text-secondary mt-1">Manage system users and permissions</div>
+          <div className="text-2xl font-bold text-primary">{t('userManagement')}</div>
+          <div className="text-sm text-text-secondary mt-1">{t('manageSubtitle')}</div>
         </div>
         <button onClick={openAdd} className={btnPrimary}>
-          <i className="ph ph-plus" /> Add User
+          <i className="ph ph-plus" /> {t('addUser')}
         </button>
       </div>
 
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
-          <div className="text-sm font-semibold text-primary mb-3">All Users ({users.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email…" aria-label="Search users" className={glassInput} />
+          <div className="text-sm font-semibold text-primary mb-3">{t('allUsers')} ({users.length})</div>
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={glassInput} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
-          <FilterSelect label="STATUS" options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
+          <FilterSelect label={t('statusFilterLabel')} options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span>Showing {filteredUsers.length} of {users.length} users</span>
+          <span>{t('showingCount').replace('{shown}', filteredUsers.length).replace('{total}', users.length)}</span>
           {(searchTerm || statusFilter !== 'All') && (
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
-            >Clear Filters</span>
+            >{t('clearFilters')}</span>
           )}
         </div>
         {filteredUsers.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No users match your current filters</div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Try adjusting or clearing your filters</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('noMatch')}</div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('adjustFilters')}</div>
             <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >Clear Filters</span>
+            >{t('clearFilters')}</span>
           </div>
         ) : (
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Name</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Email</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Phone</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farms</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Status</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Joined</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Actions</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colName')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colEmail')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colPhone')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarms')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colStatus')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colJoined')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -297,13 +299,13 @@ export default function Users() {
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{u.joined}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <div className="flex gap-3 items-center">
-                      <button title="View" onClick={() => setProfileUser(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('view')} onClick={() => setProfileUser(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-eye" />
                       </button>
-                      <button title="Edit" onClick={() => openEdit(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('edit')} onClick={() => openEdit(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-pencil" />
                       </button>
-                      <button title="Delete" onClick={() => openDelete(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                      <button title={t('delete')} onClick={() => openDelete(u)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
                         <i className="ph ph-trash" />
                       </button>
                     </div>
@@ -327,8 +329,8 @@ export default function Users() {
                   <i className="ph ph-user-plus text-white text-lg" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Add New User</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Enter details to register a new user.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('addNewUser')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('addNewUserDesc')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowAddModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -341,30 +343,30 @@ export default function Users() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('userInformation')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Name
+                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldName')}
                     </div>
-                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('placeholderName')}
                       className={glassInput}
                     />
                     {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> Email
+                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldEmail')}
                     </div>
-                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t('placeholderEmail')}
                       className={glassInput}
                     />
                     {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> Phone
+                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldPhone')}
                     </div>
                     <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
                       className={glassInput}
@@ -373,7 +375,7 @@ export default function Users() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
+                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldStatus')}
                     </div>
                     <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={modalStatusOptions} />
                   </div>
@@ -388,7 +390,7 @@ export default function Users() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -397,7 +399,7 @@ export default function Users() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <i className="ph ph-check" /> Save User
+                  <i className="ph ph-check" /> {t('saveUser')}
                 </button>
               </div>
             </form>
@@ -412,8 +414,8 @@ export default function Users() {
           <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <div className="text-lg font-bold text-primary">User Details</div>
-                <div className="text-xs text-text-secondary mt-0.5">Viewing information for {viewUser.name}.</div>
+                <div className="text-lg font-bold text-primary">{t('userDetails')}</div>
+                <div className="text-xs text-text-secondary mt-0.5">{t('viewingInfoFor').replace('{name}', viewUser.name)}</div>
               </div>
               <button type="button" onClick={() => setViewUser(null)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                 <i className="ph ph-x" />
@@ -421,12 +423,12 @@ export default function Users() {
             </div>
             <div className="space-y-4">
               {[
-                { label: 'Name', value: viewUser.name },
-                { label: 'Email', value: viewUser.email },
-                { label: 'Phone', value: viewUser.phone },
-                { label: 'Number of Farms', value: viewUser.farms },
-                { label: 'Status', value: viewUser.status },
-                { label: 'Date Created', value: viewUser.joined },
+                { label: t('fieldName'), value: viewUser.name },
+                { label: t('fieldEmail'), value: viewUser.email },
+                { label: t('fieldPhone'), value: viewUser.phone },
+                { label: t('fieldNumberOfFarms'), value: viewUser.farms },
+                { label: t('fieldStatus'), value: viewUser.status },
+                { label: t('fieldDateCreated'), value: viewUser.joined },
               ].map((field) => (
                 <div key={field.label} className="flex flex-col gap-1">
                   <span className={labelClass}>{field.label}</span>
@@ -435,7 +437,7 @@ export default function Users() {
               ))}
             </div>
             <div className="flex justify-end mt-6">
-              <button onClick={() => setViewUser(null)} className={btnGhost}>Close</button>
+              <button onClick={() => setViewUser(null)} className={btnGhost}>{t('close')}</button>
             </div>
           </div>
         </div>,
@@ -454,8 +456,8 @@ export default function Users() {
                   <i className="ph ph-pen text-white text-lg" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit User Details</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Update information for {editUser.name}.</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('editUserDetails')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('updateInfoFor').replace('{name}', editUser.name)}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setEditUser(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -468,30 +470,30 @@ export default function Users() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Information</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('userInformation')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> Name
+                      <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldName')}
                     </div>
-                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter full name"
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('placeholderName')}
                       className={glassInput}
                     />
                     {errors.name && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.name}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> Email
+                      <i className="ph ph-envelope text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldEmail')}
                     </div>
-                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email address"
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t('placeholderEmail')}
                       className={glassInput}
                     />
                     {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> Phone
+                      <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldPhone')}
                     </div>
                     <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-xxxx"
                       className={glassInput}
@@ -500,7 +502,7 @@ export default function Users() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> Status
+                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldStatus')}
                     </div>
                     <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={modalStatusOptions} />
                   </div>
@@ -515,7 +517,7 @@ export default function Users() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -524,7 +526,7 @@ export default function Users() {
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
                 >
-                  <i className="ph ph-check" /> Save Changes
+                  <i className="ph ph-check" /> {t('saveChanges')}
                 </button>
               </div>
             </form>
@@ -537,16 +539,16 @@ export default function Users() {
       {deleteUser && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteUser(null)}>
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
-            <div className="text-lg font-bold text-primary mb-2">Delete User?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('deleteUserTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              Are you sure you want to delete <strong className="text-primary font-medium">{deleteUser.name}</strong>? This action cannot be undone.
+              {t('deleteConfirmPrefix')}<strong className="text-primary font-medium">{deleteUser.name}</strong>{t('deleteConfirmSuffix')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteUser(null)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
-                <i className="ph ph-trash" /> Delete
+                <i className="ph ph-trash" /> {t('deleteBtn')}
               </button>
             </div>
           </div>

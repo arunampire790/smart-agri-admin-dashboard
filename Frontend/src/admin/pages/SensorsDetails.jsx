@@ -13,6 +13,7 @@ import {
   Thermometer, Droplets, Waves, Radar, MapPin, Cpu,
   ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
 } from 'lucide-react';
+import { useT } from '../../i18n';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -35,7 +36,7 @@ function GlowCard({ className, style: outerStyle, onClick, children }) {
   );
 }
 
-function Select({ options, value, onChange, placeholder, width }) {
+function Select({ options, value, onChange, placeholder, width, labelFor = (o) => o }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -49,7 +50,7 @@ function Select({ options, value, onChange, placeholder, width }) {
         className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
         style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
       >
-        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder || 'Select...'}</span>
+        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value ? labelFor(value) : (placeholder || 'Select...')}</span>
         <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -81,7 +82,7 @@ function Select({ options, value, onChange, placeholder, width }) {
                   if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
                 }}
               >
-                <span>{opt}</span>
+                <span>{labelFor(opt)}</span>
                 {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
               </div>
             );
@@ -110,31 +111,32 @@ const soilColor = (s) => {
   return '#3B82F6';
 };
 
+// Label-returning helpers return i18n keys; callers wrap them in t().
 const soilLabel = (s) => {
-  if (s < 20) return 'Too Dry';
-  if (s <= 60) return 'Optimal';
-  return 'Too Wet';
+  if (s < 20) return 'soilTooDry';
+  if (s <= 60) return 'soilOptimal';
+  return 'soilTooWet';
 };
 
 const ultrasonicStatus = (u) => {
-  if (u < 30) return { label: 'Obstacle Detected', color: '#EF4444', icon: '⚠' };
-  if (u <= 200) return { label: 'Clear Path', color: '#10B981', icon: '✓' };
-  return { label: 'No Reading', color: '#9CA3AF', icon: '—' };
+  if (u < 30) return { label: 'usObstacle', color: '#EF4444', icon: '⚠' };
+  if (u <= 200) return { label: 'usClear', color: '#10B981', icon: '✓' };
+  return { label: 'usNoReading', color: '#9CA3AF', icon: '—' };
 };
 
 const fertilizerAlert = (level) => {
-  if (level <= 0) return { label: 'No Data', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
-  if (level < 10) return { label: 'Low', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
-  if (level <= 50) return { label: 'Moderate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
-  return { label: 'Excessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
+  if (level <= 0) return { label: 'alertNoData', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
+  if (level < 10) return { label: 'alertLow', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
+  if (level <= 50) return { label: 'alertModerate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
+  return { label: 'alertExcessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
 };
 
 const waterAlert = (level) => {
-  if (level <= 0) return { label: 'No Data', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
-  if (level < 100) return { label: 'Low', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
-  if (level <= 500) return { label: 'Moderate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
-  if (level <= 1000) return { label: 'Optimal', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', icon: '✓' };
-  return { label: 'Excessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
+  if (level <= 0) return { label: 'alertNoData', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
+  if (level < 100) return { label: 'alertLow', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
+  if (level <= 500) return { label: 'alertModerate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
+  if (level <= 1000) return { label: 'alertOptimal', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', icon: '✓' };
+  return { label: 'alertExcessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
 };
 
 function SemiGauge({ value, max, unit, label, color, size = 160 }) {
@@ -156,7 +158,7 @@ function SemiGauge({ value, max, unit, label, color, size = 160 }) {
   );
 }
 
-function SoilGauge({ value, size = 180 }) {
+function SoilGauge({ value, size = 180, t }) {
   const ratio = Math.min(value / 100, 1);
   const color = soilColor(value);
   const bgColor = '#E5E7EB';
@@ -176,30 +178,32 @@ function SoilGauge({ value, size = 180 }) {
           strokeDasharray={circumference} strokeDashoffset={offset} transform={`rotate(-90 ${cx} ${cy})`}
           style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
         <text x={cx} y={cy - 4} textAnchor="middle" fontSize="28" fontWeight="800" fill="#111827">{value}%</text>
-        <text x={cx} y={cy + 16} textAnchor="middle" fontSize="10" fontWeight="600" fill="#5A7A5A">{soilLabel(value)}</text>
+        <text x={cx} y={cy + 16} textAnchor="middle" fontSize="10" fontWeight="600" fill="#5A7A5A">{t(soilLabel(value))}</text>
       </svg>
     </div>
   );
 }
 
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, t }) {
   if (!active || !payload || !payload.length) return null;
+  const tr = t || ((k) => k);
+  const nameLabel = (n) => (n === 'Temperature' ? tr('temperature') : tr('soilMoisture'));
   return (
     <div style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(76,175,80,0.12)', borderRadius: 8, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}>
       <div style={{ fontWeight: 600, color: '#111827', marginBottom: 2 }}>{label}</div>
       {payload.map((p) => (
-        <div key={p.name} style={{ color: p.color, fontWeight: 500 }}>{p.name}: {p.value}{p.name === 'Temperature' ? '°C' : '%'}</div>
+        <div key={p.name} style={{ color: p.color, fontWeight: 500 }}>{nameLabel(p.name)}: {p.value}{p.name === 'Temperature' ? '°C' : '%'}</div>
       ))}
     </div>
   );
 }
 
-function DistanceIndicator({ distance }) {
+function DistanceIndicator({ distance, t }) {
   const rings = [
-    { max: 30, color: '#EF4444', label: 'Obstacle' },
-    { max: 100, color: '#F59E0B', label: 'Caution' },
-    { max: 200, color: '#10B981', label: 'Clear' },
-    { max: Infinity, color: '#9CA3AF', label: 'Far' },
+    { max: 30, color: '#EF4444', label: 'ringObstacle' },
+    { max: 100, color: '#F59E0B', label: 'ringCaution' },
+    { max: 200, color: '#10B981', label: 'ringClear' },
+    { max: Infinity, color: '#9CA3AF', label: 'ringFar' },
   ];
   const activeRing = rings.find((r) => distance <= r.max) || rings[rings.length - 1];
   return (
@@ -226,7 +230,7 @@ function DistanceIndicator({ distance }) {
       </div>
       <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
         style={{ background: `${activeRing.color}15`, color: activeRing.color }}>
-        {activeRing.icon || ''} {activeRing.label}
+        {activeRing.icon || ''} {t(activeRing.label)}
       </span>
     </div>
   );
@@ -235,6 +239,7 @@ function DistanceIndicator({ distance }) {
 const sensorStatusOk = (readings) => readings !== undefined && readings !== null;
 
 export default function SensorsDetails() {
+  const t = useT('sensors');
   const { robots } = useRobots();
   const { farms } = useFarms();
   const { tasks } = useTasks();
@@ -284,7 +289,7 @@ export default function SensorsDetails() {
   if (!robots || robots.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-sm text-text-secondary">No robot data available.</div>
+        <div className="text-sm text-text-secondary">{t('noRobotData')}</div>
       </div>
     );
   }
@@ -317,7 +322,7 @@ export default function SensorsDetails() {
             </span>
             <span className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5"
               style={{ background: 'rgba(76,175,80,0.1)', color: '#2e7d2e' }}>
-              <Cpu size={14} /> Battery {r.battery}%
+              <Cpu size={14} /> {t('battery')} {r.battery}%
             </span>
           </div>
         </div>
@@ -325,53 +330,53 @@ export default function SensorsDetails() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Thermometer size={16} color="#2e7d2e" /> DHT11 — Temperature & Humidity
+              <Thermometer size={16} color="#2e7d2e" /> {t('dht11Title')}
             </div>
             {isOnline && readings ? (
               <div className="flex items-center justify-around">
-                <SemiGauge value={readings.dht11.temperature} max={50} unit="°C" label="Temperature" color={tempColor(readings.dht11.temperature)} />
-                <SemiGauge value={readings.dht11.humidity} max={100} unit="%" label="Humidity" color={humidityColor(readings.dht11.humidity)} />
+                <SemiGauge value={readings.dht11.temperature} max={50} unit="°C" label={t('temperature')} color={tempColor(readings.dht11.temperature)} />
+                <SemiGauge value={readings.dht11.humidity} max={100} unit="%" label={t('humidity')} color={humidityColor(readings.dht11.humidity)} />
               </div>
             ) : (
               <div className="flex items-center justify-center h-[100px]">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>Sensor Offline</span>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>{t('sensorOffline')}</span>
               </div>
             )}
           </GlowCard>
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Droplets size={16} color="#2e7d2e" /> Soil Moisture
+              <Droplets size={16} color="#2e7d2e" /> {t('soilMoisture')}
             </div>
             {isOnline && readings ? (
               <div className="flex justify-center">
-                <SoilGauge value={readings.soilMoisture} />
+                <SoilGauge value={readings.soilMoisture} t={t} />
               </div>
             ) : (
               <div className="flex items-center justify-center h-[180px]">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>Sensor Offline</span>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>{t('sensorOffline')}</span>
               </div>
             )}
           </GlowCard>
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Radar size={16} color="#2e7d2e" /> Ultrasonic
+              <Radar size={16} color="#2e7d2e" /> {t('ultrasonic')}
             </div>
             {isOnline && readings ? (
               <div className="flex justify-center">
-                <DistanceIndicator distance={readings.ultrasonic} />
+                <DistanceIndicator distance={readings.ultrasonic} t={t} />
               </div>
             ) : (
               <div className="flex items-center justify-center h-[180px]">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>Sensor Offline</span>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>{t('sensorOffline')}</span>
               </div>
             )}
           </GlowCard>
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <MapPin size={16} color="#2e7d2e" /> Farm Map Coordinates
+              <MapPin size={16} color="#2e7d2e" /> {t('farmMapCoords')}
             </div>
             {(() => {
               const farmCoords = farms.find(f => f.name === r.farm)?.coordinates;
@@ -379,17 +384,17 @@ export default function SensorsDetails() {
                 <div className="flex flex-col items-center gap-3">
                   <div className="p-4 rounded-xl w-full text-center" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
                     <MapPin size={24} color="#9CA3AF" className="mx-auto mb-2" />
-                    <div className="text-sm text-text-secondary">No map coordinates available for this farm</div>
+                    <div className="text-sm text-text-secondary">{t('noFarmCoords')}</div>
                   </div>
                 </div>
               );
               const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
-              const labels = ['Point 1', 'Point 2', 'Point 3'];
+              const labels = [`${t('point')} 1`, `${t('point')} 2`, `${t('point')} 3`];
               return (
                 <div className="flex flex-col items-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
                     style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                    <MapPin size={12} /> {farmCoords.length} Boundary Points
+                    <MapPin size={12} /> {t('boundaryPoints').replace('{count}', farmCoords.length)}
                   </div>
                   <div className="p-4 rounded-xl w-full" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
                     {farmCoords.map((c, i) => (
@@ -407,14 +412,14 @@ export default function SensorsDetails() {
 
           <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
             <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Sprout size={16} color="#2e7d2e" /> Fertilizer & Water Alerts
+              <Sprout size={16} color="#2e7d2e" /> {t('fertilizerWaterAlerts')}
             </div>
             {(() => {
               const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
               if (farmTasks.length === 0) return (
                 <div className="flex flex-col items-center justify-center" style={{ minHeight: '120px' }}>
                   <Sprout size={24} color="#9CA3AF" />
-                  <span className="text-xs text-text-secondary mt-2">No resource tasks assigned to {r.farm}</span>
+                  <span className="text-xs text-text-secondary mt-2">{t('noResourceTasks').replace('{farm}', r.farm)}</span>
                 </div>
               );
               const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
@@ -428,7 +433,7 @@ export default function SensorsDetails() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Sprout size={16} color="#2e7d2e" />
-                          <span className="text-sm font-medium text-primary">Fertilizer</span>
+                          <span className="text-sm font-medium text-primary">{t('fertilizer')}</span>
                         </div>
                         <span className="text-sm font-bold" style={{ color: fAlert.color }}>{totalFertilizer.toFixed(1)} L</span>
                       </div>
@@ -437,7 +442,7 @@ export default function SensorsDetails() {
                           <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalFertilizer / 100) * 100, 100)}%`, background: fAlert.color }} />
                         </div>
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: fAlert.bg, color: fAlert.color }}>
-                          {fAlert.icon} {fAlert.label}
+                          {fAlert.icon} {t(fAlert.label)}
                         </span>
                       </div>
                     </div>
@@ -447,7 +452,7 @@ export default function SensorsDetails() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Droplets size={16} color="#3B82F6" />
-                          <span className="text-sm font-medium text-primary">Water</span>
+                          <span className="text-sm font-medium text-primary">{t('water')}</span>
                         </div>
                         <span className="text-sm font-bold" style={{ color: wAlert.color }}>{totalWater.toFixed(1)} L</span>
                       </div>
@@ -456,7 +461,7 @@ export default function SensorsDetails() {
                           <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalWater / 1500) * 100, 100)}%`, background: wAlert.color }} />
                         </div>
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: wAlert.bg, color: wAlert.color }}>
-                          {wAlert.icon} {wAlert.label}
+                          {wAlert.icon} {t(wAlert.label)}
                         </span>
                       </div>
                     </div>
@@ -479,8 +484,8 @@ export default function SensorsDetails() {
 
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-semibold text-primary">Sensor Reading History</div>
-            <div className="text-[9px] text-text-secondary">// TODO: Replace with real time-series data from sensor API</div>
+            <div className="text-sm font-semibold text-primary">{t('historyTitle')}</div>
+            <div className="text-[9px] text-text-secondary">{t('historyNote')}</div>
           </div>
           {historyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -489,16 +494,16 @@ export default function SensorsDetails() {
                 <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="temp" domain={[10, 40]} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="moisture" domain={[0, 100]} orientation="right" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip t={t} />} />
                 <Legend
-                  formatter={(val) => <span style={{ color: 'var(--color-text-secondary)', fontSize: 12, fontWeight: 500 }}>{val}</span>}
+                  formatter={(val) => <span style={{ color: 'var(--color-text-secondary)', fontSize: 12, fontWeight: 500 }}>{val === 'Temperature' ? t('temperature') : t('soilMoisture')}</span>}
                 />
                 <Line yAxisId="temp" type="monotone" dataKey="temperature" stroke="#EF4444" strokeWidth={2.5} dot={false} name="Temperature" activeDot={{ r: 4, fill: '#EF4444', stroke: '#fff', strokeWidth: 2 }} />
                 <Line yAxisId="moisture" type="monotone" dataKey="soilMoisture" stroke="#10B981" strokeWidth={2.5} dot={false} name="Soil Moisture" activeDot={{ r: 4, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[220px] text-sm text-text-secondary">No history data available</div>
+            <div className="flex items-center justify-center h-[220px] text-sm text-text-secondary">{t('noHistoryData')}</div>
           )}
         </GlowCard>
       </>
@@ -512,8 +517,8 @@ export default function SensorsDetails() {
           <Cpu size={22} color="#2e7d2e" />
         </div>
         <div>
-          <div className="text-2xl font-bold text-primary">Robot Sensor Details</div>
-          <div className="text-sm text-text-secondary mt-1">Live sensor readings from every robot in the fleet</div>
+          <div className="text-2xl font-bold text-primary">{t('pageTitle')}</div>
+          <div className="text-sm text-text-secondary mt-1">{t('pageSubtitle')}</div>
         </div>
       </div>
 
@@ -521,7 +526,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Sensors Online</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statSensorsOnline')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.online}</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
@@ -532,7 +537,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Avg Temperature</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statAvgTemp')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.avgTemp}°C</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
@@ -543,7 +548,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Avg Soil Moisture</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statAvgMoisture')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.avgMoisture}%</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
@@ -554,7 +559,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Obstacles Detected</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statObstacles')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.obstacles}</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(239,68,68,0.12)' }}>
@@ -565,7 +570,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Total Fertilizer</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statTotalFertilizer')}</div>
               <div className="text-xl font-extrabold" style={{ color: fertilizerAlert(fleetStats.totalFertilizer).color }}>{fleetStats.totalFertilizer.toFixed(1)}L</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(46,125,50,0.12)' }}>
@@ -576,7 +581,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Total Water</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statTotalWater')}</div>
               <div className="text-xl font-extrabold" style={{ color: waterAlert(fleetStats.totalWater).color }}>{fleetStats.totalWater.toFixed(1)}L</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
@@ -587,7 +592,7 @@ export default function SensorsDetails() {
         <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">Last Synced</div>
+              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statLastSynced')}</div>
               <div className="text-xl font-extrabold text-primary">{lastSyncStr}</div>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
@@ -598,18 +603,19 @@ export default function SensorsDetails() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-        <div className="text-sm font-semibold text-primary">Robot Sensor Grid ({filteredRobots.length})</div>
+        <div className="text-sm font-semibold text-primary">{t('gridTitle').replace('{count}', filteredRobots.length)}</div>
         <div>
-          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Farm</div>
-          <Select options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="200px" />
+          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('farm')}</div>
+          <Select options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="200px"
+            labelFor={(o) => (o === 'All Farms' ? t('allFarms') : o)} />
         </div>
       </div>
       {farmFilter !== 'All Farms' && (
         <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
-          Showing {filteredRobots.length} of {robots.length} robots
+          {t('showing').replace('{shown}', filteredRobots.length).replace('{total}', robots.length)}
           <span onClick={() => setFarmFilter('All Farms')}
             style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
-          >Clear Filter</span>
+          >{t('clearFilter')}</span>
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -635,7 +641,7 @@ export default function SensorsDetails() {
                 <div className="flex items-center justify-center h-[120px]">
                   <div className="flex flex-col items-center gap-1.5">
                     <WifiOff size={20} color="#9CA3AF" />
-                    <span className="text-[11px] font-semibold px-3 py-1 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>Sensor Offline</span>
+                    <span className="text-[11px] font-semibold px-3 py-1 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>{t('sensorOffline')}</span>
                   </div>
                 </div>
               ) : readings ? (
@@ -653,18 +659,18 @@ export default function SensorsDetails() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[9px] font-semibold text-text-secondary uppercase tracking-wider">Soil Moisture</span>
+                      <span className="text-[9px] font-semibold text-text-secondary uppercase tracking-wider">{t('soilMoisture')}</span>
                       <span className="text-[10px] font-bold" style={{ color: soilColor(readings.soilMoisture) }}>{readings.soilMoisture}%</span>
                     </div>
                     <div className="h-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.06)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${readings.soilMoisture}%`, background: soilColor(readings.soilMoisture) }} />
                     </div>
-                    <div className="text-[9px] font-medium mt-0.5" style={{ color: soilColor(readings.soilMoisture) }}>{soilLabel(readings.soilMoisture)}</div>
+                    <div className="text-[9px] font-medium mt-0.5" style={{ color: soilColor(readings.soilMoisture) }}>{t(soilLabel(readings.soilMoisture))}</div>
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-1.5">
                       <Radar size={12} color="#5A7A5A" />
-                      <span className="text-[9px] font-semibold text-text-secondary uppercase tracking-wider">Ultrasonic</span>
+                      <span className="text-[9px] font-semibold text-text-secondary uppercase tracking-wider">{t('ultrasonic')}</span>
                     </div>
                     <span className="text-[10px] font-semibold" style={{ color: us?.color }}>{us?.icon} {readings.ultrasonic}cm</span>
                   </div>
@@ -675,9 +681,9 @@ export default function SensorsDetails() {
                       if (fCoords && fCoords.length > 0) {
                         return <span className="text-[9px] text-text-secondary">{fCoords[0].lat.toFixed(2)}, {fCoords[0].lng.toFixed(2)}</span>;
                       }
-                      return <span className="text-[9px] text-text-secondary">No map coords</span>;
+                      return <span className="text-[9px] text-text-secondary">{t('noMapCoords')}</span>;
                     })()}
-                    <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 Map</span>
+                    <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 {t('map')}</span>
                   </div>
                   {(() => {
                     const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
@@ -698,14 +704,14 @@ export default function SensorsDetails() {
                             <Droplets size={9} className="inline mr-0.5" style={{ verticalAlign: 'middle' }} />{totalW.toFixed(1)}L
                           </span>
                         )}
-                        <span className="text-[7px] text-text-secondary ml-auto">{farmTasks.length} task{farmTasks.length > 1 ? 's' : ''}</span>
+                        <span className="text-[7px] text-text-secondary ml-auto">{farmTasks.length} {farmTasks.length > 1 ? t('taskPlural') : t('taskSingular')}</span>
                       </div>
                     );
                   })()}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-[120px]">
-                  <span className="text-[11px] text-text-secondary">No sensor data</span>
+                  <span className="text-[11px] text-text-secondary">{t('noSensorData')}</span>
                 </div>
               )}
             </GlowCard>

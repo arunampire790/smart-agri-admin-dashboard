@@ -6,6 +6,8 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { useT, useLang } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
 import AdminProfileModal from './AdminProfileModal';
 
 // TODO: Replace placeholder notifications with real backend/notification service integration once available
@@ -22,6 +24,9 @@ export default function GlobalHeader() {
   const { robots } = useRobots();
   const { tasks } = useTasks();
   const { employees } = useEmployees();
+  const t = useT('header');
+  const { lang, toggleLang } = useLang();
+  const { logout } = useAuth();
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +153,7 @@ export default function GlobalHeader() {
     if (e.key === 'Escape') { setProfileModalOpen(false); setNotifOpen(false); setSearchOpen(false); }
   };
 
-  const handleLogout = () => { localStorage.clear(); navigate('/login'); };
+  const handleLogout = () => { logout(); navigate('/login'); };
   const initials = adminName.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   const markAllRead = () => {
@@ -196,7 +201,7 @@ export default function GlobalHeader() {
       <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: '#FFFFFF', border: '1px solid rgba(20,46,28,0.12)' }}>
           <i className="ph ph-magnifying-glass" style={{ color: '#9CA3AF', fontSize: '14px' }} />
-          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder="Search..." aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
+          <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder={t('searchPlaceholder')} aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
             style={{ color: '#111827' }}
           />
           <style>{`header input::placeholder { color: #6B7280 !important; }`}</style>
@@ -284,10 +289,20 @@ export default function GlobalHeader() {
       </div>
 
       <div className="flex items-center gap-5 shrink-0">
-        <div className="flex items-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>EN / 日本語</div>
+        <button
+          type="button"
+          onClick={toggleLang}
+          title={lang === 'en' ? 'Switch to Japanese / 日本語に切り替え' : 'Switch to English / 英語に切り替え'}
+          aria-label="Toggle language"
+          className="flex items-center gap-1 px-1 py-1 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer"
+          style={{ background: 'rgba(20,46,28,0.05)', border: 'none' }}
+        >
+          <span className="px-2.5 py-1 rounded-full transition-colors" style={{ background: lang === 'en' ? '#142E1C' : 'transparent', color: lang === 'en' ? '#ffffff' : '#6b7280' }}>EN</span>
+          <span className="px-2.5 py-1 rounded-full transition-colors" style={{ background: lang === 'ja' ? '#142E1C' : 'transparent', color: lang === 'ja' ? '#ffffff' : '#6b7280' }}>日本語</span>
+        </button>
         <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>
           <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#4caf50', animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
-          System Online
+          {t('systemOnline')}
         </div>
         {/* Notification Bell */}
         <div className="relative shrink-0" ref={notifRef} onKeyDown={handleKeyDown}>

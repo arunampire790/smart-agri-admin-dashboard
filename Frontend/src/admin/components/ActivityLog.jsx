@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useActivityLog } from '../../context/ActivityLogContext';
+import { useT } from '../../i18n';
 
 const entityColors = {
   User: 'bg-blue-100 text-blue-800',
@@ -31,6 +32,7 @@ function extractAction(action) {
 }
 
 export default function ActivityLog() {
+  const t = useT('activityLog');
   const { entries, refresh } = useActivityLog();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -41,6 +43,9 @@ export default function ActivityLog() {
   const dropdownRef = useRef(null);
   const btnRef = useRef(null);
   const timeOptions = ['Today', 'Last 7 Days', 'Last Month', 'Last Year'];
+  // Keep the option values above stable for the filter logic; translate only the display.
+  const timeLabelKeys = { 'Today': 'timeToday', 'Last 7 Days': 'time7Days', 'Last Month': 'timeMonth', 'Last Year': 'timeYear' };
+  const timeLabel = (opt) => t(timeLabelKeys[opt] || opt);
 
   const handleRefresh = () => {
     if (refreshing) return;
@@ -93,9 +98,9 @@ export default function ActivityLog() {
     const d = new Date(ts);
     const now = new Date();
     const diff = now - d;
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    if (diff < 60000) return t('justNow');
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}${t('minutesAgo')}`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}${t('hoursAgo')}`;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
@@ -105,8 +110,8 @@ export default function ActivityLog() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Activity Log</h1>
-          <p className="text-sm text-text-secondary mt-1">Real-time audit trail of all system actions</p>
+          <h1 className="text-2xl font-bold text-primary">{t('title')}</h1>
+          <p className="text-sm text-text-secondary mt-1">{t('subtitle')}</p>
         </div>
         <button
           ref={btnRef}
@@ -124,7 +129,7 @@ export default function ActivityLog() {
           onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.filter = 'brightness(1)'; }}
         >
           <i className="ph ph-arrows-clockwise text-base" style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none' }} />
-          <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          <span>{refreshing ? t('refreshing') : t('refresh')}</span>
         </button>
       </div>
 
@@ -139,7 +144,7 @@ export default function ActivityLog() {
                 : 'bg-white/50 text-text-secondary hover:bg-white/80 border border-white/40'
             }`}
           >
-            {f === 'all' ? 'All' : f}
+            {f === 'all' ? t('filterAll') : t('filter' + f)}
           </button>
         ))}
         <div className="ml-auto flex items-center gap-3">
@@ -147,7 +152,7 @@ export default function ActivityLog() {
             <i className="ph ph-magnifying-glass text-text-placeholder text-sm" />
             <input
               type="text"
-              placeholder="Search log..."
+              placeholder={t('searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent border-none outline-none text-sm text-primary w-40 placeholder:text-text-placeholder"
@@ -166,7 +171,7 @@ export default function ActivityLog() {
               onMouseEnter={(e) => { if (!dropdownOpen) e.currentTarget.style.borderColor = '#9CA3AF'; }}
               onMouseLeave={(e) => { if (!dropdownOpen) e.currentTarget.style.borderColor = '#D1D5DB'; }}
             >
-              <span>{timeRange}</span>
+              <span>{timeLabel(timeRange)}</span>
               <i className="ph ph-caret-down" style={{
                 position: 'absolute', right: '12px', top: '50%',
                 transform: `translateY(-50%) rotate(${dropdownOpen ? '180deg' : '0deg'})`,
@@ -198,7 +203,7 @@ export default function ActivityLog() {
                         if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
                       }}
                     >
-                      <span>{opt}</span>
+                      <span>{timeLabel(opt)}</span>
                       {selected && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: 600 }}>✓</span>}
                     </div>
                   );
@@ -213,15 +218,15 @@ export default function ActivityLog() {
         {activeEntries > 0 && (
           <div className="flex items-center gap-2 px-5 py-2.5 bg-brand/10 border-b border-white/20">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-700">{activeEntries} active in last minute</span>
+            <span className="text-xs font-medium text-emerald-700">{t('activeInLastMinute').replace('{n}', activeEntries)}</span>
           </div>
         )}
 
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-text-placeholder">
             <i className="ph ph-clock-counter-clockwise text-5xl mb-3 opacity-50" />
-            <p className="text-sm font-medium">No activity entries found</p>
-            <p className="text-xs mt-1">Actions will appear here as they occur</p>
+            <p className="text-sm font-medium">{t('noEntriesTitle')}</p>
+            <p className="text-xs mt-1">{t('noEntriesSub')}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/20">
@@ -239,7 +244,7 @@ export default function ActivityLog() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-primary">{entry.userName}</span>
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity || 'System'}</span>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/40 text-text-secondary">{entity ? t('filter' + entity) : t('system')}</span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${entityColor}`}>{entry.action}</span>
                     </div>
                     <p className="text-sm text-text-secondary mt-0.5">

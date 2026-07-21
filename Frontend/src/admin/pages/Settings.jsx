@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { useActivityLog } from '../../context/ActivityLogContext';
+import { useT } from '../../i18n';
 
 const Toggle = ({ checked, onChange }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
@@ -81,6 +82,7 @@ function DangerZoneRow({ label, sublabel, buttonText, onClick, noBorder }) {
 
 export default function Settings() {
   const { clearLog } = useActivityLog();
+  const t = useT('settings');
 
   const [firstName, setFirstName] = useState('Admin');
   const [lastName, setLastName] = useState('User');
@@ -106,7 +108,7 @@ export default function Settings() {
   const handleClearLog = () => {
     clearLog();
     setShowClearDialog(false);
-    showToast('Activity log cleared successfully');
+    showToast(t('toastLogCleared'));
   };
 
   const handleResetSettings = () => {
@@ -117,7 +119,7 @@ export default function Settings() {
     setNewPw('');
     setConfirmPw('');
     setShowResetDialog(false);
-    showToast('Settings reset to defaults');
+    showToast(t('toastSettingsReset'));
   };
 
   useEffect(() => {
@@ -190,12 +192,12 @@ export default function Settings() {
     <>
       <style>{`.settings-input::placeholder { color: #9ca3af; font-size: 14px; }`}</style>
       <div className="mb-6">
-        <div style={{ fontSize: 28, fontWeight: 700, color: '#1a1a1a' }}>Settings</div>
-        <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>Manage your profile and system preferences</div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: '#1a1a1a' }}>{t('pageTitle')}</div>
+        <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>{t('pageSubtitle')}</div>
       </div>
 
       {/* Profile Settings */}
-      <SettingsSection title="Profile Settings" subtitle="Update your personal information">
+      <SettingsSection title={t('profileTitle')} subtitle={t('profileSubtitle')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ color: '#ffffff', fontSize: 20, fontWeight: 700 }}>AD</span>
@@ -206,37 +208,37 @@ export default function Settings() {
               style={{ fontSize: 13, fontWeight: 500, color: '#2e7d2e', transition: 'color 0.15s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
-            >Edit</button>
+            >{t('edit')}</button>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4" style={{ marginBottom: 16 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>First Name</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('firstName')}</label>
             <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name" className="settings-input"
+              placeholder={t('firstNamePlaceholder')} className="settings-input"
               style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
               onMouseEnter={inputHover} onMouseLeave={inputLeave}
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Last Name</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('lastName')}</label>
             <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last name" className="settings-input"
+              placeholder={t('lastNamePlaceholder')} className="settings-input"
               style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
               onMouseEnter={inputHover} onMouseLeave={inputLeave}
             />
           </div>
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Email Address</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('emailAddress')}</label>
           <input type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)}
-            placeholder="your@email.com" className="settings-input"
+            placeholder={t('emailPlaceholder')} className="settings-input"
             style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
             onMouseEnter={inputHover} onMouseLeave={inputLeave}
           />
         </div>
         <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Phone Number</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('phoneNumber')}</label>
           <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)}
             placeholder="+1-555-0000" className="settings-input"
             style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
@@ -247,73 +249,73 @@ export default function Settings() {
           <button type="button" style={btnStyle}
             onMouseEnter={btnEnter} onMouseLeave={btnLeave}
             onClick={() => { /* save profile */ }}
-          >Save Changes</button>
+          >{t('saveChanges')}</button>
         </div>
       </SettingsSection>
 
       {/* Notification Settings */}
-      <SettingsSection title="Notification Settings" subtitle="Choose what you get notified about">
-        <SettingsRow label="Email Notifications" sublabel="System event updates via email">
+      <SettingsSection title={t('notificationTitle')} subtitle={t('notificationSubtitle')}>
+        <SettingsRow label={t('emailNotifications')} sublabel={t('emailNotificationsDesc')}>
           <Toggle checked={emailNotif} onChange={() => setEmailNotif((p) => !p)} />
         </SettingsRow>
-        <SettingsRow label="Task Assignments" sublabel="Get notified when tasks are assigned">
+        <SettingsRow label={t('taskAssignments')} sublabel={t('taskAssignmentsDesc')}>
           <Toggle checked={taskAssign} onChange={() => setTaskAssign((p) => !p)} />
         </SettingsRow>
-        <SettingsRow label="Robot Status Alerts" sublabel="Alert when robots go offline" noBorder>
+        <SettingsRow label={t('robotStatusAlerts')} sublabel={t('robotStatusAlertsDesc')} noBorder>
           <Toggle checked={robotAlerts} onChange={() => setRobotAlerts((p) => !p)} />
         </SettingsRow>
       </SettingsSection>
 
       {/* Security Settings */}
-      <SettingsSection title="Security Settings" subtitle="Manage your security preferences">
+      <SettingsSection title={t('securityTitle')} subtitle={t('securitySubtitle')}>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Current Password</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('currentPassword')}</label>
           <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)}
-            placeholder="Enter current password" className="settings-input"
+            placeholder={t('currentPasswordPlaceholder')} className="settings-input"
             style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
             onMouseEnter={inputHover} onMouseLeave={inputLeave}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>New Password</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('newPassword')}</label>
           <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)}
-            placeholder="Enter new password" className="settings-input"
+            placeholder={t('newPasswordPlaceholder')} className="settings-input"
             style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
             onMouseEnter={inputHover} onMouseLeave={inputLeave}
           />
         </div>
         <div style={{ marginBottom: 8 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Confirm New Password</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('confirmNewPassword')}</label>
           <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
-            placeholder="Confirm new password" className="settings-input"
+            placeholder={t('confirmNewPasswordPlaceholder')} className="settings-input"
             style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
             onMouseEnter={inputHover} onMouseLeave={inputLeave}
           />
         </div>
         <div style={{ fontSize: 12, fontStyle: 'italic', color: '#6b7280', marginBottom: 16 }}>
-          Passwords must be at least 8 characters
+          {t('passwordHint')}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" style={btnStyle}
             onMouseEnter={btnEnter} onMouseLeave={btnLeave}
             onClick={() => { /* update password */ }}
-          >Update Password</button>
+          >{t('updatePassword')}</button>
         </div>
       </SettingsSection>
 
       {/* Danger Zone */}
-      <SettingsSection title="Danger Zone" subtitle="Irreversible actions — proceed with caution" danger>
+      <SettingsSection title={t('dangerZoneTitle')} subtitle={t('dangerZoneSubtitle')} danger>
         <DangerZoneRow
-          label="Clear Activity Log"
-          sublabel="Permanently delete all audit log entries"
-          buttonText="Clear Log"
+          label={t('clearActivityLog')}
+          sublabel={t('clearActivityLogDesc')}
+          buttonText={t('clearLog')}
           onClick={() => setShowClearDialog(true)}
         />
         <DangerZoneRow
-          label="Reset All Settings"
-          sublabel="Restore all settings to their default values"
-          buttonText="Reset"
+          label={t('resetAllSettings')}
+          sublabel={t('resetAllSettingsDesc')}
+          buttonText={t('reset')}
           onClick={() => setShowResetDialog(true)}
           noBorder
         />
@@ -328,18 +330,18 @@ export default function Settings() {
             onClick={(e) => e.stopPropagation()}
             style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >
-            <div className="text-lg font-bold text-primary mb-2">Clear Activity Log?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('clearDialogTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              This will permanently delete all audit log entries. This action cannot be undone.
+              {t('clearDialogMessage')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowClearDialog(false)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none"
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleClearLog}
                 style={{ background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 8, padding: '8px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 className="transition-all duration-150 active:scale-[0.97] hover:scale-[1.04]"
-              ><Trash2 size={14} /> Clear Log</button>
+              ><Trash2 size={14} /> {t('clearLog')}</button>
             </div>
           </div>
         </div>,
@@ -355,18 +357,18 @@ export default function Settings() {
             onClick={(e) => e.stopPropagation()}
             style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >
-            <div className="text-lg font-bold text-primary mb-2">Reset All Settings?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('resetDialogTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              This will restore all notification and security settings to their default values. Your profile information will not be affected.
+              {t('resetDialogMessage')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowResetDialog(false)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none"
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleResetSettings}
                 style={{ background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 8, padding: '8px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 className="transition-all duration-150 active:scale-[0.97] hover:scale-[1.04]"
-              ><RotateCcw size={14} /> Reset Settings</button>
+              ><RotateCcw size={14} /> {t('resetSettings')}</button>
             </div>
           </div>
         </div>,

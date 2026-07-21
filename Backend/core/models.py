@@ -18,29 +18,47 @@ class Farmer(models.Model):
     def __str__(self):
         return self.full_name
   
-#Farm    
+#Farm
 class Farm(models.Model):
 
-    farmer = models.ForeignKey(
-        Farmer,
-        on_delete=models.CASCADE,
-        related_name="farms"
-    )
+    STATUS = [
+        ("Active", "Active"),
+        ("Idle", "Idle"),
+        ("Offline", "Offline"),
+    ]
 
-    farm_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
 
-    latitude = models.DecimalField(max_digits=10, decimal_places=7)
+    # Owner is stored as the user's name (matches the frontend shape).
+    # TODO: normalise to a ForeignKey(Farmer) in a later phase.
+    owner = models.CharField(max_length=200)
 
-    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    crop = models.CharField(max_length=200, blank=True, default="")
 
-    area_hectare = models.FloatField()
+    crop_types = models.CharField(max_length=200, blank=True, default="")
 
-    address = models.TextField()
+    soil = models.CharField(max_length=50, blank=True, default="")
+
+    # Comma-joined robot codes shown in the table.
+    robot = models.CharField(max_length=200, blank=True, default="")
+
+    # List of assigned robot ids, e.g. ["ROB-0001", "ROB-0002"].
+    assigned_robots = models.JSONField(default=list, blank=True)
+
+    status = models.CharField(max_length=20, choices=STATUS, default="Active")
+
+    # Human-readable size, e.g. "120 acres".
+    size = models.CharField(max_length=50, blank=True, default="")
+
+    devices = models.CharField(max_length=10, blank=True, default="0")
+
+    # Boundary polygon: [{"lat": .., "lng": ..}, ...].
+    coordinates = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.farm_name
+        return self.name
 
 #Soil
 class Soil(models.Model):
@@ -54,7 +72,7 @@ class Soil(models.Model):
     farm = models.OneToOneField(
         Farm,
         on_delete=models.CASCADE,
-        related_name="soil"
+        related_name="soil_profile"
     )
 
     soil_type = models.CharField(
@@ -122,41 +140,39 @@ class Robot(models.Model):
 
     STATUS = [
         ("Active", "Active"),
-        ("Idle", "Idle"),
-        ("Offline", "Offline"),
+        ("Assigned", "Assigned"),
+        ("Available", "Available"),
         ("Maintenance", "Maintenance"),
+        ("Inactive", "Inactive"),
+        ("Lost", "Lost"),
     ]
 
-    farm = models.ForeignKey(
-        Farm,
-        on_delete=models.CASCADE,
-        related_name="robots"
-    )
+    # Frontend-facing id, e.g. "ROB-0001". Used as the primary key so the
+    # React code keeps working with the same identifier everywhere
+    # (QR codes, farm assignment matching, generation).
+    id = models.CharField(primary_key=True, max_length=20)
 
-    robot_code = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=120, blank=True, default="")
 
-    robot_model = models.CharField(max_length=100)
+    model = models.CharField(max_length=100, blank=True, default="")
 
-    firmware_version = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, choices=STATUS, default="Available")
 
-    battery_level = models.IntegerField()
+    # Owner name string, or null when unassigned.
+    farmer = models.CharField(max_length=200, blank=True, null=True)
 
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS,
-        default="Offline"
-    )
+    farm = models.CharField(max_length=200, blank=True, default="")
 
-    ip_address = models.GenericIPAddressField()
+    battery = models.IntegerField(default=0)
 
-    mqtt_topic = models.CharField(max_length=100)
+    registered = models.DateField(null=True, blank=True)
 
-    last_active = models.DateTimeField()
+    notes = models.TextField(blank=True, default="")
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.robot_code
+        return self.id
 
 #Sensor Data
 class SensorData(models.Model):
@@ -320,3 +336,23 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return self.activity_type
+
+#Robot Assignment History
+class RobotHistory(models.Model):
+
+    # Stored as a plain string (not a ForeignKey) so a "Deleted" entry
+    # survives after the robot itself is removed.
+    robot_id = models.CharField(max_length=20)
+
+    action = models.CharField(max_length=50)
+
+    farmer = models.CharField(max_length=200, blank=True, default="—")
+
+    by = models.CharField(max_length=200, blank=True, default="")
+
+    date = models.DateField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.robot_id} - {self.action}"

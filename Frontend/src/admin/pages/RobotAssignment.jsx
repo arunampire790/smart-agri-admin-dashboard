@@ -6,6 +6,7 @@ import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, Do
 import { modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 import UserProfileModal from '../components/UserProfileModal';
+import { useT } from '../../i18n';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -111,6 +112,7 @@ const inputHoverEnter = (e) => e.currentTarget.style.borderColor = '#9CA3AF';
 const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 
 export default function RobotAssignment() {
+  const t = useT('robotAssignment');
   const { users } = useUsers();
   const { robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
@@ -150,13 +152,13 @@ export default function RobotAssignment() {
   const activeTabKey = activeFilter === 'NeedsAttention' ? null : activeFilter.toLowerCase();
 
   const tabs = useMemo(() => [
-    { key: 'all', label: `All (${total})` },
-    { key: 'available', label: `Available (${robots.filter(r => r.status === 'Available').length})` },
-    { key: 'assigned', label: `Assigned (${robots.filter(r => r.status === 'Assigned').length})` },
-    { key: 'active', label: `Active (${robots.filter(r => r.status === 'Active').length})` },
-    { key: 'maintenance', label: `Maintenance (${robots.filter(r => r.status === 'Maintenance').length})` },
-    { key: 'lost', label: `Lost (${robots.filter(r => r.status === 'Lost').length})` },
-  ], [robots]);
+    { key: 'all', label: `${t('tabAll')} (${total})` },
+    { key: 'available', label: `${t('tabAvailable')} (${robots.filter(r => r.status === 'Available').length})` },
+    { key: 'assigned', label: `${t('tabAssigned')} (${robots.filter(r => r.status === 'Assigned').length})` },
+    { key: 'active', label: `${t('tabActive')} (${robots.filter(r => r.status === 'Active').length})` },
+    { key: 'maintenance', label: `${t('tabMaintenance')} (${robots.filter(r => r.status === 'Maintenance').length})` },
+    { key: 'lost', label: `${t('tabLost')} (${robots.filter(r => r.status === 'Lost').length})` },
+  ], [robots, t]);
 
   const filteredRobots = useMemo(() => {
     let result = robots;
@@ -229,7 +231,7 @@ export default function RobotAssignment() {
     const lastId = `ROB-${String(maxId + qty).padStart(4, '0')}`;
     setSortGenerated(true);
     setShowGenerateModal(false);
-    setToast({ message: `\u2713 ${qty} robot${qty > 1 ? 's' : ''} generated successfully (${firstId} to ${lastId})` });
+    setToast({ message: t('toastSuccess').replace('{count}', qty).replace('{first}', firstId).replace('{last}', lastId) });
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -341,10 +343,10 @@ export default function RobotAssignment() {
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-2xl font-bold text-primary">Robot Assignment System</div>
-          <div className="text-sm text-text-secondary mt-1">Manage robot registration, QR codes, and farmer assignments</div>
+          <div className="text-2xl font-bold text-primary">{t('title')}</div>
+          <div className="text-sm text-text-secondary mt-1">{t('subtitle')}</div>
         </div>
-        <button onClick={openGenerate} className={btnPrimary}><i className="ph ph-plus" /> Generate Robot</button>
+        <button onClick={openGenerate} className={btnPrimary}><i className="ph ph-plus" /> {t('generateRobot')}</button>
       </div>
 
       {toast && (
@@ -358,7 +360,7 @@ export default function RobotAssignment() {
         <GlowCard onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Total Robots</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('totalRobots')}</div>
               <div className="text-3xl font-extrabold text-primary">{total}</div>
             </div>
             <div style={greenIconContainer}>
@@ -369,7 +371,7 @@ export default function RobotAssignment() {
         <GlowCard onClick={() => handleCardClick('available', 'Available')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Available</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('available')}</div>
               <div className="text-3xl font-extrabold text-primary">{available}</div>
             </div>
             <div style={greenIconContainer}>
@@ -380,7 +382,7 @@ export default function RobotAssignment() {
         <GlowCard onClick={() => handleCardClick('assigned', 'Assigned')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Assigned</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('assigned')}</div>
               <div className="text-3xl font-extrabold text-primary">{assigned}</div>
             </div>
             <div style={greenIconContainer}>
@@ -391,7 +393,7 @@ export default function RobotAssignment() {
         <GlowCard onClick={() => handleCardClick('attention', 'NeedsAttention')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-secondary mb-2">Needs Attention</div>
+              <div className="text-xs font-semibold text-secondary mb-2">{t('needsAttention')}</div>
               <div className="text-3xl font-extrabold text-primary">{needsAttention}</div>
             </div>
             <div style={greenIconContainer}>
@@ -404,8 +406,8 @@ export default function RobotAssignment() {
       {/* Robot Registry Table */}
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
-          <div className="text-sm font-semibold text-primary mb-3">All Robots ({filteredRobots.length})</div>
-          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search robots by ID, farmer, or status..." aria-label="Search robots" className={glassInput} />
+          <div className="text-sm font-semibold text-primary mb-3">{t('allRobots')} ({filteredRobots.length})</div>
+          <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label="Search robots" className={glassInput} />
         </div>
 
         <div className="flex mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
@@ -432,18 +434,18 @@ export default function RobotAssignment() {
         </div>
 
         {filteredRobots.length === 0 ? (
-          <div className="py-12 text-center text-text-secondary text-sm">No robots found matching your criteria.</div>
+          <div className="py-12 text-center text-text-secondary text-sm">{t('noRobotsFound')}</div>
         ) : (
           <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
             <thead>
               <tr>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>Robot ID</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>QR Code</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>Farmer Assigned</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>Model</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>Status</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>Registered</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>Actions</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>{t('colRobotId')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colQrCode')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>{t('colFarmerAssigned')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>{t('colModel')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>{t('colStatus')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>{t('colRegistered')}</th>
+                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -460,10 +462,10 @@ export default function RobotAssignment() {
                     {qrLoading ? (
                       <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6', margin: '0 auto' }} />
                     ) : qrErrors[r.id] ? (
-                      <span style={{ fontSize: '13px', color: '#DC2626' }}>⚠ Failed</span>
+                      <span style={{ fontSize: '13px', color: '#DC2626' }}>{t('qrFailed')}</span>
                     ) : (
                       <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
-                        title={`View QR Code for ${r.id}`}
+                        title={t('viewQrTooltip').replace('{id}', r.id)}
                         onClick={() => setShowQRModal(r)}
                         style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', margin: '0 auto' }}
                         onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
@@ -478,7 +480,7 @@ export default function RobotAssignment() {
                           onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.color = '#1a1a1a'; }}
                         >{r.farmer}</span>
-                      : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>— Unassigned —</span>
+                      : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
                     }
                   </td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -495,13 +497,13 @@ export default function RobotAssignment() {
                   </td>
                   <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     <div className="flex items-center justify-center" style={{ gap: '12px' }}>
-                      <button title="Edit Assignment" onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                      <button title={t('editAssignmentTooltip')} onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
                         onMouseEnter={(e) => e.currentTarget.style.color = '#1a1a1a'}
                         onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
                       >
                         <Pencil size={16} />
                       </button>
-                      <button title="Delete Robot" onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                      <button title={t('deleteRobotTooltip')} onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
                         onMouseEnter={(e) => e.currentTarget.style.color = '#DC2626'}
                         onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
                       >
@@ -519,17 +521,17 @@ export default function RobotAssignment() {
       {/* Assignment History */}
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 mt-6" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="mb-5">
-          <div className="text-sm font-semibold text-primary">Assignment History</div>
-          <div className="text-xs text-text-secondary mt-1">Log of all robot assignments and reassignments</div>
+          <div className="text-sm font-semibold text-primary">{t('assignmentHistory')}</div>
+          <div className="text-xs text-text-secondary mt-1">{t('assignmentHistorySub')}</div>
         </div>
         <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
           <thead>
             <tr>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Robot ID</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Action</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Farmer</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Performed By</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>Date</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColRobotId')}</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColAction')}</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColFarmer')}</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColPerformedBy')}</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColDate')}</th>
             </tr>
           </thead>
           <tbody>
@@ -554,7 +556,7 @@ export default function RobotAssignment() {
             onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
           >
-            {showAllHistory ? 'Show less \u2191' : `View all ${sortedHistory.length} entries \u2192`}
+            {showAllHistory ? t('showLess') : t('viewAll').replace('{n}', sortedHistory.length)}
           </button>
         </div>
       </div>
@@ -570,8 +572,8 @@ export default function RobotAssignment() {
                   <Bot size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Generate Robots</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Create multiple robots at once — each gets a unique ID automatically</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('generateRobotsTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('generateRobotsSub')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowGenerateModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -583,16 +585,16 @@ export default function RobotAssignment() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <Bot size={15} color="#4caf50" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Robot Details</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('robotDetails')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-hash" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Number of Robots
+                      <i className="ph ph-hash" style={{ fontSize: '12px', color: '#9CA3AF' }} /> {t('numberOfRobots')}
                     </div>
                     <input type="number" min={1} max={100} value={genForm.quantity}
                       onChange={(e) => setGenForm({ ...genForm, quantity: e.target.value })}
-                      placeholder="Enter quantity (1–100)"
+                      placeholder={t('quantityPlaceholder')}
                       style={inputBase}
                       onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
@@ -600,7 +602,7 @@ export default function RobotAssignment() {
                       const qty = parseInt(genForm.quantity, 10);
                       if (isNaN(qty) || genForm.quantity === '') return null;
                       if (qty < 1 || qty > 100) {
-                        return <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px' }}>Please enter a number between 1 and 100</div>;
+                        return <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px' }}>{t('quantityError')}</div>;
                       }
                       const maxId = robots.reduce((max, r) => {
                         const num = parseInt(r.id.replace('ROB-', ''), 10);
@@ -610,16 +612,16 @@ export default function RobotAssignment() {
                       const lastId = `ROB-${String(maxId + qty).padStart(4, '0')}`;
                       return (
                         <div style={{ color: '#6b7280', fontSize: '12px', fontStyle: 'italic', marginTop: '4px' }}>
-                          This will generate {qty} robot{qty > 1 ? 's' : ''} ({firstId} to {lastId})
+                          {t('generateHint').replace('{n}', qty).replace('{first}', firstId).replace('{last}', lastId)}
                         </div>
                       );
                     })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-chip" style={{ fontSize: '12px', color: '#9CA3AF' }} /> Robot Model
+                      <i className="ph ph-chip" style={{ fontSize: '12px', color: '#9CA3AF' }} /> {t('robotModel')}
                     </div>
-                    <Select options={modelOptions} value={genForm.model} onChange={(v) => setGenForm({ ...genForm, model: v })} placeholder="Select model" />
+                    <Select options={modelOptions} value={genForm.model} onChange={(v) => setGenForm({ ...genForm, model: v })} placeholder={t('selectModel')} />
                   </div>
                 </div>
               </div>
@@ -630,7 +632,7 @@ export default function RobotAssignment() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >Cancel</button>
+                >{t('cancel')}</button>
                 <button type="submit"
                   disabled={(() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100; })()}
                   style={{ background: (() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100 ? '#9CA3AF' : '#4caf50'; })(), color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) || q < 1 || q > 100 ? 'not-allowed' : 'pointer'; })(), transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -649,7 +651,7 @@ export default function RobotAssignment() {
                     }
                   }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-                ><i className="ph ph-check" /> Generate {(() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) ? '' : `${q} Robot${q > 1 ? 's' : ''}`; })()}</button>
+                ><i className="ph ph-check" /> {(() => { const q = parseInt(genForm.quantity, 10); return isNaN(q) ? t('generate') : t('generateBtnCount').replace('{n}', q); })()}</button>
               </div>
             </form>
           </div>
@@ -668,8 +670,8 @@ export default function RobotAssignment() {
                   <Download size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>QR Code — {showQRModal.id}</div>
-                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>Robot identification QR code</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('qrCodeTitle')} — {showQRModal.id}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('qrCodeSub')}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowQRModal(null)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
@@ -686,7 +688,7 @@ export default function RobotAssignment() {
                 <div style={{ width: 200, height: 200, borderRadius: 16, border: '2px solid #e5e7eb', background: '#F3F4F6', margin: '0 auto' }} />
               )}
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginTop: '16px' }}>{showQRModal.id}</div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || '— Unassigned —'}</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || t('unassigned')}</div>
               <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{showQRModal.model} &middot; {showQRModal.status}</div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
@@ -696,14 +698,14 @@ export default function RobotAssignment() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; }}
                 onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              ><Download size={14} /> Download QR</button>
+              ><Download size={14} /> {t('downloadQr')}</button>
               <button type="button" onClick={() => handlePrintQR(showQRModal.id)}
                 style={{ background: 'transparent', border: '1px solid #D1D5DB', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#9CA3AF'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#D1D5DB'; }}
                 onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                 onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              ><Printer size={14} /> Print QR</button>
+              ><Printer size={14} /> {t('printQr')}</button>
             </div>
           </div>
         </div>,
@@ -721,7 +723,7 @@ export default function RobotAssignment() {
                   <UserCheck size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>Edit Robot Assignment</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('editRobotAssignment')}</div>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{showEditModal.id}</div>
                 </div>
               </div>
@@ -734,32 +736,32 @@ export default function RobotAssignment() {
               <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <Activity size={15} color="#4caf50" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assignment Details</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('assignmentDetails')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <User size={12} style={{ color: '#9CA3AF' }} /> Farmer
+                      <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
                     </div>
-                    <Select options={farmerNames.length ? ['— Remove Assignment —', ...farmerNames] : ['— Remove Assignment —']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder="Select a farmer" />
+                    <Select options={farmerNames.length ? ['— Remove Assignment —', ...farmerNames] : ['— Remove Assignment —']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder={t('selectFarmer')} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Activity size={12} style={{ color: '#9CA3AF' }} /> Status
+                      <Activity size={12} style={{ color: '#9CA3AF' }} /> {t('status')}
                     </div>
-                    <Select options={statusOptions} value={editForm.status} onChange={(v) => setEditForm({ ...editForm, status: v })} placeholder="Select status" />
+                    <Select options={statusOptions} value={editForm.status} onChange={(v) => setEditForm({ ...editForm, status: v })} placeholder={t('selectStatus')} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> Model
+                      <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('model')}
                     </div>
-                    <Select options={modelOptions} value={editForm.model} onChange={(v) => setEditForm({ ...editForm, model: v })} placeholder="Select model" />
+                    <Select options={modelOptions} value={editForm.model} onChange={(v) => setEditForm({ ...editForm, model: v })} placeholder={t('selectModel')} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <FileText size={12} style={{ color: '#9CA3AF' }} /> Notes
+                      <FileText size={12} style={{ color: '#9CA3AF' }} /> {t('notes')}
                     </div>
-                    <input value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Optional notes"
+                    <input value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder={t('notesPlaceholder')}
                       style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
@@ -772,14 +774,14 @@ export default function RobotAssignment() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >Cancel</button>
+                >{t('cancel')}</button>
                 <button type="submit"
                   style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                   onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-                ><i className="ph ph-check" /> Save Assignment</button>
+                ><i className="ph ph-check" /> {t('saveAssignment')}</button>
               </div>
             </form>
           </div>
@@ -791,9 +793,9 @@ export default function RobotAssignment() {
       {deleteTarget && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setDeleteTarget(null)}>
           <div className="rounded-[16px] p-6 shadow-[0_8px_40px_rgba(0,0,0,0.15)] w-[400px]" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff' }}>
-            <div className="text-lg font-bold text-primary mb-2">Delete Robot?</div>
+            <div className="text-lg font-bold text-primary mb-2">{t('deleteRobotTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
-              Are you sure you want to delete <strong className="text-primary font-medium">{deleteTarget.id}</strong>? This action cannot be undone.
+              {t('deleteConfirmPre')}<strong className="text-primary font-medium">{deleteTarget.id}</strong>{t('deleteConfirmPost')}
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteTarget(null)}
@@ -802,14 +804,14 @@ export default function RobotAssignment() {
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
                 onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
                 onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >Cancel</button>
+              >{t('cancel')}</button>
               <button onClick={handleDeleteConfirm}
                 style={{ background: '#FEE2E2', color: '#DC2626', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#FCA5A5'; e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(220,38,38,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
                 onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}
-              ><Trash2 size={14} /> Delete Robot</button>
+              ><Trash2 size={14} /> {t('deleteRobotBtn')}</button>
             </div>
           </div>
         </div>,

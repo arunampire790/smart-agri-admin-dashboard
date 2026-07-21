@@ -16,6 +16,7 @@ from .views import (
     RecommendationViewSet,
     TaskViewSet,
     ActivityLogViewSet,
+    RobotHistoryViewSet,
 )
 
 router = DefaultRouter()
@@ -24,6 +25,7 @@ router.register(r"farms", FarmViewSet)
 router.register(r"soils", SoilViewSet)
 router.register(r"crops", CropViewSet)
 router.register(r"robots", RobotViewSet)
+router.register(r"robot-history", RobotHistoryViewSet)
 router.register(r"sensor-data", SensorDataViewSet)
 router.register(r"weather", WeatherViewSet)
 router.register(r"recommendations", RecommendationViewSet)
