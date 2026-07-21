@@ -99,7 +99,7 @@ function Select({ options, value, onChange, placeholder }) {
   );
 }
 
-function FormFields({ form, setForm, errors, userNames }) {
+function FormFields({ form, setForm, errors, userNames, isEditing }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
@@ -118,7 +118,7 @@ function FormFields({ form, setForm, errors, userNames }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
             <i className="ph ph-hash text-xs" style={{ color: '#9CA3AF' }} /> Robot ID
           </div>
-          <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={inputClass} />
+          <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="e.g., AgriBot-001" className={`${inputClass} ${isEditing ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''}`} readOnly={isEditing} />
           {errors.id && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.id}</span>}
         </div>
         <div>
@@ -484,7 +484,7 @@ export default function Robots() {
             </div>
 
             <form onSubmit={handleEdit}>
-              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
+              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} isEditing={!!editRobot} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setEditRobot(null)}
                   style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
