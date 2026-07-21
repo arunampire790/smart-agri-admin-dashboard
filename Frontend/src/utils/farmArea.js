@@ -12,3 +12,20 @@ export function computeTriangleAreaAcres(p1, p2, p3) {
   );
   return parseFloat((areaSqMeters * 0.000247105).toFixed(2));
 }
+
+export function computePolygonAreaAcres(points) {
+  if (!points || points.length < 3) return null;
+  const R = 6371000;
+  const toRad = deg => deg * Math.PI / 180;
+  const n = points.length;
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    const xi = R * toRad(points[i].lng) * Math.cos(toRad(points[i].lat));
+    const yi = R * toRad(points[i].lat);
+    const xj = R * toRad(points[j].lng) * Math.cos(toRad(points[j].lat));
+    const yj = R * toRad(points[j].lat);
+    area += xi * yj - xj * yi;
+  }
+  return parseFloat((Math.abs(area) / 2 * 0.000247105).toFixed(2));
+}

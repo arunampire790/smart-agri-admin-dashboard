@@ -9,8 +9,8 @@ import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
 import { MapPin, Sprout, Home, User, Ruler, Activity, Layers, Trash2, ChevronDown, Check, Bot } from 'lucide-react';
-import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import FarmMapPreview from '../components/FarmMapPreview';
+import { computePolygonAreaAcres } from '../../utils/farmArea';
+import FarmMapDrawing from '../components/FarmMapDrawing';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -50,18 +50,6 @@ function getIconConfig(label) {
     case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     default: return { Icon: MapPin, bg: 'rgba(107,114,128,0.12)', color: '#6B7280' };
   }
-}
-
-function parseCoordinate(value) {
-  if (!value.trim()) return null;
-  const parts = value.split(',');
-  if (parts.length !== 2) return { error: 'Use format: lat, lng' };
-  const lat = parseFloat(parts[0].trim());
-  const lng = parseFloat(parts[1].trim());
-  if (isNaN(lat) || isNaN(lng)) return { error: 'Use format: lat, lng' };
-  if (lat < -90 || lat > 90) return { error: 'Lat must be -90 to 90' };
-  if (lng < -180 || lng > 180) return { error: 'Lng must be -180 to 180' };
-  return { lat, lng };
 }
 
 const statusOpts = ['Active', 'Idle', 'Offline'];
@@ -186,8 +174,8 @@ export default function Farms() {
   const [editFarmForm, setEditFarmForm] = useState({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', robot: '', status: 'Active' });
   const [editFarmErrors, setEditFarmErrors] = useState({});
   const [deleteFarm, setDeleteFarm] = useState(null);
-  const [formCoordStrings, setFormCoordStrings] = useState(['', '', '']);
-  const [editFormCoordStrings, setEditFormCoordStrings] = useState(['', '', '']);
+  const [formCoords, setFormCoords] = useState([]);
+  const [editCoords, setEditCoords] = useState([]);
   const soilTypeOpts = ['Clay', 'Loam', 'Sandy', 'Silty', 'Peaty', 'Chalky'];
 
   useEffect(() => {
@@ -203,12 +191,7 @@ export default function Farms() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Farm name is required';
     if (!form.owner.trim()) errs.owner = 'Owner is required';
-    formCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
-      const parsed = parseCoordinate(str);
-      if (!parsed) errs[`coord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
-      else if (parsed.error) errs[`coord${i}`] = parsed.error;
-    });
+    if (formCoords.length < 3) errs.coords = 'Please mark at least 3 boundary points on the map';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -216,10 +199,9 @@ export default function Farms() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const parsedCoords = parsedAddPoints.filter(Boolean);
     addFarm({
       name: form.name.trim(),
-      coordinates: parsedCoords.length === 3 ? parsedCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
+      coordinates: formCoords.length >= 3 ? formCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: form.owner.trim(),
       crop: form.cropTypes.trim() || '—',
       soil: form.soil || '—',
@@ -230,10 +212,9 @@ export default function Farms() {
     });
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Status: ${form.status}` });
     setShowAddModal(false);
-    // TODO: Replace with real backend API call once backend is added.
   };
 
-  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setShowAddModal(true); };
+  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', status: 'Active' }); setErrors({}); setFormCoords([]); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -258,12 +239,7 @@ export default function Farms() {
     const errs = {};
     if (!editFarmForm.name.trim()) errs.name = 'Farm name is required';
     if (!editFarmForm.owner.trim()) errs.owner = 'Owner is required';
-    editFormCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points'; return; }
-      const parsed = parseCoordinate(str);
-      if (!parsed) errs[`editCoord${i}`] = 'Please enter valid coordinates for all 3 boundary points';
-      else if (parsed.error) errs[`editCoord${i}`] = parsed.error;
-    });
+    if (editCoords.length < 3) errs.editCoords = 'Please mark at least 3 boundary points on the map';
     setEditFarmErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -278,8 +254,7 @@ export default function Farms() {
       acreage: farm.size ? farm.size.replace(' acres', '') : '',
       status: farm.status || 'Active',
     });
-    const coords = farm.coordinates;
-    setEditFormCoordStrings(coords && coords.length === 3 ? coords.map(c => `${c.lat}, ${c.lng}`) : ['', '', '']);
+    setEditCoords(farm.coordinates && farm.coordinates.length >= 3 ? farm.coordinates.map(c => ({ lat: c.lat, lng: c.lng })) : []);
     setEditFarmErrors({});
     setEditFarm(farm);
   };
@@ -289,10 +264,9 @@ export default function Farms() {
     if (!validateEditFarm()) return;
     const status = editFarmForm.status;
     const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text';
-    const parsedEditCoords = parsedEditPoints.filter(Boolean);
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
-      coordinates: parsedEditCoords.length === 3 ? parsedEditCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
+      coordinates: editCoords.length >= 3 ? editCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: editFarmForm.owner.trim(),
       crop: editFarmForm.cropTypes.trim() || '—',
       cropTypes: editFarmForm.cropTypes.trim() || '—',
@@ -328,47 +302,30 @@ export default function Farms() {
 
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
-  const parsedAddPoints = useMemo(() => formCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [formCoordStrings]);
-  const parsedEditPoints = useMemo(() => editFormCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [editFormCoordStrings]);
-  const computedAcreage = useMemo(() => {
-    if (parsedAddPoints.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsedAddPoints[0], parsedAddPoints[1], parsedAddPoints[2]);
-  }, [parsedAddPoints]);
-  const editComputedAcreage = useMemo(() => {
-    if (parsedEditPoints.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsedEditPoints[0], parsedEditPoints[1], parsedEditPoints[2]);
-  }, [parsedEditPoints]);
+  const computedArea = useMemo(() => {
+    if (formCoords.length < 3) return null;
+    return computePolygonAreaAcres(formCoords);
+  }, [formCoords]);
+  const editComputedArea = useMemo(() => {
+    if (editCoords.length < 3) return null;
+    return computePolygonAreaAcres(editCoords);
+  }, [editCoords]);
 
   useEffect(() => {
-    if (computedAcreage !== null) {
-      setForm(prev => ({ ...prev, acreage: computedAcreage.toFixed(2) }));
-    } else if (formCoordStrings.some(s => s.trim())) {
+    if (computedArea !== null) {
+      setForm(prev => ({ ...prev, acreage: computedArea.toFixed(2) }));
+    } else if (formCoords.length > 0) {
       setForm(prev => ({ ...prev, acreage: '' }));
     }
-  }, [computedAcreage]);
+  }, [computedArea]);
 
   useEffect(() => {
-    if (editComputedAcreage !== null) {
-      setEditFarmForm(prev => ({ ...prev, acreage: editComputedAcreage.toFixed(2) }));
-    } else if (editFormCoordStrings.some(s => s.trim())) {
+    if (editComputedArea !== null) {
+      setEditFarmForm(prev => ({ ...prev, acreage: editComputedArea.toFixed(2) }));
+    } else if (editCoords.length > 0) {
       setEditFarmForm(prev => ({ ...prev, acreage: '' }));
     }
-  }, [editComputedAcreage]);
-
-  const addNextPointIndex = (() => { const v = parsedAddPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
-  const editNextPointIndex = (() => { const v = parsedEditPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
-
-  const handleAddMapClick = (latlng, index) => {
-    const updated = [...formCoordStrings];
-    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-    setFormCoordStrings(updated);
-  };
-
-  const handleEditMapClick = (latlng, index) => {
-    const updated = [...editFormCoordStrings];
-    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-    setEditFormCoordStrings(updated);
-  };
+  }, [editComputedArea]);
 
   const activeCardLabel = statusFilter !== 'All Statuses' ? statusFilter : ownerFilter !== 'All Owners' ? 'Total Farms' : 'Total Farms';
 
@@ -622,18 +579,18 @@ export default function Farms() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
-                      {computedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
+                      {computedArea !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
                     </div>
                     <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })}
-                      readOnly={computedAcreage !== null}
+                      readOnly={computedArea !== null}
                       placeholder="e.g., 120"
                       style={{
                         ...inputBase,
-                        background: computedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
-                        borderColor: computedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
-                        color: computedAcreage !== null ? '#2e7d2e' : '#111827',
-                        fontWeight: computedAcreage !== null ? 600 : 400,
-                        cursor: computedAcreage !== null ? 'default' : 'text',
+                        background: computedArea !== null ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: computedArea !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: computedArea !== null ? '#2e7d2e' : '#111827',
+                        fontWeight: computedArea !== null ? 600 : 400,
+                        cursor: computedArea !== null ? 'default' : 'text',
                       }}
                       onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
@@ -646,44 +603,8 @@ export default function Farms() {
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmMapPreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} onMapClick={handleAddMapClick} nextPointIndex={addNextPointIndex} modalOpen={showAddModal} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[
-                    { label: 'Point 1', color: '#2e7d32', key: 'coord0' },
-                    { label: 'Point 2', color: '#1d6fa8', key: 'coord1' },
-                    { label: 'Point 3', color: '#9333ea', key: 'coord2' },
-                  ].map((cfg, i) => {
-                    const parsed = parseCoordinate(formCoordStrings[i]);
-                    const statusValid = parsed && !parsed.error;
-                    const statusError = parsed && parsed.error;
-                    return (
-                      <div key={i}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
-                          <MapPin size={13} color={cfg.color} /> {cfg.label}
-                        </div>
-                        <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
-                          placeholder="lat, lng" style={inputBase}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
-                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
-                        {errors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {errors[cfg.key]}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {computedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
+                <FarmMapDrawing points={formCoords} onChange={setFormCoords} modalOpen={showAddModal} />
+                {errors.coords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {errors.coords}</div>}
               </div>
               </div>
 
@@ -772,62 +693,26 @@ export default function Farms() {
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> Total Acreage
-                      {editComputedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
+                      {editComputedArea !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>Auto-calculated</span>}
                     </div>
                     <input type="number" min="0" value={editFarmForm.acreage} onChange={(e) => setEditFarmForm({ ...editFarmForm, acreage: e.target.value })}
-                      readOnly={editComputedAcreage !== null}
+                      readOnly={editComputedArea !== null}
                       placeholder="e.g., 120"
                       style={{
                         ...inputBase,
-                        background: editComputedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
-                        borderColor: editComputedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
-                        color: editComputedAcreage !== null ? '#2e7d2e' : '#111827',
-                        fontWeight: editComputedAcreage !== null ? 600 : 400,
-                        cursor: editComputedAcreage !== null ? 'default' : 'text',
+                        background: editComputedArea !== null ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: editComputedArea !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: editComputedArea !== null ? '#2e7d2e' : '#111827',
+                        fontWeight: editComputedArea !== null ? 600 : 400,
+                        cursor: editComputedArea !== null ? 'default' : 'text',
                       }}
                       onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmMapPreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} onMapClick={handleEditMapClick} nextPointIndex={editNextPointIndex} modalOpen={!!editFarm} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Farm Boundary Points</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>Enter GPS coordinates for 3 boundary points of your farm. Format: latitude, longitude</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[
-                    { label: 'Point 1', color: '#2e7d32', key: 'editCoord0' },
-                    { label: 'Point 2', color: '#1d6fa8', key: 'editCoord1' },
-                    { label: 'Point 3', color: '#9333ea', key: 'editCoord2' },
-                  ].map((cfg, i) => {
-                    const parsed = parseCoordinate(editFormCoordStrings[i]);
-                    const statusValid = parsed && !parsed.error;
-                    const statusError = parsed && parsed.error;
-                    return (
-                      <div key={i}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
-                          <MapPin size={13} color={cfg.color} /> {cfg.label}
-                        </div>
-                        <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
-                          placeholder="lat, lng" style={inputBase}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
-                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
-                        {editFarmErrors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {editFarmErrors[cfg.key]}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {editComputedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
+                <FarmMapDrawing points={editCoords} onChange={setEditCoords} modalOpen={!!editFarm} />
+                {editFarmErrors.editCoords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {editFarmErrors.editCoords}</div>}
               </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
