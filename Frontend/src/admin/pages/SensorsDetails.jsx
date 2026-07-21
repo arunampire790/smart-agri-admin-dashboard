@@ -14,6 +14,7 @@ import {
   ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
 } from 'lucide-react';
 import FarmProfileModal from '../components/FarmProfileModal';
+import FarmMiniMap from '../components/FarmMiniMap';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -380,7 +381,10 @@ export default function SensorsDetails() {
               <MapPin size={16} color="#2e7d2e" /> Farm Map Coordinates
             </div>
             {(() => {
-              const farmCoords = farms.find(f => f.name === r.farm)?.coordinates;
+              const farm = farms.find(f => f.name === r.farm);
+              const farmCoords = farm?.coordinates;
+              const boundaryType = farm?.boundaryType;
+              const circleData = farm?.circleData;
               if (!farmCoords || farmCoords.length === 0) return (
                 <div className="flex flex-col items-center gap-3">
                   <div className="p-4 rounded-xl w-full text-center" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
@@ -389,23 +393,43 @@ export default function SensorsDetails() {
                   </div>
                 </div>
               );
-              const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
-              const labels = ['Point 1', 'Point 2', 'Point 3'];
+              const isCircle = boundaryType === 'circle';
+              const ptCount = isCircle ? 1 : farmCoords.length;
+              const label = isCircle
+                ? `\u25CB Circle: ${Math.round(circleData?.radius || 0)}m radius`
+                : `${ptCount} Boundary Point${ptCount !== 1 ? 's' : ''}`;
+              const [showCoordList, setShowCoordList] = useState(false);
               return (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
-                    style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                    <MapPin size={12} /> {farmCoords.length} Boundary Points
+                <div className="flex flex-col gap-3">
+                  <FarmMiniMap coordinates={farmCoords} circleData={circleData} boundaryType={boundaryType} height={200} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
+                      style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+                      <MapPin size={12} /> {label}
+                    </div>
                   </div>
-                  <div className="p-4 rounded-xl w-full" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
-                    {farmCoords.map((c, i) => (
-                      <div key={i} className="flex items-center gap-3 py-1.5" style={{ borderBottom: i < farmCoords.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: pointColors[i], flexShrink: 0 }} />
-                        <span className="text-[10px] font-semibold" style={{ color: pointColors[i], width: 44 }}>{labels[i]}</span>
-                        <span className="text-sm font-semibold text-primary">{c.lat.toFixed(4)}, {c.lng.toFixed(4)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <button type="button" onClick={() => setShowCoordList(p => !p)}
+                    style={{ fontSize: '11px', color: '#2e7d2e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textAlign: 'left' }}
+                  >
+                    {showCoordList ? '\u25BC' : '\u25B6'} {isCircle ? 'View circle details' : `View boundary coordinates (${ptCount} point${ptCount !== 1 ? 's' : ''})`}
+                  </button>
+                  {showCoordList && (
+                    <div style={{ background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.1)', borderRadius: '8px', padding: '10px 14px', maxHeight: '160px', overflowY: 'auto' }}>
+                      {isCircle ? (
+                        <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.8 }}>
+                          <div>Center: {circleData?.center?.lat.toFixed(6)}, {circleData?.center?.lng.toFixed(6)}</div>
+                          <div>Radius: {Math.round(circleData?.radius || 0)} meters</div>
+                          {circleData?.radius ? <div>Area: {(Math.PI * circleData.radius ** 2 * 0.000247105).toFixed(1)} Est. Acres</div> : null}
+                        </div>
+                      ) : (
+                        farmCoords.map((c, i) => (
+                          <div key={i} style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.8 }}>
+                            P{i + 1}: {c.lat.toFixed(6)}, {c.lng.toFixed(6)}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -681,7 +705,11 @@ export default function SensorsDetails() {
                   <div className="flex items-center gap-1.5 pt-1">
                     <MapPin size={11} color="#5A7A5A" />
                     {(() => {
-                      const fCoords = farms.find(f => f.name === r.farm)?.coordinates;
+                      const farm = farms.find(f => f.name === r.farm);
+                      const fCoords = farm?.coordinates;
+                      if (farm?.boundaryType === 'circle' && farm?.circleData) {
+                        return <span className="text-[9px] text-text-secondary">\u25CB {farm.circleData.center.lat.toFixed(2)}, {farm.circleData.center.lng.toFixed(2)}</span>;
+                      }
                       if (fCoords && fCoords.length > 0) {
                         return <span className="text-[9px] text-text-secondary">{fCoords[0].lat.toFixed(2)}, {fCoords[0].lng.toFixed(2)}</span>;
                       }

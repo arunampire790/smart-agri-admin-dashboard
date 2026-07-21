@@ -4,7 +4,8 @@ import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Cro
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useTasks } from '../../context/TaskContext';
-import { computeTriangleAreaAcres } from '../../utils/farmArea';
+import { computePolygonAreaAcres } from '../../utils/farmArea';
+import FarmMiniMap from './FarmMiniMap';
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.75)',
@@ -98,18 +99,30 @@ export default function FarmProfileModal({ farm, onClose }) {
   const robotFleet = farmRobots.length > 0
     ? farmRobots.map(r => `${r.name} (${r.model || r.id})`).join(', ') : '\u2014';
   const deviceCountDynamic = farmRobots.length;
-  const coordsStr = (farm?.coordinates || []).length === 3
-    ? farm.coordinates.map((c, i) => `P${i + 1}: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`).join(' | ')
-    : '\u2014';
+  const isCircleCoord = farm?.boundaryType === 'circle';
+  const coordsStr = isCircleCoord && farm?.circleData
+    ? `Center: ${farm.circleData.center.lat.toFixed(4)}, ${farm.circleData.center.lng.toFixed(4)} \u00B7 Radius: ${Math.round(farm.circleData.radius)}m`
+    : (farm?.coordinates || []).length >= 3
+      ? (() => {
+          const pts = farm.coordinates;
+          const show = pts.slice(0, 4);
+          const str = show.map((c, i) => `P${i + 1}: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`).join(' \u00B7 ');
+          return pts.length > 4 ? `${str} \u00B7 ...(${pts.length} total)` : str;
+        })()
+      : '\u2014';
 
   const computedAcreage = useMemo(() => {
+    if (!farm) return null;
+    if (farm.boundaryType === 'circle' && farm.circleData?.radius) {
+      return parseFloat((Math.PI * farm.circleData.radius ** 2 * 0.000247105).toFixed(2));
+    }
     const coords = farm?.coordinates;
-    if (!coords || coords.length !== 3) return null;
+    if (!coords || coords.length < 3) return null;
     if (!coords.every(c => c && typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng))) return null;
     try {
-      return computeTriangleAreaAcres(coords[0], coords[1], coords[2]);
+      return computePolygonAreaAcres(coords);
     } catch { return null; }
-  }, [farm?.coordinates]);
+  }, [farm]);
 
   const displaySize = computedAcreage !== null ? `${computedAcreage.toFixed(2)} acres` : (farm?.size || '\u2014');
 
@@ -193,9 +206,10 @@ export default function FarmProfileModal({ farm, onClose }) {
               <div style={labelRowStyle}><HardDrive size={12} color="#9CA3AF" /> Connected Devices</div>
               <div style={valStyle}>{deviceCountDynamic}</div>
             </div>
-            <div>
+            <div style={{ gridColumn: '1 / -1' }}>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Boundary Coordinates</div>
-              <div style={{ ...valStyle, fontSize: '12px', wordBreak: 'break-word' }}>{coordsStr}</div>
+              <FarmMiniMap coordinates={farm?.coordinates} circleData={farm?.circleData} boundaryType={farm?.boundaryType} height={160} />
+              <div style={{ fontSize: '12px', color: '#374151', fontWeight: 500, marginTop: '8px', fontFamily: 'monospace' }}>{coordsStr}</div>
             </div>
           </div>
         </div>
