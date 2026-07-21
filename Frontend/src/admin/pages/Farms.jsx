@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
-import { MapPin, Sprout, Home, User, Ruler, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
+import { MapPin, Sprout, Home, User, Ruler, Activity, Layers, Trash2, ChevronDown, Check, Bot } from 'lucide-react';
 import { computeTriangleAreaAcres } from '../../utils/farmArea';
 import FarmMapPreview from '../components/FarmMapPreview';
 
