@@ -248,6 +248,14 @@ export default function SensorsDetails() {
 
   const [farmFilter, setFarmFilter] = useState('All Farms');
   const [profileFarm, setProfileFarm] = useState(null);
+  const [showFarmCoordList, setShowFarmCoordList] = useState(false);
+  const prevRobotRef = useRef(null);
+  useEffect(() => {
+    if (prevRobotRef.current !== selectedRobot) {
+      setShowFarmCoordList(false);
+      prevRobotRef.current = selectedRobot;
+    }
+  }, [selectedRobot]);
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
@@ -398,7 +406,6 @@ export default function SensorsDetails() {
               const label = isCircle
                 ? `\u25CB Circle: ${Math.round(circleData?.radius || 0)}m radius`
                 : `${ptCount} Boundary Point${ptCount !== 1 ? 's' : ''}`;
-              const [showCoordList, setShowCoordList] = useState(false);
               return (
                 <div className="flex flex-col gap-3">
                   <FarmMiniMap coordinates={farmCoords} circleData={circleData} boundaryType={boundaryType} height={200} />
@@ -408,12 +415,12 @@ export default function SensorsDetails() {
                       <MapPin size={12} /> {label}
                     </div>
                   </div>
-                  <button type="button" onClick={() => setShowCoordList(p => !p)}
+                  <button type="button" onClick={() => setShowFarmCoordList(p => !p)}
                     style={{ fontSize: '11px', color: '#2e7d2e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textAlign: 'left' }}
                   >
-                    {showCoordList ? '\u25BC' : '\u25B6'} {isCircle ? 'View circle details' : `View boundary coordinates (${ptCount} point${ptCount !== 1 ? 's' : ''})`}
+                    {showFarmCoordList ? '\u25BC' : '\u25B6'} {isCircle ? 'View circle details' : `View boundary coordinates (${ptCount} point${ptCount !== 1 ? 's' : ''})`}
                   </button>
-                  {showCoordList && (
+                  {showFarmCoordList && (
                     <div style={{ background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.1)', borderRadius: '8px', padding: '10px 14px', maxHeight: '160px', overflowY: 'auto' }}>
                       {isCircle ? (
                         <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.8 }}>
