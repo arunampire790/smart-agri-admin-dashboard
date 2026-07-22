@@ -53,23 +53,3 @@ export function computeConvexHull(points) {
   return [...lower, ...upper];
 }
 
-export function haversineDistance(p1, p2) {
-  const R = 6371000;
-  const dLat = (p2.lat - p1.lat) * Math.PI / 180;
-  const dLng = (p2.lng - p1.lng) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-export function circleToPolygon(center, radius, numPoints = 32) {
-  const points = [];
-  const latRad = center.lat * Math.PI / 180;
-  const lngScale = radius / (111320 * Math.cos(latRad));
-  const latScale = radius / 111320;
-  for (let i = 0; i < numPoints; i++) {
-    const angle = (i / numPoints) * 2 * Math.PI;
-    points.push({ lat: center.lat + latScale * Math.cos(angle), lng: center.lng + lngScale * Math.sin(angle) });
-  }
-  return points;
-}

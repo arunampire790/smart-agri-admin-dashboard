@@ -327,8 +327,6 @@ export default function SensorsDetails() {
             {(() => {
               const farm = farms.find(f => f.name === r.farm);
               const farmCoords = farm?.coordinates;
-              const boundaryType = farm?.boundaryType;
-              const circleData = farm?.circleData;
               if (!farmCoords || farmCoords.length === 0) return (
                 <div className="flex flex-col items-center gap-3">
                   <div className="p-4 rounded-xl w-full text-center" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
@@ -337,20 +335,15 @@ export default function SensorsDetails() {
                   </div>
                 </div>
               );
-              const isCircle = boundaryType === 'circle';
-              const ptCount = isCircle ? 1 : farmCoords.length;
-              const computedArea = isCircle && circleData?.radius
-                ? parseFloat((Math.PI * circleData.radius ** 2 * 0.000247105).toFixed(1))
-                : !isCircle && farmCoords.length >= 3
-                  ? computePolygonAreaAcres(farmCoords)
-                  : null;
+              const ptCount = farmCoords.length;
+              const computedArea = farmCoords.length >= 3
+                ? computePolygonAreaAcres(farmCoords)
+                : null;
               const areaLabel = computedArea !== null ? ` ~ ${computedArea} acres` : '';
-              const badgeLabel = isCircle
-                ? `\u25CB Circle: ${Math.round(circleData?.radius || 0)}m radius`
-                : `${ptCount} pts${areaLabel}`;
+              const badgeLabel = `${ptCount} pts${areaLabel}`;
               return (
                 <div className="flex flex-col gap-3">
-                  <FarmMiniMap coordinates={farmCoords} circleData={circleData} boundaryType={boundaryType} height={200} />
+                  <FarmMiniMap coordinates={farmCoords} height={200} />
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
                       style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
@@ -360,29 +353,11 @@ export default function SensorsDetails() {
                   <button type="button" onClick={() => setShowFarmCoordList(p => !p)}
                     style={{ fontSize: '11px', color: '#2e7d2e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textAlign: 'left' }}
                   >
-                    {showFarmCoordList ? '\u25BC' : '\u25B6'} {isCircle ? 'View circle details' : `View boundary coordinates (${ptCount} pts)`}
+                    {showFarmCoordList ? '\u25BC' : '\u25B6'} View boundary coordinates ({ptCount} pts)
                   </button>
                   {showFarmCoordList && (
                     <div style={{ background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.1)', borderRadius: '8px', padding: '10px 14px', maxHeight: '160px', overflowY: 'auto' }}>
-                      {isCircle ? (
-                        <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.8 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>\u25CF</span>
-                            <span>Center: {circleData?.center?.lat.toFixed(6)}, {circleData?.center?.lng.toFixed(6)}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>\u27A2</span>
-                            <span>Radius: {Math.round(circleData?.radius || 0)} meters</span>
-                          </div>
-                          {circleData?.radius && (
-                            <div style={{ borderTop: '1px solid rgba(46,125,50,0.1)', marginTop: '6px', paddingTop: '6px', fontSize: '12px', fontWeight: 600, color: '#2e7d2e' }}>
-                              Area: {(Math.PI * circleData.radius ** 2 * 0.000247105).toFixed(1)} Est. Acres
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: '11px', fontFamily: 'monospace', lineHeight: 1.8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: '11px', fontFamily: 'monospace', lineHeight: 1.8 }}>
                             {farmCoords.map((c, i) => (
                               <div key={i} style={{ display: 'contents' }}>
                                 <span style={{ color: '#2e7d2e', fontWeight: 600, textAlign: 'right' }}>P{i + 1}</span>
@@ -395,8 +370,6 @@ export default function SensorsDetails() {
                               Total Area: {computedArea} Est. Acres
                             </div>
                           )}
-                        </>
-                      )}
                     </div>
                   )}
                 </div>
@@ -573,9 +546,6 @@ export default function SensorsDetails() {
                       const farm = farms.find(f => f.name === r.farm);
                       const fCoords = farm?.coordinates;
                       const fLen = fCoords?.length || 0;
-                      if (farm?.boundaryType === 'circle' && farm?.circleData) {
-                        return <span className="text-[9px] text-text-secondary">\u25CB {farm.circleData.center.lat.toFixed(2)}, {farm.circleData.center.lng.toFixed(2)}</span>;
-                      }
                       if (fLen >= 2) {
                         return <span className="text-[9px] text-text-secondary">{fLen} pts boundary</span>;
                       }

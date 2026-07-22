@@ -185,8 +185,8 @@ export default function Farms() {
   const [deleteFarm, setDeleteFarm] = useState(null);
   const [formCoords, setFormCoords] = useState([]);
   const [editCoords, setEditCoords] = useState([]);
-  const [formBoundaryMeta, setFormBoundaryMeta] = useState({ boundaryType: 'polygon', circleData: null, polygonClosed: false });
-  const [editBoundaryMeta, setEditBoundaryMeta] = useState({ boundaryType: 'polygon', circleData: null, polygonClosed: false });
+  const [formBoundaryMeta, setFormBoundaryMeta] = useState({ polygonClosed: false });
+  const [editBoundaryMeta, setEditBoundaryMeta] = useState({ polygonClosed: false });
   const handleFormBoundaryChange = (coords, meta) => { setFormCoords(coords); setFormBoundaryMeta(meta); };
   const handleEditBoundaryChange = (coords, meta) => { setEditCoords(coords); setEditBoundaryMeta(meta); };
   const handleFormAcreage = (a) => { if (a !== null) setForm(prev => ({ ...prev, acreage: a.toFixed(2) })); };
@@ -224,14 +224,14 @@ export default function Farms() {
       cls: form.status === 'Active' ? 'bg-brand-light text-brand-dark' : form.status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text',
       size: form.acreage ? `${form.acreage} acres` : '—',
       cropTypes: form.cropTypes.trim() || '—',
-      boundaryType: formBoundaryMeta.boundaryType,
-      circleData: formBoundaryMeta.circleData,
+      boundaryType: 'polygon',
+      circleData: null,
     });
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Status: ${form.status}` });
     setShowAddModal(false);
   };
 
-  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', status: 'Active' }); setErrors({}); setFormCoords([]); setFormBoundaryMeta({ boundaryType: 'polygon', circleData: null, polygonClosed: false }); setShowAddModal(true); };
+  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', status: 'Active' }); setErrors({}); setFormCoords([]); setFormBoundaryMeta({ polygonClosed: false }); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -271,11 +271,8 @@ export default function Farms() {
       acreage: farm.size ? farm.size.replace(' acres', '') : '',
       status: farm.status || 'Active',
     });
-    const isCircle = farm.boundaryType === 'circle';
     setEditCoords(farm.coordinates && farm.coordinates.length >= 3 ? farm.coordinates.map(c => ({ lat: c.lat, lng: c.lng })) : []);
     setEditBoundaryMeta({
-      boundaryType: isCircle ? 'circle' : 'polygon',
-      circleData: isCircle && farm.circleData ? { center: farm.circleData.center, radius: farm.circleData.radius } : null,
       polygonClosed: true,
     });
     setEditFarmErrors({});
@@ -297,8 +294,8 @@ export default function Farms() {
       size: editFarmForm.acreage ? `${editFarmForm.acreage} acres` : '—',
       status,
       cls,
-      boundaryType: editBoundaryMeta.boundaryType,
-      circleData: editBoundaryMeta.circleData,
+      boundaryType: 'polygon',
+      circleData: null,
     });
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Status: ${status}` });
     setEditFarm(null);
@@ -330,9 +327,6 @@ export default function Farms() {
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
   const computedArea = useMemo(() => {
     if (!formBoundaryMeta.polygonClosed) return null;
-    if (formBoundaryMeta.boundaryType === 'circle' && formBoundaryMeta.circleData?.radius) {
-      return parseFloat((Math.PI * formBoundaryMeta.circleData.radius ** 2 * 0.000247105).toFixed(1));
-    }
     if (formCoords.length < 3) return null;
     return computePolygonAreaAcres(formCoords);
   }, [formCoords, formBoundaryMeta]);
@@ -343,9 +337,6 @@ export default function Farms() {
 
   const editComputedArea = useMemo(() => {
     if (!editBoundaryMeta.polygonClosed) return null;
-    if (editBoundaryMeta.boundaryType === 'circle' && editBoundaryMeta.circleData?.radius) {
-      return parseFloat((Math.PI * editBoundaryMeta.circleData.radius ** 2 * 0.000247105).toFixed(1));
-    }
     if (editCoords.length < 3) return null;
     return computePolygonAreaAcres(editCoords);
   }, [editCoords, editBoundaryMeta]);
@@ -630,7 +621,7 @@ export default function Farms() {
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                <FarmMapDrawing initialCoords={formCoords} initialCircleData={formBoundaryMeta.circleData} initialBoundaryType={formBoundaryMeta.boundaryType} initialClosed={formBoundaryMeta.polygonClosed} onChange={handleFormBoundaryChange} onAcreageChange={handleFormAcreage} modalOpen={showAddModal} />
+                <FarmMapDrawing initialCoords={formCoords} initialClosed={formBoundaryMeta.polygonClosed} onChange={handleFormBoundaryChange} onAcreageChange={handleFormAcreage} modalOpen={showAddModal} />
                 {errors.coords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {errors.coords}</div>}
               </div>
               </div>
@@ -738,7 +729,7 @@ export default function Farms() {
                   </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                <FarmMapDrawing initialCoords={editCoords} initialCircleData={editBoundaryMeta.circleData} initialBoundaryType={editBoundaryMeta.boundaryType} initialClosed={editBoundaryMeta.polygonClosed} onChange={handleEditBoundaryChange} onAcreageChange={handleEditAcreage} modalOpen={!!editFarm} />
+                <FarmMapDrawing initialCoords={editCoords} initialClosed={editBoundaryMeta.polygonClosed} onChange={handleEditBoundaryChange} onAcreageChange={handleEditAcreage} modalOpen={!!editFarm} />
                 {editFarmErrors.editCoords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {editFarmErrors.editCoords}</div>}
               </div>
               </div>
