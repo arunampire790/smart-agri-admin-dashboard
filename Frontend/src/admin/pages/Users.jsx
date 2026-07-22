@@ -143,8 +143,10 @@ export default function Users() {
   const { currentUser } = useAuth();
   const t = useT('users');
   const [searchTerm, setSearchTerm] = useState('');
+  const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
+  const ownerOptions = useMemo(() => ['All Owners', 'Has Farms', 'No Farms'], []);
   const statusOptions = useMemo(() => ['All Statuses', ...new Set(users.map(u => u.status).filter(Boolean))], [users]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewUser, setViewUser] = useState(null);
@@ -156,6 +158,11 @@ export default function Users() {
 
   const filteredUsers = useMemo(() => {
     let result = users;
+    if (ownerFilter === 'Has Farms') {
+      result = result.filter(u => u.farms > 0);
+    } else if (ownerFilter === 'No Farms') {
+      result = result.filter(u => u.farms === 0);
+    }
     if (statusFilter !== 'All Statuses') {
       result = result.filter(u => u.status === statusFilter);
     }
@@ -164,7 +171,7 @@ export default function Users() {
       result = result.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
     }
     return result;
-  }, [users, searchTerm, statusFilter]);
+  }, [users, searchTerm, ownerFilter, statusFilter]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') { setShowAddModal(false); setEditUser(null); setViewUser(null); } };
@@ -237,12 +244,13 @@ export default function Users() {
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={glassInput} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
+          <FilterSelect label={t('ownerFilterLabel') || 'OWNER'} options={ownerOptions} value={ownerFilter} onChange={setOwnerFilter} width="160px" />
           <FilterSelect label={t('statusFilterLabel')} options={statusOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <span>{t('showingCount').replace('{shown}', filteredUsers.length).replace('{total}', users.length)}</span>
-          {(searchTerm || statusFilter !== 'All') && (
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
+          {(searchTerm || ownerFilter !== 'All Owners' || statusFilter !== 'All Statuses') && (
+            <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setStatusFilter('All Statuses'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
@@ -254,7 +262,7 @@ export default function Users() {
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('noMatch')}</div>
             <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('adjustFilters')}</div>
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
+            <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setStatusFilter('All Statuses'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
