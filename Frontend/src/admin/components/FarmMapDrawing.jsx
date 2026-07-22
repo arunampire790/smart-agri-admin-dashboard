@@ -259,13 +259,7 @@ export default function FarmMapDrawing({ initialCoords, initialCircleData, initi
         )}
       </MapContainer>
 
-      <div style={{ position: 'absolute', top: '52px', left: '8px', zIndex: 1000, display: 'flex', gap: '6px' }}>
-        <div style={{ background: 'rgba(255,255,255,0.92)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: polygonClosed ? '#2e7d2e' : '#374151', fontWeight: polygonClosed ? 600 : 500, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>
-          {instructionText}
-        </div>
-      </div>
-
-      <div style={{ position: 'absolute', top: '52px', right: '8px', zIndex: 1000, display: 'flex', gap: '6px' }}>
+      <div style={{ position: 'absolute', top: '52px', right: '8px', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
         <button type="button" onClick={handleDone} disabled={!doneEnabled || polygonClosed}
           style={{
             ...btnBase, background: polygonClosed ? '#e8f5e9' : doneEnabled ? '#1a3a2a' : '#ffffff', color: polygonClosed ? '#2e7d2e' : doneEnabled ? '#ffffff' : '#9ca3af', border: polygonClosed ? '1px solid rgba(46,125,50,0.3)' : doneEnabled ? 'none' : '1px solid rgba(0,0,0,0.08)',
@@ -288,6 +282,9 @@ export default function FarmMapDrawing({ initialCoords, initialCircleData, initi
           onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
           onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; }}
         ><i className="ph ph-trash" /> Clear</button>
+        <div style={{ background: 'rgba(255,255,255,0.92)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: polygonClosed ? '#2e7d2e' : '#374151', fontWeight: polygonClosed ? 600 : 500, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', maxWidth: '300px' }}>
+          {instructionText}
+        </div>
       </div>
 
       {drawMode === 'circle' && circle?.center && circle?.radius > 0 && (
