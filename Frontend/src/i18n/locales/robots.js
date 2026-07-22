@@ -16,9 +16,10 @@ export default {
     allRobots: 'All Robots ({count})',
     searchPlaceholder: 'Search robots by name, ID, farmer, farm, or model...',
     searchAriaLabel: 'Search robots',
+    filterOwner: 'OWNER',
+    filterFarm: 'FARM',
     filterStatus: 'STATUS',
     filterBattery: 'BATTERY',
-    filterFarm: 'FARM',
     showing: 'Showing {shown} of {total} robots',
     clearFilters: 'Clear Filters',
 
@@ -78,9 +79,10 @@ export default {
     allRobots: 'すべてのロボット（{count}）',
     searchPlaceholder: '名前・ID・農家・農場・モデルでロボットを検索...',
     searchAriaLabel: 'ロボットを検索',
+    filterOwner: '所有者',
+    filterFarm: '農場',
     filterStatus: 'ステータス',
     filterBattery: 'バッテリー',
-    filterFarm: '農場',
     showing: '全{total}台中{shown}台を表示',
     clearFilters: 'フィルターをクリア',
 

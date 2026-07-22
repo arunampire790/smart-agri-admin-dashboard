@@ -229,9 +229,10 @@ export default function Robots() {
   const defaultFarmer = userNames.length ? userNames[0] : '';
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
+  const [ownerFilter, setOwnerFilter] = useState('All Owners');
+  const [farmFilter, setFarmFilter] = useState('All Farms');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [batteryFilter, setBatteryFilter] = useState('All Levels');
-  const [farmFilter, setFarmFilter] = useState('All Farms');
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
@@ -274,6 +275,12 @@ export default function Robots() {
 
   const filteredRobots = useMemo(() => {
     let result = robots;
+    if (ownerFilter !== 'All Owners') {
+      result = result.filter(r => r.farmer === ownerFilter);
+    }
+    if (farmFilter !== 'All Farms') {
+      result = result.filter(r => r.farm === farmFilter);
+    }
     if (statusFilter !== 'All Statuses') {
       result = result.filter(r => r.status === statusFilter);
     }
@@ -286,9 +293,6 @@ export default function Robots() {
         return true;
       });
     }
-    if (farmFilter !== 'All Farms') {
-      result = result.filter(r => r.farm === farmFilter);
-    }
     const term = searchTerm.toLowerCase().trim();
     if (!term) return result;
     return result.filter((r) =>
@@ -298,10 +302,11 @@ export default function Robots() {
       (r.farm || '').toLowerCase().includes(term) ||
       (r.model || '').toLowerCase().includes(term)
     );
-  }, [robots, searchTerm, statusFilter, batteryFilter, farmFilter]);
+  }, [robots, searchTerm, ownerFilter, farmFilter, statusFilter, batteryFilter]);
 
-  const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
+  const ownerFilterOptions = useMemo(() => ['All Owners', ...new Set(robots.map(r => r.farmer).filter(Boolean))], [robots]);
   const farmFilterOptions = useMemo(() => ['All Farms', ...new Set(robots.map(r => r.farm).filter(Boolean))], [robots]);
+  const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
   const batteryOptions = useMemo(() => ['All Levels', 'Critical (<20%)', 'Low (<50%)', 'Good (≥50%)'], []);
 
   return (
@@ -370,14 +375,15 @@ export default function Robots() {
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAriaLabel')} className={inputClass} />
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '12px 0', borderBottom: '1px solid rgba(76,175,80,0.08)', marginBottom: '12px' }}>
+          <FilterSelect label={t('filterOwner')} options={ownerFilterOptions} value={ownerFilter} onChange={setOwnerFilter} width="160px" />
+          <FilterSelect label={t('filterFarm')} options={farmFilterOptions} value={farmFilter} onChange={setFarmFilter} width="160px" />
           <FilterSelect label={t('filterStatus')} options={statusFilterOptions} value={statusFilter} onChange={setStatusFilter} width="160px" />
           <FilterSelect label={t('filterBattery')} options={batteryOptions} value={batteryFilter} onChange={setBatteryFilter} width="160px" />
-          <FilterSelect label={t('filterFarm')} options={farmFilterOptions} value={farmFilter} onChange={setFarmFilter} width="160px" />
         </div>
         <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <span>{t('showing').replace('{shown}', filteredRobots.length).replace('{total}', robots.length)}</span>
-          {(searchTerm || statusFilter !== 'All Statuses' || batteryFilter !== 'All Levels' || farmFilter !== 'All Farms') && (
-            <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); setFarmFilter('All Farms'); }}
+          {(searchTerm || ownerFilter !== 'All Owners' || farmFilter !== 'All Farms' || statusFilter !== 'All Statuses' || batteryFilter !== 'All Levels') && (
+            <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setFarmFilter('All Farms'); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); }}
               style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#1a5c1a'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#2e7d32'}
@@ -404,7 +410,7 @@ export default function Robots() {
                 <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('emptyTitle')}</div>
                 <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('emptySubtitle')}</div>
-                <span onClick={() => { setSearchTerm(''); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); setFarmFilter('All Farms'); }}
+                <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setFarmFilter('All Farms'); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); }}
                   style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
