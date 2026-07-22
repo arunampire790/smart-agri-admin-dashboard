@@ -9,7 +9,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  Thermometer, Droplets, Radar, MapPin, Cpu,
+  Thermometer, Droplets, MapPin, Cpu,
   ArrowLeft, Wifi, WifiOff, RefreshCw,
 } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -120,12 +120,6 @@ const soilLabel = (s) => {
   return 'soilTooWet';
 };
 
-const ultrasonicStatus = (u) => {
-  if (u < 30) return { label: 'usObstacle', color: '#EF4444', icon: '⚠' };
-  if (u <= 200) return { label: 'usClear', color: '#10B981', icon: '✓' };
-  return { label: 'usNoReading', color: '#9CA3AF', icon: '—' };
-};
-
 function SemiGauge({ value, max, unit, label, color, size = 160 }) {
   const ratio = Math.min(value / max, 1);
   const bgColor = '#E5E7EB';
@@ -181,44 +175,6 @@ function CustomTooltip({ active, payload, label, t }) {
       {payload.map((p) => (
         <div key={p.name} style={{ color: p.color, fontWeight: 500 }}>{nameLabel(p.name)}: {p.value}{p.name === 'Temperature' ? '°C' : '%'}</div>
       ))}
-    </div>
-  );
-}
-
-function DistanceIndicator({ distance, t }) {
-  const rings = [
-    { max: 30, color: '#EF4444', label: 'ringObstacle' },
-    { max: 100, color: '#F59E0B', label: 'ringCaution' },
-    { max: 200, color: '#10B981', label: 'ringClear' },
-    { max: Infinity, color: '#9CA3AF', label: 'ringFar' },
-  ];
-  const activeRing = rings.find((r) => distance <= r.max) || rings[rings.length - 1];
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: 140, height: 140 }}>
-        {[120, 90, 60, 30].map((r, i) => (
-          <div key={i}
-            style={{
-              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: r, height: r, borderRadius: '50%',
-              border: `1.5px solid ${distance <= (4 - i) * 50 + 30 ? activeRing.color : 'rgba(0,0,0,0.06)'}`,
-              transition: 'border-color 0.3s ease',
-            }}
-          />
-        ))}
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: activeRing.color }}>{distance}</div>
-          <div style={{ fontSize: 10, color: '#5A7A5A', fontWeight: 500 }}>cm</div>
-        </div>
-      </div>
-      <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
-        style={{ background: `${activeRing.color}15`, color: activeRing.color }}>
-        {activeRing.icon || ''} {t(activeRing.label)}
-      </span>
     </div>
   );
 }
@@ -356,21 +312,6 @@ export default function SensorsDetails() {
             {isOnline && readings ? (
               <div className="flex justify-center">
                 <SoilGauge value={readings.soilMoisture} t={t} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-[180px]">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(156,163,175,0.12)', color: '#9CA3AF' }}>{t('sensorOffline')}</span>
-              </div>
-            )}
-          </GlowCard>
-
-          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-            <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Radar size={16} color="#2e7d2e" /> {t('ultrasonic')}
-            </div>
-            {isOnline && readings ? (
-              <div className="flex justify-center">
-                <DistanceIndicator distance={readings.ultrasonic} t={t} />
               </div>
             ) : (
               <div className="flex items-center justify-center h-[180px]">
@@ -579,7 +520,6 @@ export default function SensorsDetails() {
           const rId = r.id;
           const readings = readingFor(rId);
           const isOnline = r.status !== 'Offline';
-          const us = readings ? ultrasonicStatus(readings.ultrasonic) : null;
 
           return (
             <GlowCard key={r.id} onClick={() => setSelectedRobot(r)}
@@ -626,13 +566,6 @@ export default function SensorsDetails() {
                       <div className="h-full rounded-full transition-all" style={{ width: `${readings.soilMoisture}%`, background: soilColor(readings.soilMoisture) }} />
                     </div>
                     <div className="text-[9px] font-medium mt-0.5" style={{ color: soilColor(readings.soilMoisture) }}>{t(soilLabel(readings.soilMoisture))}</div>
-                  </div>
-                  <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                    <div className="flex items-center gap-1.5">
-                      <Radar size={12} color="#5A7A5A" />
-                      <span className="text-[9px] font-semibold text-text-secondary uppercase tracking-wider">{t('ultrasonic')}</span>
-                    </div>
-                    <span className="text-[10px] font-semibold" style={{ color: us?.color }}>{us?.icon} {readings.ultrasonic}cm</span>
                   </div>
                   <div className="flex items-center gap-1.5 pt-1">
                     <MapPin size={11} color="#5A7A5A" />
