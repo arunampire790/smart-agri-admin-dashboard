@@ -276,17 +276,18 @@ export default function Robots() {
   const filteredRobots = useMemo(() => {
     let result = robots;
     if (ownerFilter !== 'All Owners') {
-      result = result.filter(r => r.farmer === ownerFilter);
+      result = result.filter(r => (r.farmer || '').trim() === ownerFilter);
     }
     if (farmFilter !== 'All Farms') {
-      result = result.filter(r => r.farm === farmFilter);
+      result = result.filter(r => (r.farm || '').trim() === farmFilter);
     }
     if (statusFilter !== 'All Statuses') {
-      result = result.filter(r => r.status === statusFilter);
+      result = result.filter(r => (r.status || '').trim() === statusFilter);
     }
     if (batteryFilter !== 'All Levels') {
       result = result.filter(r => {
         const b = r.battery;
+        if (b == null) return false;
         if (batteryFilter === 'Critical (<20%)') return b < 20;
         if (batteryFilter === 'Low (<50%)') return b >= 20 && b < 50;
         if (batteryFilter === 'Good (≥50%)') return b >= 50;
@@ -304,9 +305,9 @@ export default function Robots() {
     );
   }, [robots, searchTerm, ownerFilter, farmFilter, statusFilter, batteryFilter]);
 
-  const ownerFilterOptions = useMemo(() => ['All Owners', ...new Set(robots.map(r => r.farmer).filter(Boolean))], [robots]);
-  const farmFilterOptions = useMemo(() => ['All Farms', ...new Set(robots.map(r => r.farm).filter(Boolean))], [robots]);
-  const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(robots.map(r => r.status).filter(Boolean))], [robots]);
+  const ownerFilterOptions = useMemo(() => ['All Owners', ...new Set(robots.map(r => (r.farmer || '').trim()).filter(Boolean))], [robots]);
+  const farmFilterOptions = useMemo(() => ['All Farms', ...new Set(robots.map(r => (r.farm || '').trim()).filter(Boolean))], [robots]);
+  const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(robots.map(r => (r.status || '').trim()).filter(Boolean))], [robots]);
   const batteryOptions = useMemo(() => ['All Levels', 'Critical (<20%)', 'Low (<50%)', 'Good (≥50%)'], []);
 
   return (
