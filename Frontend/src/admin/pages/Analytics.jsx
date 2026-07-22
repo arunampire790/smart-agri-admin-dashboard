@@ -4,6 +4,7 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import { useT } from '../../i18n';
+import { useUsers } from '../../context/UserContext';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
   Thermometer, Droplets, CloudRain,
@@ -224,16 +225,34 @@ export default function Analytics() {
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { tasks } = useTasks();
+  const { users } = useUsers();
 
   const [selectedFarmName, setSelectedFarmName] = useState('All Farms');
+  const [selectedOwner, setSelectedOwner] = useState('All Owners');
   const [graphType, setGraphType] = useState('line');
   const [selectedCrop, setSelectedCrop] = useState(null);
   const now = new Date();
 
+  const filteredFarms = useMemo(() => {
+    if (selectedOwner === 'All Owners') return farms;
+    return (farms || []).filter(f => f.owner === selectedOwner);
+  }, [farms, selectedOwner]);
+
+  const userOptions = useMemo(() => {
+    return [{ value: 'All Owners', label: 'All Owners' }, ...(users || []).map(u => ({ value: u.name, label: u.name }))];
+  }, [users]);
+
+  useEffect(() => {
+    if (selectedOwner !== 'All Owners' && selectedFarmName !== 'All Farms') {
+      const stillOwned = (farms || []).some(f => f.name === selectedFarmName && f.owner === selectedOwner);
+      if (!stillOwned) setSelectedFarmName('All Farms');
+    }
+  }, [selectedOwner, selectedFarmName, farms]);
+
   const selectedFarm = useMemo(() => {
     if (selectedFarmName === 'All Farms') return null;
-    return farms.find((f) => f.name === selectedFarmName) || null;
-  }, [selectedFarmName, farms]);
+    return filteredFarms.find((f) => f.name === selectedFarmName) || null;
+  }, [selectedFarmName, filteredFarms]);
 
   const sensorReadings = useMemo(() => {
     const d = SENSOR_DATA[selectedFarmName];
@@ -259,8 +278,8 @@ export default function Analytics() {
     };
 
     if (selectedFarm) return findNearest([selectedFarm]);
-    return findNearest(farms);
-  }, [selectedFarm, farms]);
+    return findNearest(filteredFarms);
+  }, [selectedFarm, filteredFarms]);
 
   const computedYield = useMemo(() => {
     const calcFarm = (f) => {
@@ -274,8 +293,8 @@ export default function Analytics() {
     };
 
     if (selectedFarm) return calcFarm(selectedFarm);
-    return farms.reduce((sum, f) => sum + calcFarm(f), 0);
-  }, [selectedFarm, farms]);
+    return filteredFarms.reduce((sum, f) => sum + calcFarm(f), 0);
+  }, [selectedFarm, filteredFarms]);
 
   const computedProfit = useMemo(() => {
     const calcFarm = (f) => {
@@ -292,8 +311,8 @@ export default function Analytics() {
     };
 
     if (selectedFarm) return calcFarm(selectedFarm);
-    return farms.reduce((sum, f) => sum + calcFarm(f), 0);
-  }, [selectedFarm, farms]);
+    return filteredFarms.reduce((sum, f) => sum + calcFarm(f), 0);
+  }, [selectedFarm, filteredFarms]);
 
   const growthStatus = useMemo(() => {
     const lastTemp = sensorReadings.temperature[sensorReadings.temperature.length - 1];
@@ -321,8 +340,8 @@ export default function Analytics() {
   }, [sensorReadings]);
 
   const farmOptions = useMemo(() => {
-    return [{ value: 'All Farms', label: t('allFarms') }, ...farms.map((f) => ({ value: f.name, label: f.name }))];
-  }, [farms]);
+    return [{ value: 'All Farms', label: t('allFarms') }, ...filteredFarms.map((f) => ({ value: f.name, label: f.name }))];
+  }, [filteredFarms]);
 
   const graphOptions = [
     { value: 'line', label: t('lineChart') },
@@ -445,13 +464,22 @@ export default function Analytics() {
               {t('subtitle')}
             </div>
           </div>
-          <Select
-            label={t('selectFarm')}
-            options={farmOptions}
-            value={selectedFarmName}
-            onChange={setSelectedFarmName}
-            width="220px"
-          />
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+            <Select
+              label={t('selectFarm')}
+              options={farmOptions}
+              value={selectedFarmName}
+              onChange={setSelectedFarmName}
+              width="220px"
+            />
+            <Select
+              label="Filter by Owner"
+              options={userOptions}
+              value={selectedOwner}
+              onChange={setSelectedOwner}
+              width="200px"
+            />
+          </div>
         </div>
       </div>
 
