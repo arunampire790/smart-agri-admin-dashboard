@@ -2,7 +2,7 @@
 import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
 import { useRobots } from '../../context/RobotContext';
-import { Bot, User, CheckCircle, AlertTriangle, Pencil, Trash2, X, UserCheck, UserX, Download, Printer, FileText, Activity } from 'lucide-react';
+import { Bot, User, AlertTriangle, Pencil, Trash2, X, UserCheck, UserX, Download, Printer, FileText, Activity } from 'lucide-react';
 import { modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 import UserProfileModal from '../components/UserProfileModal';
@@ -138,7 +138,6 @@ export default function RobotAssignment() {
 
   const total = robots.length;
   const assigned = robots.filter((r) => r.farmer !== null && r.farmer !== '').length;
-  const available = robots.filter((r) => r.status === 'Available').length;
   const unassigned = robots.filter((r) => !r.farmer || r.farmer.trim() === '').length;
   const needsAttention = robots.filter((r) => r.status === 'Maintenance' || r.status === 'Lost' || r.status === 'Inactive').length;
 
@@ -149,7 +148,7 @@ export default function RobotAssignment() {
 
   const handleTabClick = (key) => {
     setActiveCard(null);
-    const map = { all: 'All', unassigned: 'Unassigned', available: 'Available', assigned: 'Assigned', active: 'Active', maintenance: 'Maintenance', lost: 'Lost' };
+    const map = { all: 'All', unassigned: 'Unassigned', assigned: 'Assigned', active: 'Active', maintenance: 'Maintenance', lost: 'Lost' };
     setActiveFilter(map[key] || key);
   };
 
@@ -158,7 +157,6 @@ export default function RobotAssignment() {
   const tabs = useMemo(() => [
     { key: 'all', label: `${t('tabAll')} (${total})` },
     { key: 'unassigned', label: `${t('tabUnassigned')} (${unassigned})` },
-    { key: 'available', label: `${t('tabAvailable')} (${robots.filter(r => r.status === 'Available').length})` },
     { key: 'assigned', label: `${t('tabAssigned')} (${robots.filter(r => r.status === 'Assigned').length})` },
     { key: 'active', label: `${t('tabActive')} (${robots.filter(r => r.status === 'Active').length})` },
     { key: 'maintenance', label: `${t('tabMaintenance')} (${robots.filter(r => r.status === 'Maintenance').length})` },
@@ -380,7 +378,7 @@ export default function RobotAssignment() {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <GlowCard onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -389,17 +387,6 @@ export default function RobotAssignment() {
             </div>
             <div style={greenIconContainer}>
               <Bot size={18} color="#2e7d2e" />
-            </div>
-          </div>
-        </GlowCard>
-        <GlowCard onClick={() => handleCardClick('available', 'Available')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold text-secondary mb-2">{t('available')}</div>
-              <div className="text-3xl font-extrabold text-primary">{available}</div>
-            </div>
-            <div style={greenIconContainer}>
-              <CheckCircle size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
