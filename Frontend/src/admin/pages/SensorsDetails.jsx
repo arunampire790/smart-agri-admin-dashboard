@@ -235,6 +235,7 @@ export default function SensorsDetails() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   });
 
+  const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [farmFilter, setFarmFilter] = useState('All Farms');
   const [profileFarm, setProfileFarm] = useState(null);
   const [showFarmCoordList, setShowFarmCoordList] = useState(false);
@@ -248,31 +249,43 @@ export default function SensorsDetails() {
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
+  const ownerFilterOptions = useMemo(() => ['All Owners', ...new Set(robots.map(r => (r.farmer || '').trim()).filter(Boolean))], [robots]);
+
+  const ownerFilteredRobots = useMemo(() => {
+    if (ownerFilter === 'All Owners') return robots;
+    return robots.filter(r => (r.farmer || '').trim() === ownerFilter);
+  }, [robots, ownerFilter]);
+
+  useEffect(() => {
+    setFarmFilter('All Farms');
+  }, [ownerFilter]);
+
   const fleetStats = useMemo(() => {
-    const online = robots.filter((r) => r.status !== 'Offline').length;
-    const temps = robots
+    const batch = ownerFilteredRobots;
+    const online = batch.filter((r) => r.status !== 'Offline').length;
+    const temps = batch
       .filter((r) => r.status !== 'Offline')
       .map((r) => readingFor(r.id)?.dht11?.temperature)
       .filter(Boolean);
     const avgTemp = temps.length > 0
       ? Math.round((temps.reduce((s, v) => s + v, 0) / temps.length) * 10) / 10
       : 0;
-    const moistures = robots
+    const moistures = batch
       .filter((r) => r.status !== 'Offline')
       .map((r) => readingFor(r.id)?.soilMoisture)
       .filter(Boolean);
     const avgMoisture = moistures.length > 0
       ? Math.round((moistures.reduce((s, v) => s + v, 0) / moistures.length) * 10) / 10
       : 0;
-    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, total: robots.length };
-  }, [robots]);
+    return { online: `${online}/${batch.length}`, avgTemp, avgMoisture, total: batch.length };
+  }, [ownerFilteredRobots]);
 
-  const farmOptions = useMemo(() => ['All Farms', ...[...new Set(robots.map(r => r.farm).filter(Boolean))].sort()], [robots]);
+  const farmOptions = useMemo(() => ['All Farms', ...[...new Set(ownerFilteredRobots.map(r => r.farm).filter(Boolean))].sort()], [ownerFilteredRobots]);
 
   const filteredRobots = useMemo(() => {
-    if (farmFilter === 'All Farms') return robots;
-    return robots.filter(r => r.farm === farmFilter);
-  }, [robots, farmFilter]);
+    if (farmFilter === 'All Farms') return ownerFilteredRobots;
+    return ownerFilteredRobots.filter(r => r.farm === farmFilter);
+  }, [ownerFilteredRobots, farmFilter]);
 
   if (!robots || robots.length === 0) {
     return (
@@ -540,16 +553,23 @@ export default function SensorsDetails() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="text-sm font-semibold text-primary">{t('gridTitle').replace('{count}', filteredRobots.length)}</div>
-        <div>
-          <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('farm')}</div>
-          <Select options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="200px"
-            labelFor={(o) => (o === 'All Farms' ? t('allFarms') : o)} />
+        <div className="flex items-center gap-4">
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('owner')}</div>
+            <Select options={ownerFilterOptions} value={ownerFilter} onChange={setOwnerFilter} width="180px"
+              labelFor={(o) => (o === 'All Owners' ? t('allOwners') : o)} />
+          </div>
+          <div>
+            <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('farm')}</div>
+            <Select options={farmOptions} value={farmFilter} onChange={setFarmFilter} width="200px"
+              labelFor={(o) => (o === 'All Farms' ? t('allFarms') : o)} />
+          </div>
         </div>
       </div>
-      {farmFilter !== 'All Farms' && (
+      {(ownerFilter !== 'All Owners' || farmFilter !== 'All Farms') && (
         <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
-          {t('showing').replace('{shown}', filteredRobots.length).replace('{total}', robots.length)}
-          <span onClick={() => setFarmFilter('All Farms')}
+          {t('showing').replace('{shown}', filteredRobots.length).replace('{total}', ownerFilteredRobots.length)}
+          <span onClick={() => { setOwnerFilter('All Owners'); setFarmFilter('All Farms'); }}
             style={{ marginLeft: '12px', color: '#4caf50', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'underline' }}
           >{t('clearFilter')}</span>
         </div>

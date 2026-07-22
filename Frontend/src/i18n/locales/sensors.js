@@ -14,6 +14,8 @@ export default {
     statLastSynced: 'Last Synced',
 
     gridTitle: 'Robot Sensor Grid ({count})',
+    owner: 'Owner',
+    allOwners: 'All Owners',
     farm: 'Farm',
     allFarms: 'All Farms',
     showing: 'Showing {shown} of {total} robots',
@@ -77,6 +79,8 @@ export default {
     statLastSynced: '最終同期',
 
     gridTitle: 'ロボットセンサー一覧（{count}）',
+    owner: '所有者',
+    allOwners: 'すべての所有者',
     farm: '農場',
     allFarms: 'すべての農場',
     showing: '全{total}台中{shown}台を表示',
