@@ -155,19 +155,35 @@ function FormFields({ form, setForm, errors, userNames, isEditing }) {
 function FilterSelect({ label, options, value, onChange, width }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const btnRef = useRef(null);
+  const [pos, setPos] = useState({});
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const closeOnScroll = () => setOpen(false);
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    window.addEventListener('scroll', closeOnScroll, { passive: true, capture: true });
+    window.addEventListener('resize', closeOnScroll, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('scroll', closeOnScroll, { capture: true });
+      window.removeEventListener('resize', closeOnScroll);
+    };
   }, []);
   const isActive = value !== options[0];
+  const openDropdown = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    }
+    setOpen(true);
+  };
   return (
     <div>
       {label && (
         <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', display: 'block' }}>{label}</div>
       )}
-      <div className="relative" ref={ref} style={{ width: width || '160px' }}>
-        <button type="button" onClick={() => setOpen((o) => !o)}
+      <div ref={ref} style={{ width: width || '160px' }}>
+        <button ref={btnRef} type="button" onClick={() => open ? setOpen(false) : openDropdown()}
           style={{
             background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)', borderRadius: '8px',
             color: '#374151', fontSize: '13px', padding: '8px 12px',
@@ -184,36 +200,37 @@ function FilterSelect({ label, options, value, onChange, width }) {
           </span>
           <ChevronDown size={14} style={{ flexShrink: 0, color: '#6B7280', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
         </button>
-        {open && (
-          <div className="dropdown-scroll" style={{
-            position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-            maxHeight: '240px', overflowY: 'auto',
-            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          }}>
-            {options.map((opt) => {
-              const sel = opt === value;
-              return (
-                <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
-                  style={{
-                    padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
-                    background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
-                    color: sel ? '#4caf50' : '#1d1d1f',
-                    transition: 'background 0.15s, color 0.15s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}
-                  onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
-                  onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
-                >
-                  <span>{opt}</span>
-                  {sel && <Check size={12} color="#4caf50" />}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
+      {open && createPortal(
+        <div className="dropdown-scroll" style={{
+          position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left, width: pos.width,
+          maxHeight: '240px', overflowY: 'auto',
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        }}>
+          {options.map((opt) => {
+            const sel = opt === value;
+            return (
+              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  padding: '10px 14px', fontSize: '13px', cursor: 'pointer',
+                  background: sel ? 'rgba(76,175,80,0.12)' : 'transparent',
+                  color: sel ? '#4caf50' : '#1d1d1f',
+                  transition: 'background 0.15s, color 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; } }}
+                onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
+              >
+                <span>{opt}</span>
+                {sel && <Check size={12} color="#4caf50" />}
+              </div>
+            );
+          })}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
