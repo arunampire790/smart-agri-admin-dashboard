@@ -168,7 +168,7 @@ export default function Users() {
   const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
-  const ownerOptions = useMemo(() => ['All Owners', 'Has Farms', 'No Farms'], []);
+  const ownerOptions = useMemo(() => ['All Owners', ...new Set(users.map(u => (u.name || '').trim()).filter(Boolean))], [users]);
   const statusOptions = useMemo(() => ['All Statuses', ...new Set(users.map(u => u.status).filter(Boolean))], [users]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewUser, setViewUser] = useState(null);
@@ -180,10 +180,8 @@ export default function Users() {
 
   const filteredUsers = useMemo(() => {
     let result = users;
-    if (ownerFilter === 'Has Farms') {
-      result = result.filter(u => u.farms > 0);
-    } else if (ownerFilter === 'No Farms') {
-      result = result.filter(u => u.farms === 0);
+    if (ownerFilter !== 'All Owners') {
+      result = result.filter(u => (u.name || '').trim() === ownerFilter);
     }
     if (statusFilter !== 'All Statuses') {
       result = result.filter(u => u.status === statusFilter);
