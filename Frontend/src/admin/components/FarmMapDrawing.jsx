@@ -259,31 +259,29 @@ export default function FarmMapDrawing({ initialCoords, initialCircleData, initi
         )}
       </MapContainer>
 
-      <div style={{ position: 'absolute', top: '52px', right: '8px', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-        <button type="button" onClick={handleDone} disabled={!doneEnabled || polygonClosed}
-          style={{
-            ...btnBase, background: polygonClosed ? '#e8f5e9' : doneEnabled ? '#1a3a2a' : '#ffffff', color: polygonClosed ? '#2e7d2e' : doneEnabled ? '#ffffff' : '#9ca3af', border: polygonClosed ? '1px solid rgba(46,125,50,0.3)' : doneEnabled ? 'none' : '1px solid rgba(0,0,0,0.08)',
-            opacity: !doneEnabled && !polygonClosed ? 0.4 : 1, cursor: (doneEnabled || polygonClosed) ? 'pointer' : 'not-allowed', pointerEvents: (doneEnabled || polygonClosed) ? 'auto' : 'none',
-          }}
-          onMouseEnter={e => { if (doneEnabled && !polygonClosed) { e.currentTarget.style.background = '#2e7d2e'; } }}
-          onMouseLeave={e => { if (doneEnabled && !polygonClosed) { e.currentTarget.style.background = '#1a3a2a'; } }}
-        ><i className="ph ph-check" /> {polygonClosed ? 'Done' : '\u2713 Done'}</button>
-        <button type="button" onClick={handleUndo} disabled={polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)}
-          style={{
-            ...btnBase, opacity: (polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)) ? 0.4 : 1,
-            cursor: (polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)) ? 'not-allowed' : 'pointer',
-            pointerEvents: (polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)) ? 'none' : 'auto',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
-          onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
-        ><i className="ph ph-arrow-u-up-left" /> Undo</button>
-        <button type="button" onClick={handleClear}
-          style={{ ...btnBase, color: '#dc2626' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; }}
-        ><i className="ph ph-trash" /> Clear</button>
-        <div style={{ background: 'rgba(255,255,255,0.92)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: polygonClosed ? '#2e7d2e' : '#374151', fontWeight: polygonClosed ? 600 : 500, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', maxWidth: '300px' }}>
-          {instructionText}
+      <div style={{ position: 'absolute', top: '52px', right: '8px', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', gap: '6px', pointerEvents: 'auto' }}>
+          <button type="button" onClick={handleDone} disabled={!doneEnabled || polygonClosed}
+            style={{
+              ...btnBase, background: polygonClosed ? '#e8f5e9' : doneEnabled ? '#1a3a2a' : '#ffffff', color: polygonClosed ? '#2e7d2e' : doneEnabled ? '#ffffff' : '#9ca3af', border: polygonClosed ? '1px solid rgba(46,125,50,0.3)' : doneEnabled ? 'none' : '1px solid rgba(0,0,0,0.08)',
+              opacity: !doneEnabled && !polygonClosed ? 0.4 : 1, cursor: (doneEnabled || polygonClosed) ? 'pointer' : 'not-allowed',
+            }}
+            onMouseEnter={e => { if (doneEnabled && !polygonClosed) { e.currentTarget.style.background = '#2e7d2e'; } }}
+            onMouseLeave={e => { if (doneEnabled && !polygonClosed) { e.currentTarget.style.background = '#1a3a2a'; } }}
+          ><i className="ph ph-check" /> {polygonClosed ? 'Done' : '\u2713 Done'}</button>
+          <button type="button" onClick={handleUndo} disabled={polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)}
+            style={{
+              ...btnBase, opacity: (polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)) ? 0.4 : 1,
+              cursor: (polygonClosed || (drawMode === 'polygon' ? rawPoints.length === 0 : !circle?.center)) ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+            onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
+          ><i className="ph ph-arrow-u-up-left" /> Undo</button>
+          <button type="button" onClick={handleClear}
+            style={{ ...btnBase, color: '#dc2626' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; }}
+          ><i className="ph ph-trash" /> Clear</button>
         </div>
       </div>
 
@@ -301,11 +299,14 @@ export default function FarmMapDrawing({ initialCoords, initialCircleData, initi
       )}
 
       <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.6)' }}>
-        <div style={{ fontSize: '12px', color: '#374151', fontWeight: 600 }}>
-          {drawMode === 'polygon'
-            ? `${safeRaw.length} point${safeRaw.length !== 1 ? 's' : ''} placed \u2022 ${safeHull.length} hull point${safeHull.length !== 1 ? 's' : ''}`
-            : circle?.center ? `Circle: ${Math.round(circle.radius || 0)}m radius` : 'No circle defined'
-          }
+        <div>
+          <div style={{ fontSize: '12px', color: '#374151', fontWeight: 600 }}>
+            {drawMode === 'polygon'
+              ? `${safeRaw.length} point${safeRaw.length !== 1 ? 's' : ''} placed \u2022 ${safeHull.length} hull point${safeHull.length !== 1 ? 's' : ''}`
+              : circle?.center ? `Circle: ${Math.round(circle.radius || 0)}m radius` : 'No circle defined'
+            }
+          </div>
+          <div style={{ fontSize: '10px', color: '#6b7280', fontStyle: 'italic', marginTop: '2px' }}>{instructionText}</div>
         </div>
         {drawMode === 'polygon' && safeRaw.length > 0 && safeRaw.length < 3 && (
           <span style={{ fontSize: '11px', color: '#f59e0b', fontStyle: 'italic' }}>Need {3 - safeRaw.length} more</span>
