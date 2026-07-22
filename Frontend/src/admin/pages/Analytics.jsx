@@ -255,10 +255,28 @@ export default function Analytics() {
   }, [selectedFarmName, filteredFarms]);
 
   const sensorReadings = useMemo(() => {
-    const d = SENSOR_DATA[selectedFarmName];
-    if (d) return d;
+    if (selectedFarmName !== 'All Farms') {
+      return SENSOR_DATA[selectedFarmName] || SENSOR_DATA['All Farms'];
+    }
+    if (selectedOwner !== 'All Owners' && filteredFarms.length > 0) {
+      const farmNames = filteredFarms.map(f => f.name);
+      const keys = ['temperature', 'soilMoisture', 'humidity', 'npk'];
+      const result = {};
+      keys.forEach(key => {
+        const all = farmNames.map(n => SENSOR_DATA[n]?.[key]).filter(Boolean);
+        if (all.length === 0) {
+          result[key] = SENSOR_DATA['All Farms'][key];
+        } else {
+          result[key] = SENSOR_DATA['All Farms'][key].map((_, i) => {
+            const sum = all.reduce((s, arr) => s + arr[i], 0);
+            return Math.round((sum / all.length) * 10) / 10;
+          });
+        }
+      });
+      return result;
+    }
     return SENSOR_DATA['All Farms'];
-  }, [selectedFarmName]);
+  }, [selectedFarmName, selectedOwner, filteredFarms]);
 
   const harvestInfo = useMemo(() => {
     const findNearest = (farmList) => {
@@ -356,14 +374,26 @@ export default function Analytics() {
   ];
 
   const filteredRobots = useMemo(() => {
-    if (selectedFarmName === 'All Farms') return (robots || []);
-    return (robots || []).filter(r => r.farm === selectedFarmName);
-  }, [robots, selectedFarmName]);
+    let filtered = (robots || []);
+    if (selectedFarmName !== 'All Farms') {
+      filtered = filtered.filter(r => r.farm === selectedFarmName);
+    } else if (selectedOwner !== 'All Owners') {
+      const names = new Set(filteredFarms.map(f => f.name));
+      filtered = filtered.filter(r => names.has(r.farm));
+    }
+    return filtered;
+  }, [robots, selectedFarmName, selectedOwner, filteredFarms]);
 
   const filteredTasks = useMemo(() => {
-    if (selectedFarmName === 'All Farms') return (tasks || []);
-    return (tasks || []).filter(t => t.farm === selectedFarmName);
-  }, [tasks, selectedFarmName]);
+    let filtered = (tasks || []);
+    if (selectedFarmName !== 'All Farms') {
+      filtered = filtered.filter(t => t.farm === selectedFarmName);
+    } else if (selectedOwner !== 'All Owners') {
+      const names = new Set(filteredFarms.map(f => f.name));
+      filtered = filtered.filter(t => names.has(t.farm));
+    }
+    return filtered;
+  }, [tasks, selectedFarmName, selectedOwner, filteredFarms]);
 
   const overdueTasks = filteredTasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
 
@@ -450,7 +480,11 @@ export default function Analytics() {
   const growthLabelMap = { 'Healthy': t('healthy'), 'Needs Attention': t('needsAttention'), 'Critical': t('critical') };
   const sensorStatusMap = { 'Critical': t('critical'), 'Low': t('low'), 'High': t('high'), 'Normal': t('normal'), 'Optimal': t('optimal') };
   const taskStatusMap = { 'Pending': t('pending'), 'In Progress': t('inProgress'), 'Completed': t('completed') };
-  const farmDisplayName = selectedFarmName === 'All Farms' ? t('allFarmsLower') : selectedFarmName;
+  const farmDisplayName = selectedFarmName !== 'All Farms'
+    ? selectedFarmName
+    : selectedOwner !== 'All Owners'
+      ? `${selectedOwner}'s farms`
+      : t('allFarmsLower');
 
   return (
     <>
