@@ -314,6 +314,22 @@ export default function Analytics() {
     return filteredFarms.reduce((sum, f) => sum + calcFarm(f), 0);
   }, [selectedFarm, filteredFarms]);
 
+  const computedRevenue = useMemo(() => {
+    const calcFarm = (f) => {
+      const acres = parseAcres(f.size);
+      const crops = (f.cropTypes || '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (crops.length === 0) return 0;
+      return crops.reduce((sum, crop) => {
+        const factor = YIELD_FACTORS[crop];
+        const price = CROP_PRICES[crop];
+        if (!factor || !price) return sum;
+        return sum + (acres / crops.length) * factor * price;
+      }, 0);
+    };
+    if (selectedFarm) return calcFarm(selectedFarm);
+    return filteredFarms.reduce((sum, f) => sum + calcFarm(f), 0);
+  }, [selectedFarm, filteredFarms]);
+
   const computedProfit = useMemo(() => {
     const calcFarm = (f) => {
       const acres = parseAcres(f.size);
@@ -331,6 +347,14 @@ export default function Analytics() {
     if (selectedFarm) return calcFarm(selectedFarm);
     return filteredFarms.reduce((sum, f) => sum + calcFarm(f), 0);
   }, [selectedFarm, filteredFarms]);
+
+  const yieldTrend = useMemo(() => {
+    const total = computedRevenue;
+    if (total === 0) return { direction: 'up', pct: 0 };
+    const cost = filteredFarms.reduce((sum, f) => sum + parseAcres(f.size) * OP_COST_PER_ACRE, 0);
+    const margin = total > 0 ? ((computedProfit - cost) / total) * 100 : 0;
+    return { direction: margin >= 0 ? 'up' : 'down', pct: Math.abs(Math.round(margin)) };
+  }, [computedRevenue, computedProfit, filteredFarms]);
 
   const growthStatus = useMemo(() => {
     const lastTemp = sensorReadings.temperature[sensorReadings.temperature.length - 1];
@@ -561,7 +585,7 @@ export default function Analytics() {
               </div>
               <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('yieldLabel')}</div>
               <div style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={computedYield} decimals={1} /> {t('tons')}</div>
-              <div style={{ color: '#2e7d2e', fontSize: '12px', marginTop: '2px' }}>↑ +15%</div>
+              <div style={{ color: yieldTrend.direction === 'up' ? '#2e7d2e' : '#dc2626', fontSize: '12px', marginTop: '2px' }}>{yieldTrend.direction === 'up' ? '↑' : '↓'} +{yieldTrend.pct}% {t('vsTarget')}</div>
             </div>
             {/* Card 4 */}
             <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'revenue' ? null : 'revenue')}>
@@ -573,7 +597,7 @@ export default function Analytics() {
               </div>
               <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>{t('netProfit')}</div>
               <div style={{ fontSize: '28px', fontWeight: 700, color: '#2e7d2e' }}>$<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
-              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{t('revenue')}: $<AnimatedValue value={computedProfit / 1000} decimals={0} />K</div>
+              <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{t('revenue')}: $<AnimatedValue value={computedRevenue / 1000} decimals={0} />K</div>
             </div>
           </div>
         </div>
