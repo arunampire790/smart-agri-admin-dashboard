@@ -156,9 +156,14 @@ function FilterSelect({ label, options, value, onChange, width }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const btnRef = useRef(null);
+  const dropdownRef = useRef(null);
   const [pos, setPos] = useState({});
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target) &&
+          dropdownRef.current && !dropdownRef.current.contains(e.target))
+        setOpen(false);
+    };
     const closeOnScroll = () => setOpen(false);
     document.addEventListener('mousedown', handler);
     window.addEventListener('scroll', closeOnScroll, { passive: true, capture: true });
@@ -202,7 +207,7 @@ function FilterSelect({ label, options, value, onChange, width }) {
         </button>
       </div>
       {open && createPortal(
-        <div className="dropdown-scroll" style={{
+        <div ref={dropdownRef} className="dropdown-scroll" style={{
           position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left, width: pos.width,
           maxHeight: '240px', overflowY: 'auto',
           background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
