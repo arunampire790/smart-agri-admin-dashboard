@@ -185,7 +185,7 @@ function FilterSelect({ label, options, value, onChange, width }) {
           <ChevronDown size={14} style={{ flexShrink: 0, color: '#6B7280', transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
         </button>
         {open && (
-          <div style={{
+          <div className="dropdown-scroll" style={{
             position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
             maxHeight: '240px', overflowY: 'auto',
             background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
@@ -311,6 +311,13 @@ export default function Robots() {
 
   return (
     <>
+      <style>{`
+        .dropdown-scroll::-webkit-scrollbar { width: 6px; }
+        .dropdown-scroll::-webkit-scrollbar-track { background: transparent; }
+        .dropdown-scroll::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 3px; }
+        .dropdown-scroll::-webkit-scrollbar-thumb:hover { background: rgba(76,175,80,0.5); }
+        .dropdown-scroll { scrollbar-width: thin; scrollbar-color: rgba(76,175,80,0.3) transparent; }
+      `}</style>
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-2xl font-bold text-primary">{t('pageTitle')}</div>
