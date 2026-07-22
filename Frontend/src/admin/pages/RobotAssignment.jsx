@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+﻿import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUsers } from '../../context/UserContext';
 import { useRobots } from '../../context/RobotContext';
@@ -132,6 +132,9 @@ export default function RobotAssignment() {
   const [qrCodes, setQrCodes] = useState({});
   const [qrLoading, setQrLoading] = useState(true);
   const [qrErrors, setQrErrors] = useState({});
+  const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+  const [bulkAssignFarmer, setBulkAssignFarmer] = useState('');
+  const [bulkAssignSelected, setBulkAssignSelected] = useState(new Set());
 
   const total = robots.length;
   const assigned = robots.filter((r) => r.farmer !== null && r.farmer !== '').length;
@@ -226,7 +229,7 @@ export default function RobotAssignment() {
         registered: today,
         notes: '',
       });
-      newHistoryEntries.push({ robotId, action: 'Generated', farmer: '—', by: 'Admin User', date: today });
+      newHistoryEntries.push({ robotId, action: 'Generated', farmer: 'â€”', by: 'Admin User', date: today });
     }
     // TODO: Replace with real backend bulk generation API call once available
     bulkAddRobots(newRobots);
@@ -248,7 +251,7 @@ export default function RobotAssignment() {
     e.preventDefault();
     if (!showEditModal) return;
     const prevFarmer = showEditModal.farmer;
-    const newFarmer = (editForm.farmer && editForm.farmer !== '— Remove Assignment —') ? editForm.farmer : null;
+    const newFarmer = (editForm.farmer && editForm.farmer !== 'â€” Remove Assignment â€”') ? editForm.farmer : null;
     const prevStatus = showEditModal.status;
     let newStatus = editForm.status;
 
@@ -272,7 +275,7 @@ export default function RobotAssignment() {
     }
 
     updateRobot(showEditModal, { farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes });
-    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || 'â€”', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setShowEditModal(null);
   };
 
@@ -333,10 +336,27 @@ export default function RobotAssignment() {
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
     removeRobot(deleteTarget);
-    addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '—', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || 'â€”', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setDeleteTarget(null);
   };
+  const handleBulkAssign = () => {
+    if (!bulkAssignFarmer || bulkAssignSelected.size === 0) return;
+    const selectedRobots = robots.filter(r => bulkAssignSelected.has(r.id));
+    selectedRobots.forEach(robot => {
+      const newStatus = robot.status === 'Available' ? 'Assigned' : robot.status;
+      updateRobot(robot, { farmer: bulkAssignFarmer, status: newStatus });
+      addHistoryEntry({ robotId: robot.id, action: 'Assigned', farmer: bulkAssignFarmer, by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    });
+    setToast({ message: t('toastBulkAssign').replace('{count}', bulkAssignSelected.size).replace('{farmer}', bulkAssignFarmer) });
+    setTimeout(() => setToast(null), 3000);
+    setShowBulkAssignModal(false);
+    setBulkAssignFarmer('');
+    setBulkAssignSelected(new Set());
+  };
 
+  const unassignedRobots = useMemo(() => {
+    return robots.filter(r => !r.farmer || r.farmer.trim() === '');
+  }, [robots]);
   const greenIconContainer = {
     width: '42px', height: '42px', borderRadius: '10px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -421,7 +441,16 @@ export default function RobotAssignment() {
       {/* Robot Registry Table */}
       <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
-          <div className="text-sm font-semibold text-primary mb-3">{t('allRobots')} ({filteredRobots.length})</div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-primary">{t('allRobots')} ({filteredRobots.length})</div>
+            {activeFilter === 'Unassigned' && unassigned > 0 && (
+              <button onClick={() => { setBulkAssignFarmer(''); setBulkAssignSelected(new Set()); setShowBulkAssignModal(true); }}
+                style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '10px', padding: '7px 16px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(46,125,50,0.3)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              ><i className="ph ph-users-three" /> {t('bulkAssign')}</button>
+            )}
+          </div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label="Search robots" className={glassInput} />
         </div>
 
@@ -504,7 +533,7 @@ export default function RobotAssignment() {
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {statusBadge(r.status)}
                     {(r.status === 'Active' || r.status === 'Assigned') && r.battery > 0 && (
-                      <span style={{ fontSize: '12px', color: '#9CA3AF', marginLeft: '8px' }}>🔋{r.battery}%</span>
+                      <span style={{ fontSize: '12px', color: '#9CA3AF', marginLeft: '8px' }}>ðŸ”‹{r.battery}%</span>
                     )}
                   </td>
                   <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -685,7 +714,7 @@ export default function RobotAssignment() {
                   <Download size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('qrCodeTitle')} — {showQRModal.id}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('qrCodeTitle')} â€” {showQRModal.id}</div>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('qrCodeSub')}</div>
                 </div>
               </div>
@@ -758,7 +787,7 @@ export default function RobotAssignment() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
                     </div>
-                    <Select options={farmerNames.length ? ['— Remove Assignment —', ...farmerNames] : ['— Remove Assignment —']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder={t('selectFarmer')} />
+                    <Select options={farmerNames.length ? ['â€” Remove Assignment â€”', ...farmerNames] : ['â€” Remove Assignment â€”']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder={t('selectFarmer')} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -832,7 +861,98 @@ export default function RobotAssignment() {
         </div>,
         document.body
       )}
-      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+
+      {/* Bulk Assign Modal */}
+      {showBulkAssignModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowBulkAssignModal(false)}>
+          <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <UserCheck size={20} color="#ffffff" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('bulkAssignTitle')}</div>
+                  <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('bulkAssignSub')}</div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowBulkAssignModal(false)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#98989D', padding: '4px', display: 'flex', transition: 'color 0.15s ease, transform 0.15s ease' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
+              ><X size={20} /></button>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                  <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
+                </div>
+                <Select options={farmerNames.length ? farmerNames : ['No users available']} value={bulkAssignFarmer} onChange={(v) => setBulkAssignFarmer(v)} placeholder={t('selectFarmer')} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('unassigned')} ({unassignedRobots.length})
+                  </div>
+                  {unassignedRobots.length > 0 && (
+                    <button type="button" onClick={() => {
+                      if (bulkAssignSelected.size === unassignedRobots.length) {
+                        setBulkAssignSelected(new Set());
+                      } else {
+                        setBulkAssignSelected(new Set(unassignedRobots.map(r => r.id)));
+                      }
+                    }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2e7d2e', fontSize: '11px', fontWeight: 600, padding: 0 }}>
+                      {bulkAssignSelected.size === unassignedRobots.length ? t('deselectAll') : t('selectAll')}
+                    </button>
+                  )}
+                </div>
+                {unassignedRobots.length === 0 ? (
+                  <div style={{ padding: '24px 0', textAlign: 'center', fontSize: '13px', color: '#9CA3AF' }}>{t('noUnassignedRobots')}</div>
+                ) : (
+                  <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '8px' }}>
+                    {unassignedRobots.map(r => {
+                      const checked = bulkAssignSelected.has(r.id);
+                      return (
+                        <div key={r.id} onClick={() => {
+                          const next = new Set(bulkAssignSelected);
+                          if (checked) next.delete(r.id); else next.add(r.id);
+                          setBulkAssignSelected(next);
+                        }} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer', background: checked ? 'rgba(76,175,80,0.06)' : 'transparent', borderBottom: '1px solid rgba(0,0,0,0.04)', transition: 'background 0.15s ease' }}
+                          onMouseEnter={(e) => { if (!checked) e.currentTarget.style.background = 'rgba(0,0,0,0.02)'; }}
+                          onMouseLeave={(e) => { if (!checked) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <input type="checkbox" checked={checked} onChange={() => {}} style={{ accentColor: '#4caf50', width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0 }} onClick={(e) => e.stopPropagation()} />
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', flex: 1 }}>{r.id}</span>
+                          <span style={{ fontSize: '12px', color: '#6b7280' }}>{r.model}</span>
+                          {statusBadge(r.status)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button type="button" onClick={() => setShowBulkAssignModal(false)}
+                style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.15)'; }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >{t('cancel')}</button>
+              <button type="button" onClick={handleBulkAssign}
+                disabled={!bulkAssignFarmer || bulkAssignSelected.size === 0}
+                style={{ background: (!bulkAssignFarmer || bulkAssignSelected.size === 0) ? '#9CA3AF' : '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (!bulkAssignFarmer || bulkAssignSelected.size === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onMouseEnter={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                onMouseDown={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}}
+                onMouseUp={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}}
+              ><i className="ph ph-check" /> {t('assignSelected').replace('{n}', bulkAssignSelected.size || 0)}</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }

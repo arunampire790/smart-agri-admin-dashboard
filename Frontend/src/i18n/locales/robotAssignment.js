@@ -34,6 +34,15 @@ export default {
     viewQrTooltip: 'View QR code for {id}',
     editAssignmentTooltip: 'Edit assignment',
     deleteRobotTooltip: 'Delete robot',
+    // Bulk assign
+    bulkAssign: 'Bulk Assign',
+    bulkAssignTitle: 'Bulk Assign Robots',
+    bulkAssignSub: 'Select a farmer and choose robots to assign',
+    assignSelected: 'Assign {n} Selected',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
+    toastBulkAssign: 'Assigned {count} robot(s) to {farmer}',
+    noUnassignedRobots: 'No unassigned robots',
 
     // Assignment history
     assignmentHistory: 'Assignment History',
@@ -119,6 +128,15 @@ export default {
     viewQrTooltip: '{id} のQRコードを表示',
     editAssignmentTooltip: '割り当てを編集',
     deleteRobotTooltip: 'ロボットを削除',
+    // Bulk assign
+    bulkAssign: '一括割り当て',
+    bulkAssignTitle: 'ロボットを一括割り当て',
+    bulkAssignSub: '農家を選択して割り当てるロボットを選んでください',
+    assignSelected: '選択した{n}台を割り当て',
+    selectAll: 'すべて選択',
+    deselectAll: 'すべて解除',
+    toastBulkAssign: '{count}台のロボットを{farmer}に割り当てました',
+    noUnassignedRobots: '未割り当てのロボットはいません',
 
     // Assignment history
     assignmentHistory: '割り当て履歴',
