@@ -6,4 +6,7 @@ djangorestframework_simplejwt==5.5.1
 PyJWT==2.13.0
 sqlparse==0.5.5
 tzdata==2026.2
+# To run backend
 # python manage.py runserver
+# To run frontend
+# npm run dev
