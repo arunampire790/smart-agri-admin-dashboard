@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRobots } from '../../context/RobotContext';
 import { useFarms } from '../../context/FarmContext';
-import { useTasks } from '../../context/TaskContext';
 import {
   mockSensorReadings, mockHistoryData, lastSynced,
 } from '../../data/mockSensorData';
@@ -10,8 +9,8 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  Thermometer, Droplets, Waves, Radar, MapPin, Cpu,
-  ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
+  Thermometer, Droplets, Radar, MapPin, Cpu,
+  ArrowLeft, Wifi, WifiOff, RefreshCw,
 } from 'lucide-react';
 import { useT } from '../../i18n';
 import FarmProfileModal from '../components/FarmProfileModal';
@@ -127,21 +126,6 @@ const ultrasonicStatus = (u) => {
   return { label: 'usNoReading', color: '#9CA3AF', icon: '—' };
 };
 
-const fertilizerAlert = (level) => {
-  if (level <= 0) return { label: 'alertNoData', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
-  if (level < 10) return { label: 'alertLow', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
-  if (level <= 50) return { label: 'alertModerate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
-  return { label: 'alertExcessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
-};
-
-const waterAlert = (level) => {
-  if (level <= 0) return { label: 'alertNoData', color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', icon: '—' };
-  if (level < 100) return { label: 'alertLow', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: '⚠' };
-  if (level <= 500) return { label: 'alertModerate', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: '✓' };
-  if (level <= 1000) return { label: 'alertOptimal', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', icon: '✓' };
-  return { label: 'alertExcessive', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: '⚠' };
-};
-
 function SemiGauge({ value, max, unit, label, color, size = 160 }) {
   const ratio = Math.min(value / max, 1);
   const bgColor = '#E5E7EB';
@@ -245,7 +229,6 @@ export default function SensorsDetails() {
   const t = useT('sensors');
   const { robots } = useRobots();
   const { farms } = useFarms();
-  const { tasks } = useTasks();
   const [selectedRobot, setSelectedRobot] = useState(null);
   const [lastSyncStr] = useState(() => {
     const d = lastSynced;
@@ -281,15 +264,8 @@ export default function SensorsDetails() {
     const avgMoisture = moistures.length > 0
       ? Math.round((moistures.reduce((s, v) => s + v, 0) / moistures.length) * 10) / 10
       : 0;
-    const obstacles = robots.filter((r) => {
-      const u = readingFor(r.id)?.ultrasonic;
-      return u !== undefined && u < 30;
-    }).length;
-    const farmTasks = (tasks || []);
-    const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
-    const totalWater = farmTasks.reduce((sum, t) => sum + (parseFloat(t.waterQuantity) || 0), 0);
-    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, obstacles, total: robots.length, totalFertilizer, totalWater };
-  }, [robots, tasks]);
+    return { online: `${online}/${robots.length}`, avgTemp, avgMoisture, total: robots.length };
+  }, [robots]);
 
   const farmOptions = useMemo(() => ['All Farms', ...[...new Set(robots.map(r => r.farm).filter(Boolean))].sort()], [robots]);
 
@@ -473,77 +449,6 @@ export default function SensorsDetails() {
               );
             })()}
           </GlowCard>
-
-          <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
-            <div className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-              <Sprout size={16} color="#2e7d2e" /> {t('fertilizerWaterAlerts')}
-            </div>
-            {(() => {
-              const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
-              if (farmTasks.length === 0) return (
-                <div className="flex flex-col items-center justify-center" style={{ minHeight: '120px' }}>
-                  <Sprout size={24} color="#9CA3AF" />
-                  <span className="text-xs text-text-secondary mt-2">{t('noResourceTasks').replace('{farm}', r.farm)}</span>
-                </div>
-              );
-              const totalFertilizer = farmTasks.reduce((sum, t) => sum + (parseFloat(t.fertilizerLevel) || 0), 0);
-              const totalWater = farmTasks.reduce((sum, t) => sum + (parseFloat(t.waterQuantity) || 0), 0);
-              const fAlert = fertilizerAlert(totalFertilizer);
-              const wAlert = waterAlert(totalWater);
-              return (
-                <div className="space-y-3">
-                  {totalFertilizer > 0 && (
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(46,125,50,0.04)', border: '1px solid rgba(46,125,50,0.1)' }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Sprout size={16} color="#2e7d2e" />
-                          <span className="text-sm font-medium text-primary">{t('fertilizer')}</span>
-                        </div>
-                        <span className="text-sm font-bold" style={{ color: fAlert.color }}>{totalFertilizer.toFixed(1)} L</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                          <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalFertilizer / 100) * 100, 100)}%`, background: fAlert.color }} />
-                        </div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: fAlert.bg, color: fAlert.color }}>
-                          {fAlert.icon} {t(fAlert.label)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {totalWater > 0 && (
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.1)' }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Droplets size={16} color="#3B82F6" />
-                          <span className="text-sm font-medium text-primary">{t('water')}</span>
-                        </div>
-                        <span className="text-sm font-bold" style={{ color: wAlert.color }}>{totalWater.toFixed(1)} L</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                          <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((totalWater / 1500) * 100, 100)}%`, background: wAlert.color }} />
-                        </div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: wAlert.bg, color: wAlert.color }}>
-                          {wAlert.icon} {t(wAlert.label)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-1.5 pt-1 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                    {farmTasks.map(t => {
-                      const statusColor = t.status === 'Completed' ? '#10B981' : t.status === 'In Progress' ? '#3B82F6' : '#F59E0B';
-                      return (
-                        <span key={t.id} className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: `${statusColor}10`, color: statusColor }}>
-                          {t.title}{t.fertilizerLevel != null ? ` (${parseFloat(t.fertilizerLevel).toFixed(1)}L)` : ''}{t.waterQuantity != null ? ` (${parseFloat(t.waterQuantity).toFixed(1)}L)` : ''}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-          </GlowCard>
         </div>
 
         <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
@@ -586,81 +491,48 @@ export default function SensorsDetails() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statSensorsOnline')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.online}</div>
             </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
-              <Wifi size={16} color="#10B981" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <Wifi size={18} color="#10B981" />
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statAvgTemp')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.avgTemp}°C</div>
             </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
-              <Thermometer size={16} color="#2e7d2e" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <Thermometer size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statAvgMoisture')}</div>
               <div className="text-xl font-extrabold text-primary">{fleetStats.avgMoisture}%</div>
             </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
-              <Droplets size={16} color="#2e7d2e" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <Droplets size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statObstacles')}</div>
-              <div className="text-xl font-extrabold text-primary">{fleetStats.obstacles}</div>
-            </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(239,68,68,0.12)' }}>
-              <Radar size={16} color="#EF4444" />
-            </div>
-          </div>
-        </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statTotalFertilizer')}</div>
-              <div className="text-xl font-extrabold" style={{ color: fertilizerAlert(fleetStats.totalFertilizer).color }}>{fleetStats.totalFertilizer.toFixed(1)}L</div>
-            </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(46,125,50,0.12)' }}>
-              <Sprout size={16} color="#2e7d2e" />
-            </div>
-          </div>
-        </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statTotalWater')}</div>
-              <div className="text-xl font-extrabold" style={{ color: waterAlert(fleetStats.totalWater).color }}>{fleetStats.totalWater.toFixed(1)}L</div>
-            </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
-              <Droplets size={16} color="#3B82F6" />
-            </div>
-          </div>
-        </GlowCard>
-        <GlowCard className="glass-card rounded-2xl p-4" style={{ contentVisibility: 'auto' }}>
+        <GlowCard className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-semibold text-text-secondary mb-1">{t('statLastSynced')}</div>
               <div className="text-xl font-extrabold text-primary">{lastSyncStr}</div>
             </div>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
-              <RefreshCw size={16} color="#2e7d2e" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(76,175,80,0.12)' }}>
+              <RefreshCw size={18} color="#2e7d2e" />
             </div>
           </div>
         </GlowCard>
@@ -761,29 +633,6 @@ export default function SensorsDetails() {
                     })()}
                     <span className="text-[8px] font-semibold ml-auto" style={{ color: '#10B981' }}>📍 {t('map')}</span>
                   </div>
-                  {(() => {
-                    const farmTasks = (tasks || []).filter(t => t.farm === r.farm && (t.fertilizerLevel != null || t.waterQuantity != null));
-                    if (farmTasks.length === 0) return null;
-                    const totalF = farmTasks.reduce((s, t) => s + (parseFloat(t.fertilizerLevel) || 0), 0);
-                    const totalW = farmTasks.reduce((s, t) => s + (parseFloat(t.waterQuantity) || 0), 0);
-                    const fA = fertilizerAlert(totalF);
-                    const wA = waterAlert(totalW);
-                    return (
-                      <div className="flex items-center gap-2 pt-1.5 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                        {totalF > 0 && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: fA.bg, color: fA.color }}>
-                            <Sprout size={9} className="inline mr-0.5" style={{ verticalAlign: 'middle' }} />{totalF.toFixed(1)}L
-                          </span>
-                        )}
-                        {totalW > 0 && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: wA.bg, color: wA.color }}>
-                            <Droplets size={9} className="inline mr-0.5" style={{ verticalAlign: 'middle' }} />{totalW.toFixed(1)}L
-                          </span>
-                        )}
-                        <span className="text-[7px] text-text-secondary ml-auto">{farmTasks.length} {farmTasks.length > 1 ? t('taskPlural') : t('taskSingular')}</span>
-                      </div>
-                    );
-                  })()}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-[120px]">
