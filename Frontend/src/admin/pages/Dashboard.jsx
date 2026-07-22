@@ -5,6 +5,7 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTaskStore } from '../../stores/taskStore';
 import UserProfileModal from '../components/UserProfileModal';
+import FarmProfileModal from '../components/FarmProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, MapPin } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -111,6 +112,7 @@ export default function Dashboard() {
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
   const totalTasks = tasks.length;
   const [profileUser, setProfileUser] = useState(null);
+  const [profileFarm, setProfileFarm] = useState(null);
 
   return (
     <>
@@ -257,7 +259,13 @@ export default function Dashboard() {
                     onMouseLeave={(e) => { e.currentTarget.style.color = '#1a2e1a'; }}
                   >{task.assignedTo}</span>
                 </td>
-                <td className="px-4 py-4 border-b border-table-sep text-text-secondary">{task.farm}</td>
+                <td className="px-4 py-4 border-b border-table-sep">
+                  <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.textDecoration = 'none'; }}
+                  >{task.farm}</span>
+                </td>
                 <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>
                 <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.status === 'Completed' ? 'bg-brand-light text-brand-dark' : task.status === 'In Progress' ? 'bg-warning-bg text-warning-text' : 'bg-warning-bg text-warning-text'}`}>{task.status}</span></td>
               </tr>
@@ -266,6 +274,7 @@ export default function Dashboard() {
         </table>
       </div>
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

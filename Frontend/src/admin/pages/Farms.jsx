@@ -7,9 +7,10 @@ import { useUsers } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
-import { MapPin, Sprout, Bot, Home, User, Ruler, Wifi, Activity, Layers, Trash2, ChevronDown, Check } from 'lucide-react';
-import { computeTriangleAreaAcres } from '../../utils/farmArea';
-import FarmMapPreview from '../components/FarmMapPreview';
+import FarmProfileModal from '../components/FarmProfileModal';
+import { MapPin, Sprout, Home, User, Ruler, Activity, Layers, Trash2, ChevronDown, Check, Bot } from 'lucide-react';
+import { computePolygonAreaAcres } from '../../utils/farmArea';
+import FarmMapDrawing from '../components/FarmMapDrawing';
 import { useT } from '../../i18n';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
@@ -50,18 +51,6 @@ function getIconConfig(label) {
     case 'Active Robots': return { Icon: Bot, bg: 'rgba(46,125,50,0.12)', color: '#2e9e6b' };
     default: return { Icon: MapPin, bg: 'rgba(107,114,128,0.12)', color: '#6B7280' };
   }
-}
-
-function parseCoordinate(value) {
-  if (!value.trim()) return null;
-  const parts = value.split(',');
-  if (parts.length !== 2) return { error: 'Use format: lat, lng' };
-  const lat = parseFloat(parts[0].trim());
-  const lng = parseFloat(parts[1].trim());
-  if (isNaN(lat) || isNaN(lng)) return { error: 'Use format: lat, lng' };
-  if (lat < -90 || lat > 90) return { error: 'Lat must be -90 to 90' };
-  if (lng < -180 || lng > 180) return { error: 'Lng must be -180 to 180' };
-  return { lat, lng };
 }
 
 const statusOpts = ['Active', 'Idle', 'Offline'];
@@ -184,21 +173,24 @@ export default function Farms() {
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
-  const [form, setForm] = useState({ name: '', owner: '', cropTypes: '', acreage: '', devices: '0', status: 'Active' });
+  const [profileFarm, setProfileFarm] = useState(null);
+  const [form, setForm] = useState({ name: '', owner: '', cropTypes: '', acreage: '', status: 'Active' });
   const [errors, setErrors] = useState({});
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', status: 'Active' });
   const [editErrors, setEditErrors] = useState({});
   const [editFarm, setEditFarm] = useState(null);
-  const [editFarmForm, setEditFarmForm] = useState({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' });
+  const [editFarmForm, setEditFarmForm] = useState({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', robot: '', status: 'Active' });
   const [editFarmErrors, setEditFarmErrors] = useState({});
   const [deleteFarm, setDeleteFarm] = useState(null);
-  const [formCoordStrings, setFormCoordStrings] = useState(['', '', '']);
-  const [editFormCoordStrings, setEditFormCoordStrings] = useState(['', '', '']);
-  const [selectedRobots, setSelectedRobots] = useState([]);
-  const [editSelectedRobots, setEditSelectedRobots] = useState([]);
-  const [robotDropdownOpen, setRobotDropdownOpen] = useState(false);
-  const [editRobotDropdownOpen, setEditRobotDropdownOpen] = useState(false);
+  const [formCoords, setFormCoords] = useState([]);
+  const [editCoords, setEditCoords] = useState([]);
+  const [formBoundaryMeta, setFormBoundaryMeta] = useState({ boundaryType: 'polygon', circleData: null, polygonClosed: false });
+  const [editBoundaryMeta, setEditBoundaryMeta] = useState({ boundaryType: 'polygon', circleData: null, polygonClosed: false });
+  const handleFormBoundaryChange = (coords, meta) => { setFormCoords(coords); setFormBoundaryMeta(meta); };
+  const handleEditBoundaryChange = (coords, meta) => { setEditCoords(coords); setEditBoundaryMeta(meta); };
+  const handleFormAcreage = (a) => { if (a !== null) setForm(prev => ({ ...prev, acreage: a.toFixed(2) })); };
+  const handleEditAcreage = (a) => { if (a !== null) setEditFarmForm(prev => ({ ...prev, acreage: a.toFixed(2) })); };
   const soilTypeOpts = ['Clay', 'Loam', 'Sandy', 'Silty', 'Peaty', 'Chalky'];
 
   useEffect(() => {
@@ -207,20 +199,6 @@ export default function Farms() {
     return () => document.removeEventListener('keydown', handleKey);
   }, []);
 
-  useEffect(() => {
-    if (!robotDropdownOpen) return;
-    const handler = (e) => { if (!e.target.closest('[data-robot-dropdown-add]')) setRobotDropdownOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [robotDropdownOpen]);
-
-  useEffect(() => {
-    if (!editRobotDropdownOpen) return;
-    const handler = (e) => { if (!e.target.closest('[data-robot-dropdown-edit]')) setEditRobotDropdownOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [editRobotDropdownOpen]);
-
   const userNames = (users || []).length ? (users || []).map((u) => u.name) : [];
   const robotIds = (robots || []).length ? (robots || []).map((r) => r.id) : [];
 
@@ -228,12 +206,7 @@ export default function Farms() {
     const errs = {};
     if (!form.name.trim()) errs.name = t('errFarmNameRequired');
     if (!form.owner.trim()) errs.owner = t('errOwnerRequired');
-    formCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`coord${i}`] = t('errCoordsRequired'); return; }
-      const parsed = parseCoordinate(str);
-      if (!parsed) errs[`coord${i}`] = t('errCoordsRequired');
-      else if (parsed.error) errs[`coord${i}`] = parsed.error;
-    });
+    if (!formBoundaryMeta.polygonClosed) errs.coords = 'Please draw and confirm a farm boundary on the map (click \u2713 Done)';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -241,31 +214,24 @@ export default function Farms() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const parsedCoords = parsedAddPoints.filter(Boolean);
-    selectedRobots.forEach(robotId => {
-      const robot = (robots || []).find(r => r.id === robotId);
-      if (robot) updateRobot(robot, { farm: form.name.trim(), status: 'Assigned' });
-    });
     addFarm({
       name: form.name.trim(),
-      coordinates: parsedCoords.length === 3 ? parsedCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
+      coordinates: formCoords.length >= 3 ? formCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: form.owner.trim(),
       crop: form.cropTypes.trim() || '—',
       soil: form.soil || '—',
-      robot: selectedRobots.join(', ') || '—',
-      assignedRobots: selectedRobots,
       status: form.status,
       cls: form.status === 'Active' ? 'bg-brand-light text-brand-dark' : form.status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text',
       size: form.acreage ? `${form.acreage} acres` : '—',
       cropTypes: form.cropTypes.trim() || '—',
-      devices: form.devices || '0',
+      boundaryType: formBoundaryMeta.boundaryType,
+      circleData: formBoundaryMeta.circleData,
     });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Robots: ${selectedRobots.join(', ') || '—'}, Status: ${form.status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Status: ${form.status}` });
     setShowAddModal(false);
-    // TODO: Replace with real backend API call once backend is added.
   };
 
-  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', devices: '0', robot: '', status: 'Active' }); setErrors({}); setFormCoordStrings(['', '', '']); setSelectedRobots([]); setShowAddModal(true); };
+  const openAdd = () => { setForm({ name: '', owner: '', cropTypes: '', soil: '', acreage: '', status: 'Active' }); setErrors({}); setFormCoords([]); setFormBoundaryMeta({ boundaryType: 'polygon', circleData: null, polygonClosed: false }); setShowAddModal(true); };
   const openEdit = (user) => { setEditForm({ name: user.name, email: user.email, phone: user.phone, status: user.status }); setEditErrors({}); setEditUser(user); };
   const validateEdit = () => {
     const errs = {};
@@ -290,12 +256,7 @@ export default function Farms() {
     const errs = {};
     if (!editFarmForm.name.trim()) errs.name = t('errFarmNameRequired');
     if (!editFarmForm.owner.trim()) errs.owner = t('errOwnerRequired');
-    editFormCoordStrings.forEach((str, i) => {
-      if (!str.trim()) { errs[`editCoord${i}`] = t('errCoordsRequired'); return; }
-      const parsed = parseCoordinate(str);
-      if (!parsed) errs[`editCoord${i}`] = t('errCoordsRequired');
-      else if (parsed.error) errs[`editCoord${i}`] = parsed.error;
-    });
+    if (!editBoundaryMeta.polygonClosed) errs.editCoords = 'Please draw and confirm a farm boundary on the map (click \u2713 Done)';
     setEditFarmErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -308,14 +269,15 @@ export default function Farms() {
       cropTypes: farm.cropTypes || '',
       soil: farm.soil || '',
       acreage: farm.size ? farm.size.replace(' acres', '') : '',
-      devices: farm.devices || '0',
-      robot: farm.robot || '',
       status: farm.status || 'Active',
     });
-    const coords = farm.coordinates;
-    setEditFormCoordStrings(coords && coords.length === 3 ? coords.map(c => `${c.lat}, ${c.lng}`) : ['', '', '']);
-    const assignedRobots = (robots || []).filter(r => r.farm === farm.name).map(r => r.id);
-    setEditSelectedRobots(assignedRobots);
+    const isCircle = farm.boundaryType === 'circle';
+    setEditCoords(farm.coordinates && farm.coordinates.length >= 3 ? farm.coordinates.map(c => ({ lat: c.lat, lng: c.lng })) : []);
+    setEditBoundaryMeta({
+      boundaryType: isCircle ? 'circle' : 'polygon',
+      circleData: isCircle && farm.circleData ? { center: farm.circleData.center, radius: farm.circleData.radius } : null,
+      polygonClosed: true,
+    });
     setEditFarmErrors({});
     setEditFarm(farm);
   };
@@ -325,31 +287,20 @@ export default function Farms() {
     if (!validateEditFarm()) return;
     const status = editFarmForm.status;
     const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text';
-    const parsedEditCoords = parsedEditPoints.filter(Boolean);
-    const previouslyAssigned = (robots || []).filter(r => r.farm === editFarm?.name).map(r => r.id);
-    previouslyAssigned.filter(id => !editSelectedRobots.includes(id)).forEach(robotId => {
-      const robot = (robots || []).find(r => r.id === robotId);
-      if (robot) updateRobot(robot, { farm: '', status: 'Available' });
-    });
-    editSelectedRobots.forEach(robotId => {
-      const robot = (robots || []).find(r => r.id === robotId);
-      if (robot && robot.farm !== editFarmForm.name.trim()) updateRobot(robot, { farm: editFarmForm.name.trim(), status: 'Assigned' });
-    });
     updateFarm(editFarm, {
       name: editFarmForm.name.trim(),
-      coordinates: parsedEditCoords.length === 3 ? parsedEditCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
+      coordinates: editCoords.length >= 3 ? editCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: editFarmForm.owner.trim(),
       crop: editFarmForm.cropTypes.trim() || '—',
       cropTypes: editFarmForm.cropTypes.trim() || '—',
       soil: editFarmForm.soil || '—',
-      robot: editSelectedRobots.join(', ') || '—',
-      assignedRobots: editSelectedRobots,
       size: editFarmForm.acreage ? `${editFarmForm.acreage} acres` : '—',
-      devices: editFarmForm.devices || '0',
       status,
       cls,
+      boundaryType: editBoundaryMeta.boundaryType,
+      circleData: editBoundaryMeta.circleData,
     });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Robots: ${editSelectedRobots.join(', ') || '—'}, Status: ${status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Status: ${status}` });
     setEditFarm(null);
   };
 
@@ -375,65 +326,35 @@ export default function Farms() {
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
   const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
-  const uniqueSoilTypes = useMemo(() => {
-    return [...new Set(farms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
-  }, [farms]);
-  const soilSubtext = useMemo(() => {
-    if (uniqueSoilTypes.length === 0) return t('noSoilData');
-    const names = uniqueSoilTypes.slice(0, 3).join(', ');
-    return uniqueSoilTypes.length > 3 ? `${names} ${t('andCountMore').replace('{count}', uniqueSoilTypes.length - 3)}` : names;
-  }, [uniqueSoilTypes, t]);
-  const activeRobotCount = useMemo(() => robots.filter((r) => r.status === 'Active').length, [robots]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
-  const parsedAddPoints = useMemo(() => formCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [formCoordStrings]);
-  const parsedEditPoints = useMemo(() => editFormCoordStrings.map(s => { const r = parseCoordinate(s); return r && !r.error ? r : null; }), [editFormCoordStrings]);
-  const computedAcreage = useMemo(() => {
-    if (parsedAddPoints.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsedAddPoints[0], parsedAddPoints[1], parsedAddPoints[2]);
-  }, [parsedAddPoints]);
-  const editComputedAcreage = useMemo(() => {
-    if (parsedEditPoints.some(p => !p)) return null;
-    return computeTriangleAreaAcres(parsedEditPoints[0], parsedEditPoints[1], parsedEditPoints[2]);
-  }, [parsedEditPoints]);
+  const computedArea = useMemo(() => {
+    if (!formBoundaryMeta.polygonClosed) return null;
+    if (formBoundaryMeta.boundaryType === 'circle' && formBoundaryMeta.circleData?.radius) {
+      return parseFloat((Math.PI * formBoundaryMeta.circleData.radius ** 2 * 0.000247105).toFixed(1));
+    }
+    if (formCoords.length < 3) return null;
+    return computePolygonAreaAcres(formCoords);
+  }, [formCoords, formBoundaryMeta]);
 
   useEffect(() => {
-    if (computedAcreage !== null) {
-      setForm(prev => ({ ...prev, acreage: computedAcreage.toFixed(2) }));
-    } else if (formCoordStrings.some(s => s.trim())) {
-      setForm(prev => ({ ...prev, acreage: '' }));
+    if (computedArea !== null) setForm(prev => ({ ...prev, acreage: computedArea.toFixed(2) }));
+  }, [computedArea]);
+
+  const editComputedArea = useMemo(() => {
+    if (!editBoundaryMeta.polygonClosed) return null;
+    if (editBoundaryMeta.boundaryType === 'circle' && editBoundaryMeta.circleData?.radius) {
+      return parseFloat((Math.PI * editBoundaryMeta.circleData.radius ** 2 * 0.000247105).toFixed(1));
     }
-  }, [computedAcreage]);
+    if (editCoords.length < 3) return null;
+    return computePolygonAreaAcres(editCoords);
+  }, [editCoords, editBoundaryMeta]);
 
   useEffect(() => {
-    if (editComputedAcreage !== null) {
-      setEditFarmForm(prev => ({ ...prev, acreage: editComputedAcreage.toFixed(2) }));
-    } else if (editFormCoordStrings.some(s => s.trim())) {
-      setEditFarmForm(prev => ({ ...prev, acreage: '' }));
-    }
-  }, [editComputedAcreage]);
+    if (editComputedArea !== null) setEditFarmForm(prev => ({ ...prev, acreage: editComputedArea.toFixed(2) }));
+  }, [editComputedArea]);
 
-  const addNextPointIndex = (() => { const v = parsedAddPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
-  const editNextPointIndex = (() => { const v = parsedEditPoints.filter(Boolean).length; return v >= 3 ? 0 : v; })();
-
-  const handleAddMapClick = (latlng, index) => {
-    const updated = [...formCoordStrings];
-    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-    setFormCoordStrings(updated);
-  };
-
-  const handleEditMapClick = (latlng, index) => {
-    const updated = [...editFormCoordStrings];
-    updated[index] = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-    setEditFormCoordStrings(updated);
-  };
-
-  const statCards = [
-    { val: String(farms.length), label: 'Total Farms', route: '/admin/farms' },
-    { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
-    { val: String(cropTypes.length), label: 'Crop Types' },
-    { val: String(activeRobotCount), label: 'Active Robots', route: '/admin/robots' },
-  ];
+  const activeCardLabel = statusFilter !== 'All Statuses' ? statusFilter : ownerFilter !== 'All Owners' ? 'Total Farms' : 'Total Farms';
 
   const filteredFarms = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
@@ -454,6 +375,41 @@ export default function Farms() {
     });
   }, [filteredFarms, robots]);
 
+  const visibleFarmNames = useMemo(() => new Set(filteredFarms.map(f => f.name)), [filteredFarms]);
+  const uniqueCropTypes = useMemo(() => {
+    return [...new Set(filteredFarms.flatMap(f => (f.cropTypes || f.crop || '').split(',').map(s => s.trim()).filter(Boolean)))].sort();
+  }, [filteredFarms]);
+  const cropTypeSubtext = useMemo(() => {
+    if (uniqueCropTypes.length === 0) return 'No crop data available';
+    const names = uniqueCropTypes.slice(0, 3).join(', ');
+    return uniqueCropTypes.length > 3 ? `${names} & ${uniqueCropTypes.length - 3} more` : names;
+  }, [uniqueCropTypes]);
+  const uniqueSoilTypes = useMemo(() => {
+    return [...new Set(filteredFarms.map(f => f.soil).filter(Boolean).map(s => s.trim()))].sort();
+  }, [filteredFarms]);
+  const soilSubtext = useMemo(() => {
+    if (uniqueSoilTypes.length === 0) return t('noSoilData');
+    const names = uniqueSoilTypes.slice(0, 3).join(', ');
+    return uniqueSoilTypes.length > 3 ? `${names} ${t('andCountMore').replace('{count}', uniqueSoilTypes.length - 3)}` : names;
+  }, [uniqueSoilTypes, t]);
+  const visibleRobots = useMemo(() => (robots || []).filter(r => visibleFarmNames.has(r.farm)), [robots, visibleFarmNames]);
+  const activeRobotCount = useMemo(() => visibleRobots.filter(r => r.status === 'Active').length, [visibleRobots]);
+  const activeRobotSubtext = useMemo(() => {
+    const total = visibleRobots.length;
+    if (total === 0) return 'No robots registered';
+    const idle = visibleRobots.filter(r => r.status === 'Idle').length;
+    const offline = visibleRobots.filter(r => r.status === 'Offline').length;
+    return `${activeRobotCount} active · ${idle} idle · ${offline} offline`;
+  }, [visibleRobots, activeRobotCount]);
+  const visibleActiveFarms = useMemo(() => filteredFarms.filter(f => f.status === 'Active').length, [filteredFarms]);
+
+  const statCards = [
+    { val: String(filteredFarms.length), label: 'Total Farms', sub: `${visibleActiveFarms} active \u00B7 ${filteredFarms.length - visibleActiveFarms} inactive`, onClick: () => { setSearchTerm(''); setStatusFilter('All Statuses'); setOwnerFilter('All Owners'); } },
+    { val: String(uniqueSoilTypes.length), label: 'Soil Types', sub: soilSubtext },
+    { val: String(uniqueCropTypes.length), label: 'Crop Types', sub: cropTypeSubtext },
+    { val: String(activeRobotCount), label: 'Active Robots', sub: activeRobotSubtext, onClick: () => { setStatusFilter('Active'); } },
+  ];
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -467,18 +423,23 @@ export default function Farms() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {statCards.map((card) => {
           const { Icon, bg, color } = getIconConfig(card.label);
+          const isActive = card.onClick && (card.label === 'Total Farms' ? (activeCardLabel === 'Total Farms') : (card.label === 'Active Robots' && statusFilter === 'Active'));
           return (
             <GlowCard
               key={card.label}
-              onClick={card.route ? () => navigate(card.route) : undefined}
+              onClick={card.onClick ? card.onClick : undefined}
               className="glass-card rounded-2xl p-5"
-              style={{ contentVisibility: 'auto' }}
+              style={{
+                contentVisibility: 'auto',
+                outline: isActive ? '2px solid #2e7d32' : 'none',
+                outlineOffset: '-1px',
+              }}
             >
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-secondary mb-2">{t(statLabelKeys[card.label])}</div>
                   <div className="text-3xl font-extrabold text-primary">{card.val}</div>
-                  {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', fontStyle: uniqueSoilTypes.length === 0 ? 'italic' : 'normal' }}>{card.sub}</div>}
+                  {card.sub && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>{card.sub}</div>}
                 </div>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                   <Icon size={18} color={color} />
@@ -544,7 +505,14 @@ export default function Farms() {
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{farm.name}</strong></td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                    <span onClick={() => setProfileFarm(farm)}
+                      className="text-primary font-medium"
+                      style={{ cursor: 'pointer', fontWeight: 700, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.textDecoration = 'none'; }}
+                    >{farm.name}</span>
+                  </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
                       style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
@@ -638,166 +606,32 @@ export default function Farms() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> {t('fieldTotalAcreage')}
-                      {computedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
+                      {formBoundaryMeta.polygonClosed && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
                     </div>
                     <input type="number" min="0" value={form.acreage} onChange={(e) => setForm({ ...form, acreage: e.target.value })}
-                      readOnly={computedAcreage !== null}
+                      readOnly={formBoundaryMeta.polygonClosed}
                       placeholder={t('phAcreage')}
                       style={{
                         ...inputBase,
-                        background: computedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
-                        borderColor: computedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
-                        color: computedAcreage !== null ? '#2e7d2e' : '#111827',
-                        fontWeight: computedAcreage !== null ? 600 : 400,
-                        cursor: computedAcreage !== null ? 'default' : 'text',
+                        background: formBoundaryMeta.polygonClosed ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: formBoundaryMeta.polygonClosed ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: formBoundaryMeta.polygonClosed ? '#2e7d2e' : '#111827',
+                        fontWeight: formBoundaryMeta.polygonClosed ? 600 : 400,
+                        cursor: formBoundaryMeta.polygonClosed ? 'default' : 'text',
                       }}
                       onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> {t('fieldConnectedDevices')}
-                    </div>
-                    <input type="number" min="0" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} placeholder="0"
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                    />
-                  </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Layers size={12} style={{ color: '#9CA3AF' }} /> {t('fieldSoilType')}
                     </div>
                     <Select options={soilTypeOpts} value={form.soil} onChange={(v) => setForm({ ...form, soil: v })} placeholder={t('phSelectSoil')} />
                   </div>
-                  <div style={{ gridColumn: '1 / -1' }} data-robot-dropdown-add>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('fieldAssignExtraRobots')}
-                    </div>
-                    {(() => {
-                      const maxRobots = parseInt(form.devices, 10) || 0;
-                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available').filter(r => r.name).sort((a, b) => a.name.localeCompare(b.name));
-                      return (
-                        <>
-                          <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>
-                            {maxRobots === 0 ? t('robotAssignHint') : t('selectUpToRobots').replace('{count}', maxRobots)}
-                          </p>
-                          <div style={{ position: 'relative' }}>
-                            <button type="button" disabled={maxRobots === 0} onClick={() => setRobotDropdownOpen(prev => !prev)}
-                              style={{
-                                width: '100%', padding: '10px 14px', textAlign: 'left',
-                                background: maxRobots === 0 ? '#f3f4f6' : '#ffffff',
-                                border: '1.5px solid #e5e7eb', borderRadius: '10px',
-                                fontSize: '13px', color: maxRobots === 0 ? '#9ca3af' : '#374151',
-                                cursor: maxRobots === 0 ? 'not-allowed' : 'pointer',
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                              }}
-                            >
-                              <span>{selectedRobots.length === 0 ? t('selectRobotsPlaceholder') : t('robotsSelected').replace('{count}', selectedRobots.length)}</span>
-                              <ChevronDown size={16} color="#6b7280" />
-                            </button>
-                            {robotDropdownOpen && maxRobots > 0 && (
-                              <div style={{
-                                position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                                background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)',
-                                borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                                zIndex: 9999, maxHeight: '180px', overflowY: 'auto'
-                              }}>
-                                {unassignedRobots.length === 0 ? (
-                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>{t('noAvailableRobots')}</div>
-                                ) : unassignedRobots.map(robot => {
-                                  const isSelected = selectedRobots.includes(robot.id);
-                                  const isDisabled = !isSelected && selectedRobots.length >= maxRobots;
-                                  return (
-                                    <div key={robot.id} onClick={() => { if (isDisabled) return; setSelectedRobots(prev => isSelected ? prev.filter(id => id !== robot.id) : [...prev, robot.id]); }}
-                                      style={{
-                                        padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px',
-                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                        background: isSelected ? 'rgba(46,125,50,0.06)' : 'transparent',
-                                        opacity: isDisabled ? 0.4 : 1
-                                      }}
-                                    >
-                                      <div style={{
-                                        width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
-                                        border: isSelected ? 'none' : '1.5px solid #d1d5db',
-                                        background: isSelected ? '#2e7d2e' : 'transparent',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                      }}>
-                                        {isSelected && <Check size={10} color="#ffffff" />}
-                                      </div>
-                                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a1a' }}>{robot.name}</span>
-                                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>{robot.id}</span>
-                                      <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: 'auto' }}>{robot.model}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                          {selectedRobots.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                              {selectedRobots.map(robotId => {
-                                const robot = (robots || []).find(r => r.id === robotId);
-                                if (!robot) return null;
-                                return (
-                                  <span key={robotId} style={{
-                                    background: 'rgba(46,125,50,0.1)', border: '1px solid rgba(46,125,50,0.2)',
-                                    borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#2e7d2e',
-                                    display: 'inline-flex', alignItems: 'center', gap: '6px'
-                                  }}>
-                                    {robot.name}
-                                    <span onClick={() => setSelectedRobots(prev => prev.filter(id => id !== robotId))}
-                                      style={{ cursor: 'pointer', fontWeight: 700, fontSize: '14px', lineHeight: 1 }}>×</span>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {selectedRobots.length >= maxRobots && maxRobots > 0 && (
-                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>{t('maxRobotsReached').replace('{count}', maxRobots)}</p>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmMapPreview points={[parseCoordinate(formCoordStrings[0]), parseCoordinate(formCoordStrings[1]), parseCoordinate(formCoordStrings[2])]} onMapClick={handleAddMapClick} nextPointIndex={addNextPointIndex} modalOpen={showAddModal} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('farmBoundaryPoints')}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>{t('boundaryHint')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[
-                    { label: `${t('point')} 1`, color: '#2e7d32', key: 'coord0' },
-                    { label: `${t('point')} 2`, color: '#1d6fa8', key: 'coord1' },
-                    { label: `${t('point')} 3`, color: '#9333ea', key: 'coord2' },
-                  ].map((cfg, i) => {
-                    const parsed = parseCoordinate(formCoordStrings[i]);
-                    const statusValid = parsed && !parsed.error;
-                    const statusError = parsed && parsed.error;
-                    return (
-                      <div key={i}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
-                          <MapPin size={13} color={cfg.color} /> {cfg.label}
-                        </div>
-                        <input type="text" value={formCoordStrings[i]} onChange={(e) => { const updated = [...formCoordStrings]; updated[i] = e.target.value; setFormCoordStrings(updated); }}
-                          placeholder={t('phLatLng')} style={inputBase}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
-                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
-                        {errors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {errors[cfg.key]}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {computedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{computedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
+                <FarmMapDrawing initialCoords={formCoords} initialCircleData={formBoundaryMeta.circleData} initialBoundaryType={formBoundaryMeta.boundaryType} initialClosed={formBoundaryMeta.polygonClosed} onChange={handleFormBoundaryChange} onAcreageChange={handleFormAcreage} modalOpen={showAddModal} />
+                {errors.coords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {errors.coords}</div>}
               </div>
               </div>
 
@@ -883,163 +717,29 @@ export default function Farms() {
                     </div>
                     <Select options={soilTypeOpts} value={editFarmForm.soil} onChange={(v) => setEditFarmForm({ ...editFarmForm, soil: v })} placeholder={t('phSelectSoil')} />
                   </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Ruler size={12} style={{ color: '#9CA3AF' }} /> {t('fieldTotalAcreage')}
-                      {editComputedAcreage !== null && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
+                      {editBoundaryMeta.polygonClosed && <span style={{ fontSize: '10px', color: '#2e7d2e', background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '2px 6px', marginLeft: '6px' }}>{t('autoCalculated')}</span>}
                     </div>
                     <input type="number" min="0" value={editFarmForm.acreage} onChange={(e) => setEditFarmForm({ ...editFarmForm, acreage: e.target.value })}
-                      readOnly={editComputedAcreage !== null}
+                      readOnly={editBoundaryMeta.polygonClosed}
                       placeholder={t('phAcreage')}
                       style={{
                         ...inputBase,
-                        background: editComputedAcreage !== null ? '#f0fdf4' : '#FFFFFF',
-                        borderColor: editComputedAcreage !== null ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
-                        color: editComputedAcreage !== null ? '#2e7d2e' : '#111827',
-                        fontWeight: editComputedAcreage !== null ? 600 : 400,
-                        cursor: editComputedAcreage !== null ? 'default' : 'text',
+                        background: editBoundaryMeta.polygonClosed ? '#f0fdf4' : '#FFFFFF',
+                        borderColor: editBoundaryMeta.polygonClosed ? 'rgba(46,125,50,0.3)' : '#D1D5DB',
+                        color: editBoundaryMeta.polygonClosed ? '#2e7d2e' : '#111827',
+                        fontWeight: editBoundaryMeta.polygonClosed ? 600 : 400,
+                        cursor: editBoundaryMeta.polygonClosed ? 'default' : 'text',
                       }}
                       onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
                     />
                   </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Wifi size={12} style={{ color: '#9CA3AF' }} /> {t('fieldConnectedDevices')}
-                    </div>
-                    <input type="number" min="0" value={editFarmForm.devices} onChange={(e) => setEditFarmForm({ ...editFarmForm, devices: e.target.value })} placeholder="0"
-                      style={inputBase} onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                    />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }} data-robot-dropdown-edit>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <Bot size={12} style={{ color: '#9CA3AF' }} /> {t('fieldAssignExtraRobots')}
-                    </div>
-                    {(() => {
-                      const maxRobots = parseInt(editFarmForm.devices, 10) || 0;
-                      const unassignedRobots = (robots || []).filter(r => !r.farm || r.farm === '' || r.status === 'Available' || r.farm === editFarm?.name).filter(r => r.name).sort((a, b) => a.name.localeCompare(b.name));
-                      return (
-                        <>
-                          <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '8px' }}>
-                            {maxRobots === 0 ? t('robotAssignHint') : t('selectUpToRobots').replace('{count}', maxRobots)}
-                          </p>
-                          <div style={{ position: 'relative' }}>
-                            <button type="button" disabled={maxRobots === 0} onClick={() => setEditRobotDropdownOpen(prev => !prev)}
-                              style={{
-                                width: '100%', padding: '10px 14px', textAlign: 'left',
-                                background: maxRobots === 0 ? '#f3f4f6' : '#ffffff',
-                                border: '1.5px solid #e5e7eb', borderRadius: '10px',
-                                fontSize: '13px', color: maxRobots === 0 ? '#9ca3af' : '#374151',
-                                cursor: maxRobots === 0 ? 'not-allowed' : 'pointer',
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                              }}
-                            >
-                              <span>{editSelectedRobots.length === 0 ? t('selectRobotsPlaceholder') : t('robotsSelected').replace('{count}', editSelectedRobots.length)}</span>
-                              <ChevronDown size={16} color="#6b7280" />
-                            </button>
-                            {editRobotDropdownOpen && maxRobots > 0 && (
-                              <div style={{
-                                position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                                background: '#ffffff', border: '1px solid rgba(76,175,80,0.2)',
-                                borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                                zIndex: 9999, maxHeight: '180px', overflowY: 'auto'
-                              }}>
-                                {unassignedRobots.length === 0 ? (
-                                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>{t('noAvailableRobots')}</div>
-                                ) : unassignedRobots.map(robot => {
-                                  const isSelected = editSelectedRobots.includes(robot.id);
-                                  const isDisabled = !isSelected && editSelectedRobots.length >= maxRobots;
-                                  return (
-                                    <div key={robot.id} onClick={() => { if (isDisabled) return; setEditSelectedRobots(prev => isSelected ? prev.filter(id => id !== robot.id) : [...prev, robot.id]); }}
-                                      style={{
-                                        padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px',
-                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                        background: isSelected ? 'rgba(46,125,50,0.06)' : 'transparent',
-                                        opacity: isDisabled ? 0.4 : 1
-                                      }}
-                                    >
-                                      <div style={{
-                                        width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
-                                        border: isSelected ? 'none' : '1.5px solid #d1d5db',
-                                        background: isSelected ? '#2e7d2e' : 'transparent',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                      }}>
-                                        {isSelected && <Check size={10} color="#ffffff" />}
-                                      </div>
-                                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a1a' }}>{robot.name}</span>
-                                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>{robot.id}</span>
-                                      <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: 'auto' }}>{robot.model}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                          {editSelectedRobots.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                              {editSelectedRobots.map(robotId => {
-                                const robot = (robots || []).find(r => r.id === robotId);
-                                if (!robot) return null;
-                                return (
-                                  <span key={robotId} style={{
-                                    background: 'rgba(46,125,50,0.1)', border: '1px solid rgba(46,125,50,0.2)',
-                                    borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#2e7d2e',
-                                    display: 'inline-flex', alignItems: 'center', gap: '6px'
-                                  }}>
-                                    {robot.name}
-                                    <span onClick={() => setEditSelectedRobots(prev => prev.filter(id => id !== robotId))}
-                                      style={{ cursor: 'pointer', fontWeight: 700, fontSize: '14px', lineHeight: 1 }}>×</span>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {editSelectedRobots.length >= maxRobots && maxRobots > 0 && (
-                            <p style={{ fontSize: '11px', color: '#f97316', marginTop: '6px' }}>{t('maxRobotsReached').replace('{count}', maxRobots)}</p>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
                 </div>
               <div style={{ marginTop: '16px', padding: '16px 0 8px', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-                {/* TODO: Replace with real interactive map (e.g. Leaflet.js or Google Maps) once available */}
-                <FarmMapPreview points={[parseCoordinate(editFormCoordStrings[0]), parseCoordinate(editFormCoordStrings[1]), parseCoordinate(editFormCoordStrings[2])]} onMapClick={handleEditMapClick} nextPointIndex={editNextPointIndex} modalOpen={!!editFarm} />
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('farmBoundaryPoints')}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '12px' }}>{t('boundaryHint')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {[
-                    { label: `${t('point')} 1`, color: '#2e7d32', key: 'editCoord0' },
-                    { label: `${t('point')} 2`, color: '#1d6fa8', key: 'editCoord1' },
-                    { label: `${t('point')} 3`, color: '#9333ea', key: 'editCoord2' },
-                  ].map((cfg, i) => {
-                    const parsed = parseCoordinate(editFormCoordStrings[i]);
-                    const statusValid = parsed && !parsed.error;
-                    const statusError = parsed && parsed.error;
-                    return (
-                      <div key={i}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: cfg.color, marginBottom: '6px' }}>
-                          <MapPin size={13} color={cfg.color} /> {cfg.label}
-                        </div>
-                        <input type="text" value={editFormCoordStrings[i]} onChange={(e) => { const updated = [...editFormCoordStrings]; updated[i] = e.target.value; setEditFormCoordStrings(updated); }}
-                          placeholder={t('phLatLng')} style={inputBase}
-                          onMouseEnter={inputHoverEnter} onMouseLeave={inputHoverLeave} onFocus={inputFocus} onBlur={inputBlur}
-                        />
-                        {statusValid && <div style={{ fontSize: '11px', color: '#2e7d32', marginTop: '4px' }}>✓ Valid</div>}
-                        {statusError && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {parsed.error}</div>}
-                        {editFarmErrors[cfg.key] && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>✗ {editFarmErrors[cfg.key]}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {editComputedAcreage !== null && (
-                  <div style={{ background: 'rgba(46,125,50,0.06)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '8px', padding: '10px 14px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', transition: 'opacity 0.3s ease, transform 0.3s ease', opacity: 1, transform: 'translateY(0)' }}>
-                    <Ruler size={16} style={{ color: '#2e7d32', flexShrink: 0 }} />
-                    <div>
-                      <span style={{ fontSize: '13px', color: '#374151' }}>Estimated Farm Area: <span style={{ fontWeight: 700, color: '#2e7d32' }}>{editComputedAcreage} Est. Acres</span></span>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', fontStyle: 'italic', marginTop: '2px' }}>Based on 3-point boundary approximation</div>
-                    </div>
-                  </div>
-                )}
+                <FarmMapDrawing initialCoords={editCoords} initialCircleData={editBoundaryMeta.circleData} initialBoundaryType={editBoundaryMeta.boundaryType} initialClosed={editBoundaryMeta.polygonClosed} onChange={handleEditBoundaryChange} onAcreageChange={handleEditAcreage} modalOpen={!!editFarm} />
+                {editFarmErrors.editCoords && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px' }}>✗ {editFarmErrors.editCoords}</div>}
               </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -1188,6 +888,7 @@ export default function Farms() {
         document.body
       )}
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} onEdit={(user) => { setProfileUser(null); openEdit(user); }} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

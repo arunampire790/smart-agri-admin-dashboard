@@ -364,7 +364,7 @@ export default function Users() {
                     />
                     {errors.email && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
                   </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <i className="ph ph-phone text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldPhone')}
                     </div>
@@ -372,12 +372,6 @@ export default function Users() {
                       className={glassInput}
                     />
                     {errors.phone && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.phone}</span>}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                      <i className="ph ph-circle text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldStatus')}
-                    </div>
-                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={modalStatusOptions} />
                   </div>
                 </div>
               </div>

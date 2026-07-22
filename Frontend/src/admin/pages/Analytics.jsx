@@ -6,8 +6,8 @@ import { useTasks } from '../../context/TaskContext';
 import { useT } from '../../i18n';
 import {
   CheckCircle, Calendar, TrendingUp, DollarSign,
-  Thermometer, Droplets, CloudRain, Leaf,
-  ChevronDown, Check,
+  Thermometer, Droplets, CloudRain,
+  ChevronDown, Check, Bot, ClipboardList,
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -334,24 +334,33 @@ export default function Analytics() {
     { key: 'temperature', label: t('temperature'), unit: '°C', icon: Thermometer, color: '#f97316', badgeBg: 'rgba(249,115,22,0.12)' },
     { key: 'soilMoisture', label: t('soilMoisture'), unit: '%', icon: Droplets, color: '#3b82f6', badgeBg: 'rgba(59,130,246,0.12)' },
     { key: 'humidity', label: t('humidity'), unit: '%', icon: CloudRain, color: '#06b6d4', badgeBg: 'rgba(6,182,212,0.12)' },
-    { key: 'npk', label: t('npkLevel'), unit: 'ppm', icon: Leaf, color: '#1a3a2a', badgeBg: 'rgba(26,58,42,0.12)' },
   ];
 
-  const overdueTasks = tasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
+  const filteredRobots = useMemo(() => {
+    if (selectedFarmName === 'All Farms') return (robots || []);
+    return (robots || []).filter(r => r.farm === selectedFarmName);
+  }, [robots, selectedFarmName]);
+
+  const filteredTasks = useMemo(() => {
+    if (selectedFarmName === 'All Farms') return (tasks || []);
+    return (tasks || []).filter(t => t.farm === selectedFarmName);
+  }, [tasks, selectedFarmName]);
+
+  const overdueTasks = filteredTasks.filter((t) => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now);
 
   const batterySorted = useMemo(() => {
-    return [...robots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
-  }, [robots]);
+    return [...filteredRobots].filter((r) => r.battery > 0).sort((a, b) => a.battery - b.battery);
+  }, [filteredRobots]);
 
   const statusData = useMemo(() => [
-    { name: 'Pending', value: tasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
-    { name: 'In Progress', value: tasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
-    { name: 'Completed', value: tasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
-  ].filter(d => d.value > 0), [tasks]);
+    { name: 'Pending', value: filteredTasks.filter((t) => t.status === 'Pending').length, color: '#f97316' },
+    { name: 'In Progress', value: filteredTasks.filter((t) => t.status === 'In Progress').length, color: '#3b82f6' },
+    { name: 'Completed', value: filteredTasks.filter((t) => t.status === 'Completed').length, color: '#2e7d2e' },
+  ].filter(d => d.value > 0), [filteredTasks]);
 
-  const completedCount = tasks.filter(t => t.status === 'Completed').length;
-  const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
-  const needsCharging = robots.filter((r) => r.battery > 0 && r.battery < 50).length;
+  const completedCount = filteredTasks.filter(t => t.status === 'Completed').length;
+  const completionRate = filteredTasks.length > 0 ? Math.round((completedCount / filteredTasks.length) * 100) : 0;
+  const needsCharging = filteredRobots.filter((r) => r.battery > 0 && r.battery < 50).length;
 
   const cardStyle = {
     background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
@@ -518,7 +527,7 @@ export default function Analytics() {
               <Select label={t('graphType')} options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
             {sensorConfigs.map((s) => {
               const readings = sensorReadings[s.key];
               const lastVal = readings[readings.length - 1];
@@ -530,13 +539,14 @@ export default function Analytics() {
                 <div key={s.key} className="card-hover-sensor" style={{
                   background: '#ffffff', border: '1px solid rgba(76,175,80,0.12)',
                   borderRadius: '14px', padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  display: 'flex', flexDirection: 'column',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexShrink: 0 }}>
                     <div style={{ background: s.badgeBg, borderRadius: '8px', padding: '6px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <s.icon size={14} color={s.color} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 600, fontSize: '13px', color: '#1a1a1a' }}>{s.label}</span>
                         <span style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>{lastVal}{s.unit}</span>
                         <span style={{ fontSize: '12px', color: trend === 'up' ? '#2e7d2e' : '#ef4444' }}>{trend === 'up' ? '\u2191' : '\u2193'}</span>
@@ -554,7 +564,7 @@ export default function Analytics() {
                       {renderChart(chartData[s.key], 'value', s.color, graphType)}
                     </ResponsiveContainer>
                   </div>
-                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t('trendTooltip').replace('{sensor}', s.label.toLowerCase()).replace('{farm}', farmDisplayName)}>
+                  <div style={{ color: '#6b7280', fontSize: '11px', fontStyle: 'italic', marginTop: '8px', textAlign: 'center', flexShrink: 0 }} title={t('trendTooltip').replace('{sensor}', s.label.toLowerCase()).replace('{farm}', farmDisplayName)}>
                     {t('trendTooltip').replace('{sensor}', s.label.toLowerCase()).replace('{farm}', farmDisplayName)}
                   </div>
                 </div>
@@ -575,12 +585,18 @@ export default function Analytics() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>{t('batteryHealthTitle')}</span>
               <span className="card-hover-link" style={{ fontSize: '12px', color: '#6b7280', cursor: 'pointer' }} onClick={() => navigate('/admin/robots')}>
-                {t('clickAnyRobot')} →
+                {selectedFarmName === 'All Farms' ? `${t('clickAnyRobot')} →` : 'Click to view details →'}
               </span>
             </div>
-            <div style={sectionSub}>{t('sortedByBattery')}</div>
+            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? t('sortedByBattery') : `Robots assigned to ${selectedFarmName} — click to view details →`}</div>
             <div>
-              {batterySorted.map((r) => {
+              {filteredRobots.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
+                  <Bot size={32} color="#9CA3AF" />
+                  <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>{selectedFarmName === 'All Farms' ? 'No robots registered' : `No robots assigned to ${selectedFarmName}`}</div>
+                  <div style={{ color: '#9CA3AF', fontSize: '12px' }}>Select a different farm or assign robots in Robot Management</div>
+                </div>
+              ) : batterySorted.map((r) => {
                 const barColor = r.battery < 20 ? '#ef4444' : r.battery < 50 ? '#f97316' : '#22C55E';
                 const statusLabel = r.battery < 20 ? t('critical') : r.battery < 50 ? t('low') : r.battery < 80 ? t('good') : t('excellent');
                 const dotColor = r.status === 'Offline' ? '#ef4444' : r.status === 'Active' ? '#4caf50' : '#f97316';
@@ -609,18 +625,20 @@ export default function Analytics() {
               marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76,175,80,0.08)',
               fontSize: '12px', fontWeight: 500, cursor: 'pointer', color: needsCharging > 0 ? '#f97316' : '#2e7d32',
             }}>
-              {t('robotsNeedCharging').replace('{count}', needsCharging)} →
+              {selectedFarmName === 'All Farms'
+                ? `${needsCharging} of ${filteredRobots.length} robots need charging soon →`
+                : `${filteredRobots.length} robot(s) assigned to ${selectedFarmName} — ${needsCharging} need charging →`}
             </div>
           </div>
 
           {/* Right: Task Operations */}
           <div style={cardStyle}>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px' }}>{t('taskOperations')}</div>
-            <div style={sectionSub}>{t('statusBreakdown')}</div>
+            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? t('statusBreakdown') : `Tasks assigned to ${selectedFarmName}`}</div>
 
             <div style={{ display: 'flex', gap: '20px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(76,175,80,0.08)' }}>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}><AnimatedValue value={filteredTasks.length} decimals={0} /></div>
                 <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalTasks')}</div>
               </div>
               <div>
@@ -633,7 +651,13 @@ export default function Analytics() {
               </div>
             </div>
 
-            {statusData.length === 0 ? (
+            {filteredTasks.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
+                <ClipboardList size={32} color="#9CA3AF" />
+                <div style={{ color: '#9CA3AF', fontSize: '14px', fontWeight: 600 }}>{selectedFarmName === 'All Farms' ? t('noTasksFound') : `No tasks found for ${selectedFarmName}`}</div>
+                <div style={{ color: '#9CA3AF', fontSize: '12px' }}>Select a different farm or assign tasks in Task Management</div>
+              </div>
+            ) : statusData.length === 0 ? (
               <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>{t('noTasksFound')}</div>
             ) : (
             <div className="relative flex items-center justify-center">
@@ -650,7 +674,7 @@ export default function Analytics() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={tasks.length} decimals={0} /></div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}><AnimatedValue value={filteredTasks.length} decimals={0} /></div>
                       <div style={{ fontSize: '10px', color: '#6b7280' }}>{t('totalTasks')}</div>
                     </div>
                   </div>

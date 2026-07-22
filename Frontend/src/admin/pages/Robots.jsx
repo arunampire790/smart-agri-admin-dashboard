@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import { useNavigate } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
+import FarmProfileModal from '../components/FarmProfileModal';
 import { ChevronDown, Check } from 'lucide-react';
 import { useT } from '../../i18n';
 
@@ -99,7 +100,7 @@ function Select({ options, value, onChange, placeholder }) {
   );
 }
 
-function FormFields({ form, setForm, errors, userNames }) {
+function FormFields({ form, setForm, errors, userNames, isEditing }) {
   const t = useT('robots');
   return (
     <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
@@ -119,7 +120,7 @@ function FormFields({ form, setForm, errors, userNames }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
             <i className="ph ph-hash text-xs" style={{ color: '#9CA3AF' }} /> {t('robotId')}
           </div>
-          <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder={t('robotIdPlaceholder')} className={inputClass} />
+          <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder={t('robotIdPlaceholder')} className={`${inputClass} ${isEditing ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''}`} readOnly={isEditing} />
           {errors.id && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.id}</span>}
         </div>
         <div>
@@ -234,6 +235,7 @@ export default function Robots() {
   const [editRobot, setEditRobot] = useState(null);
   const [deleteRobot, setDeleteRobot] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
+  const [profileFarm, setProfileFarm] = useState(null);
   const [form, setForm] = useState({ name: '', id: '', model: 'AB-X1000', farmer: defaultFarmer, farm: 'Green Valley Farm', status: 'Idle' });
   const [errors, setErrors] = useState({});
 
@@ -427,7 +429,13 @@ export default function Robots() {
                     <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
                   )}
                 </td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.farm}</td>
+                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+                    style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
+                  >{r.farm}</span>
+                </td>
                 <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
                 <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                   <div className="flex items-center gap-2">
@@ -479,7 +487,7 @@ export default function Robots() {
             </div>
 
             <form onSubmit={handleEdit}>
-              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} />
+              <FormFields form={form} setForm={setForm} errors={errors} userNames={userNames} isEditing={!!editRobot} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setEditRobot(null)}
                   style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
@@ -535,6 +543,7 @@ export default function Robots() {
       )}
 
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }

@@ -14,6 +14,9 @@ import {
   ArrowLeft, Wifi, WifiOff, RefreshCw, Sprout,
 } from 'lucide-react';
 import { useT } from '../../i18n';
+import FarmProfileModal from '../components/FarmProfileModal';
+import FarmMiniMap from '../components/FarmMiniMap';
+import { computePolygonAreaAcres } from '../../utils/farmArea';
 
 function GlowCard({ className, style: outerStyle, onClick, children }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -250,6 +253,15 @@ export default function SensorsDetails() {
   });
 
   const [farmFilter, setFarmFilter] = useState('All Farms');
+  const [profileFarm, setProfileFarm] = useState(null);
+  const [showFarmCoordList, setShowFarmCoordList] = useState(false);
+  const prevRobotRef = useRef(null);
+  useEffect(() => {
+    if (prevRobotRef.current !== selectedRobot) {
+      setShowFarmCoordList(false);
+      prevRobotRef.current = selectedRobot;
+    }
+  }, [selectedRobot]);
 
   const readingFor = (robotId) => mockSensorReadings[robotId];
 
@@ -312,7 +324,11 @@ export default function SensorsDetails() {
           </button>
           <div>
             <div className="text-2xl font-bold text-primary">{r.name}</div>
-            <div className="text-sm text-text-secondary mt-0.5">{r.id} · {r.farm} · {r.model}</div>
+            <div className="text-sm text-text-secondary mt-0.5">{r.id} · <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+              style={{ cursor: 'pointer', color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
+            >{r.farm}</span> · {r.model}</div>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5"
@@ -379,7 +395,10 @@ export default function SensorsDetails() {
               <MapPin size={16} color="#2e7d2e" /> {t('farmMapCoords')}
             </div>
             {(() => {
-              const farmCoords = farms.find(f => f.name === r.farm)?.coordinates;
+              const farm = farms.find(f => f.name === r.farm);
+              const farmCoords = farm?.coordinates;
+              const boundaryType = farm?.boundaryType;
+              const circleData = farm?.circleData;
               if (!farmCoords || farmCoords.length === 0) return (
                 <div className="flex flex-col items-center gap-3">
                   <div className="p-4 rounded-xl w-full text-center" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
@@ -388,23 +407,68 @@ export default function SensorsDetails() {
                   </div>
                 </div>
               );
-              const pointColors = ['#2e7d32', '#1d6fa8', '#9333ea'];
-              const labels = [`${t('point')} 1`, `${t('point')} 2`, `${t('point')} 3`];
+              const isCircle = boundaryType === 'circle';
+              const ptCount = isCircle ? 1 : farmCoords.length;
+              const computedArea = isCircle && circleData?.radius
+                ? parseFloat((Math.PI * circleData.radius ** 2 * 0.000247105).toFixed(1))
+                : !isCircle && farmCoords.length >= 3
+                  ? computePolygonAreaAcres(farmCoords)
+                  : null;
+              const areaLabel = computedArea !== null ? ` ~ ${computedArea} acres` : '';
+              const badgeLabel = isCircle
+                ? `\u25CB Circle: ${Math.round(circleData?.radius || 0)}m radius`
+                : `${ptCount} pts${areaLabel}`;
               return (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
-                    style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                    <MapPin size={12} /> {t('boundaryPoints').replace('{count}', farmCoords.length)}
+                <div className="flex flex-col gap-3">
+                  <FarmMiniMap coordinates={farmCoords} circleData={circleData} boundaryType={boundaryType} height={200} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-semibold"
+                      style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+                      <MapPin size={12} /> {badgeLabel}
+                    </div>
                   </div>
-                  <div className="p-4 rounded-xl w-full" style={{ background: 'rgba(0,0,0,0.03)', border: '1px dashed rgba(0,0,0,0.08)' }}>
-                    {farmCoords.map((c, i) => (
-                      <div key={i} className="flex items-center gap-3 py-1.5" style={{ borderBottom: i < farmCoords.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: pointColors[i], flexShrink: 0 }} />
-                        <span className="text-[10px] font-semibold" style={{ color: pointColors[i], width: 44 }}>{labels[i]}</span>
-                        <span className="text-sm font-semibold text-primary">{c.lat.toFixed(4)}, {c.lng.toFixed(4)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <button type="button" onClick={() => setShowFarmCoordList(p => !p)}
+                    style={{ fontSize: '11px', color: '#2e7d2e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textAlign: 'left' }}
+                  >
+                    {showFarmCoordList ? '\u25BC' : '\u25B6'} {isCircle ? 'View circle details' : `View boundary coordinates (${ptCount} pts)`}
+                  </button>
+                  {showFarmCoordList && (
+                    <div style={{ background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.1)', borderRadius: '8px', padding: '10px 14px', maxHeight: '160px', overflowY: 'auto' }}>
+                      {isCircle ? (
+                        <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>\u25CF</span>
+                            <span>Center: {circleData?.center?.lat.toFixed(6)}, {circleData?.center?.lng.toFixed(6)}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span style={{ color: '#2e7d2e', fontSize: '13px' }}>\u27A2</span>
+                            <span>Radius: {Math.round(circleData?.radius || 0)} meters</span>
+                          </div>
+                          {circleData?.radius && (
+                            <div style={{ borderTop: '1px solid rgba(46,125,50,0.1)', marginTop: '6px', paddingTop: '6px', fontSize: '12px', fontWeight: 600, color: '#2e7d2e' }}>
+                              Area: {(Math.PI * circleData.radius ** 2 * 0.000247105).toFixed(1)} Est. Acres
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: '11px', fontFamily: 'monospace', lineHeight: 1.8 }}>
+                            {farmCoords.map((c, i) => (
+                              <div key={i} style={{ display: 'contents' }}>
+                                <span style={{ color: '#2e7d2e', fontWeight: 600, textAlign: 'right' }}>P{i + 1}</span>
+                                <span style={{ color: '#6b7280' }}>{c.lat.toFixed(6)}, {c.lng.toFixed(6)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {computedArea !== null && (
+                            <div style={{ borderTop: '1px solid rgba(46,125,50,0.1)', marginTop: '6px', paddingTop: '6px', fontSize: '12px', fontWeight: 600, color: '#2e7d2e' }}>
+                              Total Area: {computedArea} Est. Acres
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -631,7 +695,11 @@ export default function SensorsDetails() {
               <div className="flex items-center justify-between mb-3">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-primary truncate">{r.name}</div>
-                  <div className="text-[10px] text-text-secondary truncate mt-0.5">{r.id} · {r.farm}</div>
+                  <div className="text-[10px] text-text-secondary truncate mt-0.5">{r.id} · <span onClick={(e) => { e.stopPropagation(); const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+                    style={{ cursor: 'pointer', color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
+                  >{r.farm}</span></div>
                 </div>
                 <span className="w-2.5 h-2.5 rounded-full shrink-0 ml-2"
                   style={{ background: r.status === 'Active' ? '#10B981' : r.status === 'Idle' ? '#F59E0B' : '#EF4444' }} />
@@ -677,8 +745,16 @@ export default function SensorsDetails() {
                   <div className="flex items-center gap-1.5 pt-1">
                     <MapPin size={11} color="#5A7A5A" />
                     {(() => {
-                      const fCoords = farms.find(f => f.name === r.farm)?.coordinates;
-                      if (fCoords && fCoords.length > 0) {
+                      const farm = farms.find(f => f.name === r.farm);
+                      const fCoords = farm?.coordinates;
+                      const fLen = fCoords?.length || 0;
+                      if (farm?.boundaryType === 'circle' && farm?.circleData) {
+                        return <span className="text-[9px] text-text-secondary">\u25CB {farm.circleData.center.lat.toFixed(2)}, {farm.circleData.center.lng.toFixed(2)}</span>;
+                      }
+                      if (fLen >= 2) {
+                        return <span className="text-[9px] text-text-secondary">{fLen} pts boundary</span>;
+                      }
+                      if (fLen === 1 && fCoords[0]) {
                         return <span className="text-[9px] text-text-secondary">{fCoords[0].lat.toFixed(2)}, {fCoords[0].lng.toFixed(2)}</span>;
                       }
                       return <span className="text-[9px] text-text-secondary">{t('noMapCoords')}</span>;
@@ -718,6 +794,7 @@ export default function SensorsDetails() {
           );
         })}
       </div>
+      {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}
     </>
   );
 }
