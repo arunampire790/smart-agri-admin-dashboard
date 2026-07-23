@@ -606,7 +606,7 @@ export default function Employees() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
-                    <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
+                    <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin', 'Employee']} />
                   </div>
                 </div>
               </div>
@@ -697,7 +697,7 @@ export default function Employees() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
-                    <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin']} />
+                    <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin', 'Employee']} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
