@@ -116,7 +116,7 @@ class Migration(migrations.Migration):
                 ),
                 ("robot_id", models.CharField(max_length=20)),
                 ("action", models.CharField(max_length=50)),
-                ("farmer", models.CharField(blank=True, default="—", max_length=200)),
+                ("farmer", models.CharField(blank=True, default="-", max_length=200)),
                 ("by", models.CharField(blank=True, default="", max_length=200)),
                 ("date", models.DateField()),
                 ("created_at", models.DateTimeField(auto_now_add=True)),

@@ -148,7 +148,7 @@ SIMPLE_JWT = {
 }
 
 
-# CORS — allow the Vite dev server to call the API from the browser.
+# CORS - allow the Vite dev server to call the API from the browser.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

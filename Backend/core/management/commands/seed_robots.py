@@ -54,7 +54,7 @@ class Command(BaseCommand):
 
         if Robot.objects.exists():
             self.stdout.write(
-                self.style.NOTICE("Robots already exist — skipping. Use --reset to reseed.")
+                self.style.NOTICE("Robots already exist - skipping. Use --reset to reseed.")
             )
             return
 

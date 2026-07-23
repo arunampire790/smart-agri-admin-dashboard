@@ -346,7 +346,7 @@ class RobotHistory(models.Model):
 
     action = models.CharField(max_length=50)
 
-    farmer = models.CharField(max_length=200, blank=True, default="—")
+    farmer = models.CharField(max_length=200, blank=True, default="-")
 
     by = models.CharField(max_length=200, blank=True, default="")
 

@@ -80,7 +80,7 @@ class Command(BaseCommand):
         if Farm.objects.exists():
             self.stdout.write(
                 self.style.NOTICE(
-                    "Farms already exist — skipping. Use --reset to reseed."
+                    "Farms already exist - skipping. Use --reset to reseed."
                 )
             )
             return
