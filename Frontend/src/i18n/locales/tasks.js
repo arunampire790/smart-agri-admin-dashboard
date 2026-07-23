@@ -1,4 +1,4 @@
-// Tasks page — filled during page translation.
+// Tasks page - filled during page translation.
 export default {
   en: {
     // Header

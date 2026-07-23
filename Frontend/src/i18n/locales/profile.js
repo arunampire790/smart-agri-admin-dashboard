@@ -1,4 +1,4 @@
-// Profile modals (user/admin) — filled during page translation.
+// Profile modals (user/admin) - filled during page translation.
 export default {
   en: {
     // AdminProfileModal

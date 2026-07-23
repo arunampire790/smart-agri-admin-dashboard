@@ -218,16 +218,16 @@ export default function Farms() {
       name: form.name.trim(),
       coordinates: formCoords.length >= 3 ? formCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: form.owner.trim(),
-      crop: form.cropTypes.trim() || '—',
-      soil: form.soil || '—',
+      crop: form.cropTypes.trim() || '-',
+      soil: form.soil || '-',
       status: form.status,
       cls: form.status === 'Active' ? 'bg-brand-light text-brand-dark' : form.status === 'Idle' ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text',
-      size: form.acreage ? `${form.acreage} acres` : '—',
-      cropTypes: form.cropTypes.trim() || '—',
+      size: form.acreage ? `${form.acreage} acres` : '-',
+      cropTypes: form.cropTypes.trim() || '-',
       boundaryType: 'polygon',
       circleData: null,
     });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '—'}, Status: ${form.status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Farm', target: form.name.trim(), details: `Owner: ${form.owner.trim()}, Soil: ${form.soil || '-'}, Status: ${form.status}` });
     setShowAddModal(false);
   };
 
@@ -288,21 +288,21 @@ export default function Farms() {
       name: editFarmForm.name.trim(),
       coordinates: editCoords.length >= 3 ? editCoords : [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }, { lat: 0, lng: 0 }],
       owner: editFarmForm.owner.trim(),
-      crop: editFarmForm.cropTypes.trim() || '—',
-      cropTypes: editFarmForm.cropTypes.trim() || '—',
-      soil: editFarmForm.soil || '—',
-      size: editFarmForm.acreage ? `${editFarmForm.acreage} acres` : '—',
+      crop: editFarmForm.cropTypes.trim() || '-',
+      cropTypes: editFarmForm.cropTypes.trim() || '-',
+      soil: editFarmForm.soil || '-',
+      size: editFarmForm.acreage ? `${editFarmForm.acreage} acres` : '-',
       status,
       cls,
       boundaryType: 'polygon',
       circleData: null,
     });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '—'}, Status: ${status}` });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Farm', target: editFarmForm.name.trim(), details: `Owner: ${editFarmForm.owner.trim()}, Soil: ${editFarmForm.soil || '-'}, Status: ${status}` });
     setEditFarm(null);
   };
 
   const handleDeleteFarm = () => {
-    const coordsStr = (deleteFarm.coordinates || []).length ? deleteFarm.coordinates.map(c => `${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}`).join(' | ') : '—';
+    const coordsStr = (deleteFarm.coordinates || []).length ? deleteFarm.coordinates.map(c => `${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}`).join(' | ') : '-';
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Farm', target: deleteFarm.name, details: `Coordinates: ${coordsStr}` });
     removeFarm(deleteFarm);
     setDeleteFarm(null);
@@ -511,11 +511,11 @@ export default function Farms() {
                       onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
                     >{farm.owner}</span>
                   </td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.cropTypes || '—'}</td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.soil || '—'}</td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.cropTypes || '-'}</td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.soil || '-'}</td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600, textAlign: 'center' }}>{connectedCount}</td>
                   <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    {assignedRobotIds.length > 0 ? assignedRobotIds.join(', ') : <span style={{ color: '#6b7280', fontStyle: 'italic' }}>—</span>}
+                    {assignedRobotIds.length > 0 ? assignedRobotIds.join(', ') : <span style={{ color: '#6b7280', fontStyle: 'italic' }}>-</span>}
                   </td>
                   <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>

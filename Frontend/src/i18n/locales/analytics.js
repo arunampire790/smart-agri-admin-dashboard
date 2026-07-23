@@ -1,4 +1,4 @@
-// Analytics page — filled during page translation.
+// Analytics page - filled during page translation.
 export default {
   en: {
     title: 'Analytics',
@@ -37,9 +37,9 @@ export default {
     optimal: 'Optimal',
     good: 'Good',
     excellent: 'Excellent',
-    trendTooltip: 'Trend over time — shows how {sensor} changes throughout the day for {farm}.',
+    trendTooltip: 'Trend over time - shows how {sensor} changes throughout the day for {farm}.',
     fleetOverview: 'Fleet Overview',
-    batteryHealthTitle: 'Battery Health — Full Fleet',
+    batteryHealthTitle: 'Battery Health - Full Fleet',
     clickAnyRobot: 'Click any robot',
     sortedByBattery: 'Sorted by battery level (lowest first)',
     robotsNeedCharging: '{count} robots need charging soon',
@@ -91,9 +91,9 @@ export default {
     optimal: '最適',
     good: '良好',
     excellent: '優良',
-    trendTooltip: '経時的な傾向 — {farm}における{sensor}の一日を通じた変化を示します。',
+    trendTooltip: '経時的な傾向 - {farm}における{sensor}の一日を通じた変化を示します。',
     fleetOverview: 'フリート概要',
-    batteryHealthTitle: 'バッテリー状態 — 全フリート',
+    batteryHealthTitle: 'バッテリー状態 - 全フリート',
     clickAnyRobot: 'ロボットをクリック',
     sortedByBattery: 'バッテリー残量順（低い順）',
     robotsNeedCharging: '{count} 台のロボットがまもなく充電が必要です',

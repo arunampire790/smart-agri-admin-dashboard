@@ -249,7 +249,7 @@ export default function ActivityLog() {
                     </div>
                     <p className="text-sm text-text-secondary mt-0.5">
                       <span className="font-medium text-primary">{entry.target}</span>
-                      {entry.details && <span className="text-text-placeholder"> — {entry.details}</span>}
+                      {entry.details && <span className="text-text-placeholder"> - {entry.details}</span>}
                     </p>
                   </div>
                   <div className="text-xs text-text-placeholder whitespace-nowrap shrink-0 pt-1.5">

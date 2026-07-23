@@ -20,7 +20,7 @@ export function logActivity({ userId, userName, action, target, details }) {
     if (log.length > 2000) log.length = 2000;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(log));
   } catch (e) {
-    // localStorage full or unavailable — silently fail
+    // localStorage full or unavailable - silently fail
   }
 
   return entry;

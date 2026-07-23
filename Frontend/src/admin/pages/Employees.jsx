@@ -349,7 +349,7 @@ export default function Employees() {
   const [errors, setErrors] = useState({});
   const [viewActivity, setViewActivity] = useState(null);
 
-  // TODO: Enforce this role check server-side once backend is added — this is a frontend-only gate for now and can be bypassed via dev tools.
+  // TODO: Enforce this role check server-side once backend is added - this is a frontend-only gate for now and can be bypassed via dev tools.
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
 
   const filtered = useMemo(() => {
@@ -376,7 +376,7 @@ export default function Employees() {
     return Object.keys(errs).length === 0;
   };
 
-  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
   const handleAdd = (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -393,7 +393,7 @@ export default function Employees() {
     setShowAddModal(false);
   };
 
-  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
   const handleEdit = (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -403,7 +403,7 @@ export default function Employees() {
     setEditEmployee(null);
   };
 
-  // TODO: Replace with real backend API call once backend is added — this is a frontend-only simulation.
+  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
   const handleDelete = () => {
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Employee', target: deleteEmployee.name, details: `Email: ${deleteEmployee.email}` });
     removeEmployee(deleteEmployee); setDeleteEmployee(null);
@@ -745,7 +745,7 @@ export default function Employees() {
                   <Clock size={20} color="#fff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('activityModalTitle')} — {viewActivity.name}</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('activityModalTitle')} - {viewActivity.name}</div>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('activityModalDesc')}</div>
                 </div>
               </div>

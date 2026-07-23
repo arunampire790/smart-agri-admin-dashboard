@@ -1,8 +1,8 @@
-// Dashboard page — filled during page translation.
+// Dashboard page - filled during page translation.
 export default {
   en: {
     dashboard: 'Dashboard',
-    welcomeBack: "Welcome back — here's what's happening today",
+    welcomeBack: "Welcome back - here's what's happening today",
     total: 'Total',
     totalUsers: 'Total Users',
     usersTrend: '↑ +12% from last month',
@@ -22,7 +22,7 @@ export default {
   },
   ja: {
     dashboard: 'ダッシュボード',
-    welcomeBack: 'おかえりなさい — 本日の状況はこちらです',
+    welcomeBack: 'おかえりなさい - 本日の状況はこちらです',
     total: '合計',
     totalUsers: '総ユーザー数',
     usersTrend: '↑ 先月比 +12%',

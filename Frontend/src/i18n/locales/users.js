@@ -1,4 +1,4 @@
-// Users page — filled during page translation.
+// Users page - filled during page translation.
 export default {
   en: {
     userManagement: 'User Management',

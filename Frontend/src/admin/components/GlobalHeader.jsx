@@ -85,7 +85,7 @@ export default function GlobalHeader() {
 
     return {
       users: build(usersAll, (u) => ({ category: 'Users', label: u.name, sub: u.email, icon: 'ph-users', to: '/admin/users', key: `user-${u.name}` }), '/admin/users'),
-      farms: build(farmsAll, (f) => ({ category: 'Farms', label: f.name, sub: (f.coordinates || []).length > 0 ? `${f.coordinates[0].lat.toFixed(2)}, ${f.coordinates[0].lng.toFixed(2)}` : '—', icon: 'ph-warehouse', to: '/admin/farms', key: `farm-${f.name}` }), '/admin/farms'),
+      farms: build(farmsAll, (f) => ({ category: 'Farms', label: f.name, sub: (f.coordinates || []).length > 0 ? `${f.coordinates[0].lat.toFixed(2)}, ${f.coordinates[0].lng.toFixed(2)}` : '-', icon: 'ph-warehouse', to: '/admin/farms', key: `farm-${f.name}` }), '/admin/farms'),
       robots: build(robotsAll, (r) => ({ category: 'Robots', label: r.name, sub: r.id, icon: 'ph-robot', to: '/admin/robots', key: `robot-${r.id}` }), '/admin/robots'),
       tasks: build(tasksAll, (t) => ({ category: 'Tasks', label: t.title, sub: t.farm, icon: 'ph-clipboard-text', to: '/admin/tasks', key: `task-${t.id}` }), '/admin/tasks'),
       employees: build(employeesAll, (e) => ({ category: 'Employees', label: e.name, sub: e.email, icon: 'ph-user', to: '/admin/employees', key: `emp-${e.name}` }), '/admin/employees'),
@@ -361,7 +361,7 @@ export default function GlobalHeader() {
           )}
         </div>
 
-        {/* User Avatar — opens Admin Profile modal directly */}
+        {/* User Avatar - opens Admin Profile modal directly */}
         <button onClick={() => setProfileModalOpen(true)} aria-label="Admin profile"
           className="bg-none border-none cursor-pointer shrink-0">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-transform duration-150 hover:scale-110"

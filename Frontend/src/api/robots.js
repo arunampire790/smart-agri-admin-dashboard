@@ -1,4 +1,4 @@
-// Robot + assignment-history API — maps to Django's /api/robots/ and
+// Robot + assignment-history API - maps to Django's /api/robots/ and
 // /api/robot-history/ endpoints. The backend returns the exact shape the UI
 // uses (id "ROB-0001", name, model, status, farmer, farm, battery,
 // registered, notes), so no field translation is needed here.

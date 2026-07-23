@@ -674,7 +674,7 @@ export default function Analytics() {
                 {selectedFarmName === 'All Farms' ? `${t('clickAnyRobot')} →` : 'Click to view details →'}
               </span>
             </div>
-            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? t('sortedByBattery') : `Robots assigned to ${selectedFarmName} — click to view details →`}</div>
+            <div style={sectionSub}>{selectedFarmName === 'All Farms' ? t('sortedByBattery') : `Robots assigned to ${selectedFarmName} - click to view details →`}</div>
             <div>
               {filteredRobots.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', gap: '8px' }}>
@@ -713,7 +713,7 @@ export default function Analytics() {
             }}>
               {selectedFarmName === 'All Farms'
                 ? `${needsCharging} of ${filteredRobots.length} robots need charging soon →`
-                : `${filteredRobots.length} robot(s) assigned to ${selectedFarmName} — ${needsCharging} need charging →`}
+                : `${filteredRobots.length} robot(s) assigned to ${selectedFarmName} - ${needsCharging} need charging →`}
             </div>
           </div>
 

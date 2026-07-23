@@ -1,4 +1,4 @@
-// Robots list page — filled during page translation.
+// Robots list page - filled during page translation.
 export default {
   en: {
     pageTitle: 'Robot Management',
@@ -34,7 +34,7 @@ export default {
 
     emptyTitle: 'No robots match your current filters',
     emptySubtitle: 'Try adjusting or clearing your filters',
-    unassigned: '— Unassigned —',
+    unassigned: '- Unassigned -',
 
     editTooltip: 'Edit',
     deleteTooltip: 'Delete',
@@ -97,7 +97,7 @@ export default {
 
     emptyTitle: '現在のフィルターに一致するロボットがありません',
     emptySubtitle: 'フィルターを調整するかクリアしてください',
-    unassigned: '— 未割り当て —',
+    unassigned: '- 未割り当て -',
 
     editTooltip: '編集',
     deleteTooltip: '削除',

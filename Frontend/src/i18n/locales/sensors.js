@@ -33,7 +33,7 @@ export default {
 
     // Detail view
     battery: 'Battery',
-    dht11Title: 'DHT11 — Temperature & Humidity',
+    dht11Title: 'DHT11 - Temperature & Humidity',
     temperature: 'Temperature',
     humidity: 'Humidity',
     farmMapCoords: 'Farm Map Coordinates',
@@ -98,7 +98,7 @@ export default {
 
     // Detail view
     battery: 'バッテリー',
-    dht11Title: 'DHT11 — 気温と湿度',
+    dht11Title: 'DHT11 - 気温と湿度',
     temperature: '気温',
     humidity: '湿度',
     farmMapCoords: '農場地図座標',

@@ -576,7 +576,7 @@ export default function Tasks() {
                     {formErrors.dueDate && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{formErrors.dueDate}</span>}
                   </div>
 
-                  {/* Fertilizer Level — conditional */}
+                  {/* Fertilizer Level - conditional */}
                   <div style={{ gridColumn: '1 / -1', position: 'relative' }}>
                     <div style={{ transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: form.type === 'Fertilizer' ? 1 : 0, transform: form.type === 'Fertilizer' ? 'translateY(0)' : 'translateY(-4px)', pointerEvents: form.type === 'Fertilizer' ? 'auto' : 'none', position: form.type === 'Fertilizer' ? 'relative' : 'absolute', top: 0, left: 0, right: 0, visibility: form.type === 'Fertilizer' ? 'visible' : 'hidden', zIndex: form.type === 'Fertilizer' ? 2 : 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -588,7 +588,7 @@ export default function Tasks() {
                       </div>
                       {formErrors.fertilizerLevel && <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>{formErrors.fertilizerLevel}</div>}
                     </div>
-                    {/* Water Quantity — conditional */}
+                    {/* Water Quantity - conditional */}
                     <div style={{ transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: form.type === 'Irrigation' ? 1 : 0, transform: form.type === 'Irrigation' ? 'translateY(0)' : 'translateY(-4px)', pointerEvents: form.type === 'Irrigation' ? 'auto' : 'none', position: form.type === 'Irrigation' ? 'relative' : 'absolute', top: 0, left: 0, right: 0, visibility: form.type === 'Irrigation' ? 'visible' : 'hidden', zIndex: form.type === 'Irrigation' ? 2 : 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                         <Droplets size={12} color="#9CA3AF" /> {t('fieldWaterQuantity')}

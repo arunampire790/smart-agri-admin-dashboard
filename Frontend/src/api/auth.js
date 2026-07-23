@@ -1,8 +1,8 @@
-// Auth API — maps to Django SimpleJWT's /api/auth/ endpoints.
+// Auth API - maps to Django SimpleJWT's /api/auth/ endpoints.
 //
 // SimpleJWT authenticates against Django's User model using username + password.
 // The login form collects an email, which we send as the `username` field
-// (the admin account is created with its email as the username — see the
+// (the admin account is created with its email as the username - see the
 // backend `create_admin` management command).
 import { api, setTokens, clearTokens, getRefreshToken } from './client';
 

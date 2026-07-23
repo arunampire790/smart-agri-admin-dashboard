@@ -1,4 +1,4 @@
-// Admin Login page — filled during page translation.
+// Admin Login page - filled during page translation.
 export default {
   en: {
     appTitle: 'Smart Agriculture',

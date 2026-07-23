@@ -1,4 +1,4 @@
-// Employees page — filled during page translation.
+// Employees page - filled during page translation.
 export default {
   en: {
     accessDenied: 'Access Denied',

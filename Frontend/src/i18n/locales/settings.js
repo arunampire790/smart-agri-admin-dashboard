@@ -1,4 +1,4 @@
-// Settings page — filled during page translation.
+// Settings page - filled during page translation.
 export default {
   en: {
     pageTitle: 'Settings',
@@ -37,7 +37,7 @@ export default {
     updatePassword: 'Update Password',
 
     dangerZoneTitle: 'Danger Zone',
-    dangerZoneSubtitle: 'Irreversible actions — proceed with caution',
+    dangerZoneSubtitle: 'Irreversible actions - proceed with caution',
     clearActivityLog: 'Clear Activity Log',
     clearActivityLogDesc: 'Permanently delete all audit log entries',
     clearLog: 'Clear Log',
@@ -92,7 +92,7 @@ export default {
     updatePassword: 'パスワードを更新',
 
     dangerZoneTitle: '危険な操作',
-    dangerZoneSubtitle: '取り消せない操作です — 慎重に行ってください',
+    dangerZoneSubtitle: '取り消せない操作です - 慎重に行ってください',
     clearActivityLog: 'アクティビティログを消去',
     clearActivityLogDesc: 'すべての監査ログエントリを完全に削除します',
     clearLog: 'ログを消去',
