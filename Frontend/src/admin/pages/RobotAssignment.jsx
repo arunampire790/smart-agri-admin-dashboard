@@ -249,7 +249,7 @@ export default function RobotAssignment() {
     e.preventDefault();
     if (!showEditModal) return;
     const prevFarmer = showEditModal.farmer;
-    const newFarmer = (editForm.farmer && editForm.farmer !== 'â€” Remove Assignment â€”') ? editForm.farmer : null;
+    const newFarmer = (editForm.farmer && editForm.farmer !== '- Remove Assignment -') ? editForm.farmer : null;
     const prevStatus = showEditModal.status;
     let newStatus = editForm.status;
 
@@ -701,7 +701,7 @@ export default function RobotAssignment() {
                   <Download size={20} color="#ffffff" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('qrCodeTitle')} â€” {showQRModal.id}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{t('qrCodeTitle')} - {showQRModal.id}</div>
                   <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{t('qrCodeSub')}</div>
                 </div>
               </div>
