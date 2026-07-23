@@ -196,7 +196,7 @@ export default function GlobalHeader() {
     <>
     <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
     <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0"
-      style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(20,46,28,0.08)' }}
+      style={{ background: '#ffffff', borderBottom: '1px solid rgba(20,46,28,0.08)' }}
       onKeyDown={searchShortcut}>
       <div className="flex items-center relative" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: '#FFFFFF', border: '1px solid rgba(20,46,28,0.12)' }}>
@@ -208,7 +208,7 @@ export default function GlobalHeader() {
         </div>
 
         {searchOpen && createPortal(
-          <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => { setSearchOpen(false); setSearchQuery(''); }}>
+          <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => { setSearchOpen(false); setSearchQuery(''); }}>
             <div onClick={(e) => e.stopPropagation()} style={{
               position: 'fixed',
               top: '50%', left: '50%',

@@ -6,10 +6,10 @@ import { useRobots } from '../../context/RobotContext';
 import { useT } from '../../i18n';
 
 const cardStyle = {
-  background: 'rgba(255,255,255,0.75)',
+  background: '#ffffff',
   borderRadius: '16px',
   padding: '20px 24px',
-  border: '1px solid rgba(255,255,255,0.5)',
+  border: '1px solid rgba(76,175,80,0.15)',
   marginBottom: '16px',
 };
 
@@ -80,9 +80,9 @@ export default function UserProfileModal({ user, onClose }) {
 
   return (
     <>{createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
       <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-        style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+        style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

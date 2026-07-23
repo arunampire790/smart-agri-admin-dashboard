@@ -65,7 +65,7 @@ function FilterSelect({ label, options, value, onChange, width }) {
         <div ref={dropdownRef} className="dropdown-scroll" style={{
           position: 'fixed', zIndex: 99999, top: pos.top, left: pos.left, width: pos.width,
           maxHeight: '240px', overflowY: 'auto',
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+          background: '#ffffff',
           border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
         }}>
@@ -120,10 +120,8 @@ const StatusDropdown = ({ value, onChange, options }) => {
       {open && (
         <div className="absolute z-50 w-full mt-1 overflow-hidden"
           style={{
-            background: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)',
+            background: '#ffffff',
+            border: '1px solid rgba(76,175,80,0.15)',
             borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
@@ -258,7 +256,7 @@ export default function Users() {
         </button>
       </div>
 
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: '#ffffff', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">{t('allUsers')} ({users.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={glassInput} />
@@ -347,9 +345,9 @@ export default function Users() {
 
       {/* Add New User Modal */}
       {showAddModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAddModal(false)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -432,8 +430,8 @@ export default function Users() {
 
       {/* View User Modal */}
       {viewUser && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setViewUser(null)}>
-          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setViewUser(null)}>
+          <div className="w-[440px] max-w-[calc(100vw-32px)] rounded-[24px] p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff' }}>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="text-lg font-bold text-primary">{t('userDetails')}</div>
@@ -468,9 +466,9 @@ export default function Users() {
 
       {/* Edit User Modal */}
       {editUser && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditUser(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setEditUser(null)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -559,8 +557,8 @@ export default function Users() {
 
       {/* Delete User Modal */}
       {deleteUser && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteUser(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteUser(null)}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff' }}>
             <div className="text-lg font-bold text-primary mb-2">{t('deleteUserTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
               {t('deleteConfirmPrefix')}<strong className="text-primary font-medium">{deleteUser.name}</strong>{t('deleteConfirmSuffix')}

@@ -225,7 +225,7 @@ export default function AdminLogin() {
 
       {/* Forgot Password Flow Overlay */}
       {flowStep !== 'login' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(26,46,26,0.4)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={closeFlow}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(26,46,26,0.5)' }} onClick={closeFlow}>
           <div className="relative z-10" onClick={(e) => e.stopPropagation()}
             style={{ width: '420px', maxWidth: 'calc(100vw - 32px)', background: '#ffffff', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.15)', padding: '28px 32px', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>

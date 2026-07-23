@@ -58,10 +58,8 @@ function Select({ options, value, onChange, placeholder, width, labelFor = (o) =
       {open && (
         <div className="absolute z-[100] w-full mt-1 overflow-hidden"
           style={{
-            background: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)',
+            background: '#ffffff',
+            border: '1px solid rgba(76,175,80,0.15)',
             borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
@@ -170,7 +168,7 @@ function CustomTooltip({ active, payload, label, t }) {
   const tr = t || ((k) => k);
   const nameLabel = (n) => (n === 'Temperature' ? tr('temperature') : tr('soilMoisture'));
   return (
-    <div style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(76,175,80,0.12)', borderRadius: 8, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}>
+    <div style={{ background: '#ffffff', border: '1px solid rgba(76,175,80,0.15)', borderRadius: 8, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}>
       <div style={{ fontWeight: 600, color: '#111827', marginBottom: 2 }}>{label}</div>
       {payload.map((p) => (
         <div key={p.name} style={{ color: p.color, fontWeight: 500 }}>{nameLabel(p.name)}: {p.value}{p.name === 'Temperature' ? '°C' : '%'}</div>

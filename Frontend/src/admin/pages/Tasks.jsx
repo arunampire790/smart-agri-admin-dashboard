@@ -69,7 +69,7 @@ function SelectDropdown({ options, value, onChange, placeholder }) {
   }, []);
 
   const base = {
-    background: 'rgba(255,255,255,0.5)', border: '1px solid #D1D5DB', borderRadius: '12px',
+    background: '#ffffff', border: '1px solid #D1D5DB', borderRadius: '12px',
     color: '#111827', fontSize: '14px', height: '40px', padding: '0 36px 0 12px',
     width: '100%', outline: 'none', boxSizing: 'border-box', cursor: 'pointer',
     transition: 'all 0.2s ease', textAlign: 'left', position: 'relative',
@@ -90,8 +90,8 @@ function SelectDropdown({ options, value, onChange, placeholder }) {
       {open && (
         <div style={{
           position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+          background: '#ffffff',
+          border: '1px solid rgba(76,175,80,0.15)', borderRadius: '14px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
         }}>
           {options.map((opt) => {
@@ -159,8 +159,8 @@ function FilterSelect({ label, options, value, onChange, width }) {
           <div style={{
             position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
             maxHeight: '240px', overflowY: 'auto',
-            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
+            background: '#ffffff',
+            border: '1px solid rgba(76,175,80,0.15)', borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}>
             {options.map((opt) => {
@@ -386,7 +386,7 @@ export default function Tasks() {
         </GlowCard>
       </div>
 
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: '#ffffff', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex gap-6 mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           {tabs.map((tab) => (
             <div
@@ -486,9 +486,9 @@ export default function Tasks() {
         </table>
       </div>
       {showAssignModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAssignModal(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAssignModal(false)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
