@@ -18,14 +18,12 @@ function isValidCoord(p) {
   return p && typeof p.lat === 'number' && typeof p.lng === 'number' && !isNaN(p.lat) && !isNaN(p.lng) && isFinite(p.lat) && isFinite(p.lng) && p.lat >= -90 && p.lat <= 90 && p.lng >= -180 && p.lng <= 180;
 }
 
-function MapClickHandler({ onMapClick, disabled, drawMode, onSetCenter }) {
+function MapClickHandler({ onMapClick, disabled }) {
   useMapEvents({
     click(e) {
       if (disabled) return;
       L.DomEvent.stopPropagation(e);
-      if (drawMode === 'polygon') {
-        onMapClick(e.latlng);
-      }
+      onMapClick(e.latlng);
     },
   });
   return null;
@@ -48,7 +46,12 @@ function MapSync({ points }) {
 
 function MapInvalidator({ modalOpen }) {
   const map = useMap();
-  useEffect(() => { if (modalOpen) setTimeout(() => map.invalidateSize(), 100); }, [modalOpen, map]);
+  useEffect(() => {
+    if (!modalOpen) return;
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [modalOpen, map]);
   return null;
 }
 
@@ -123,10 +126,10 @@ export default function FarmMapDrawing({ initialCoords, initialClosed, onChange,
   }
 
   return (
-    <div style={{ border: '1px solid rgba(46,125,50,0.3)', borderRadius: '12px', overflow: 'hidden', position: 'relative', isolation: 'isolate', zIndex: 0 }}>
-      <MapContainer center={[20, 0]} zoom={2} style={{ width: '100%', height: '260px' }}>
+    <div style={{ border: '1px solid rgba(46,125,50,0.3)', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+      <MapContainer center={[20, 0]} zoom={2} doubleClickZoom={false} style={{ width: '100%', height: '260px' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-        <MapClickHandler disabled={polygonClosed} drawMode="polygon" onMapClick={addPoint} />
+        <MapClickHandler disabled={polygonClosed} onMapClick={addPoint} />
         <MapInvalidator modalOpen={modalOpen} />
         <MapSync points={safeHull} />
         {safeRaw.map((p, i) => (

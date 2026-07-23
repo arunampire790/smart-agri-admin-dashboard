@@ -52,13 +52,12 @@ function MapSync({ points }) {
 
 function MapInvalidator({ modalOpen }) {
   const map = useMap();
-
   useEffect(() => {
-    if (modalOpen) {
-      setTimeout(() => map.invalidateSize(), 100);
-    }
-  }, [modalOpen]);
-
+    if (!modalOpen) return;
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [modalOpen, map]);
   return null;
 }
 
