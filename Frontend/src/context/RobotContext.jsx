@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { robotsApi, robotHistoryApi } from '../api/robots';
+import { sanitizeFarmerField } from '../utils/sanitizeFarmer';
 
 const RobotContext = createContext(null);
 
@@ -16,7 +17,7 @@ export function RobotProvider({ children }) {
       .then(([robotsData, historyData]) => {
         if (!active) return;
         setRobots(robotsData);
-        setHistory(historyData);
+        setHistory(historyData.map((h) => ({ ...h, farmer: sanitizeFarmerField(h.farmer) })));
       })
       .catch((err) => {
         if (active) setError(err.message);
@@ -52,7 +53,7 @@ export function RobotProvider({ children }) {
 
   const addHistoryEntry = useCallback(async (entry) => {
     const created = await robotHistoryApi.create(entry);
-    setHistory((prev) => [created, ...prev]);
+    setHistory((prev) => [{ ...created, farmer: sanitizeFarmerField(created.farmer) }, ...prev]);
     return created;
   }, []);
 

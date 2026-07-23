@@ -227,7 +227,7 @@ export default function RobotAssignment() {
         registered: today,
         notes: '',
       });
-      newHistoryEntries.push({ robotId, action: 'Generated', farmer: '-', by: 'Admin User', date: today });
+      newHistoryEntries.push({ robotId, action: 'Generated', farmer: '', by: 'Admin User', date: today });
     }
     // TODO: Replace with real backend bulk generation API call once available
     bulkAddRobots(newRobots);
@@ -273,7 +273,7 @@ export default function RobotAssignment() {
     }
 
     updateRobot(showEditModal, { farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes });
-    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '-', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setShowEditModal(null);
   };
 
@@ -334,7 +334,7 @@ export default function RobotAssignment() {
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
     removeRobot(deleteTarget);
-    addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '-', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+    addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setDeleteTarget(null);
   };
   const handleBulkAssign = () => {
@@ -574,7 +574,7 @@ export default function RobotAssignment() {
               >
                 <td className="px-5 py-5 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.robotId}</td>
                 <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{actionPill(h.action)}</td>
-                <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.farmer && /[a-zA-Z\u00C0-\u024F]/.test(h.farmer) ? h.farmer : '-'}</td>
+                <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.farmer ? h.farmer : <span style={{ color: '#9ca3af', fontSize: '13px' }}>—</span>}</td>
                 <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.by}</td>
                 <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.date}</td>
               </tr>
