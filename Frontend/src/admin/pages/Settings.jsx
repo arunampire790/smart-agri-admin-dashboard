@@ -323,12 +323,12 @@ export default function Settings() {
 
       {/* Clear Activity Log Dialog */}
       {showClearDialog && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={() => setShowClearDialog(false)}
         >
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff' }}
+            style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >
             <div className="text-lg font-bold text-primary mb-2">{t('clearDialogTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
@@ -350,12 +350,12 @@ export default function Settings() {
 
       {/* Reset All Settings Dialog */}
       {showResetDialog && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={() => setShowResetDialog(false)}
         >
           <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff' }}
+            style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >
             <div className="text-lg font-bold text-primary mb-2">{t('resetDialogTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">

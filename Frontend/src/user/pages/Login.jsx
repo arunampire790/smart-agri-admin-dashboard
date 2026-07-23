@@ -22,21 +22,23 @@ export default function Login() {
       className="min-h-screen flex items-center justify-center overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 50%, #e3f2fd 100%)', position: 'relative' }}
     >
-      {/* Background orbs */}
+      {/* Background orbs - high opacity for visible glass effect */}
       <div className="fixed pointer-events-none" style={{ width: 500, height: 500, background: '#10B981', filter: 'blur(140px)', opacity: 0.45, top: '-15%', left: '-10%', zIndex: 0 }} />
       <div className="fixed pointer-events-none" style={{ width: 600, height: 600, background: '#6366F1', filter: 'blur(160px)', opacity: 0.3, top: '25%', right: '-8%', zIndex: 0 }} />
       <div className="fixed pointer-events-none" style={{ width: 450, height: 450, background: '#EC4899', filter: 'blur(120px)', opacity: 0.25, bottom: '-10%', left: '10%', zIndex: 0 }} />
       <div className="fixed pointer-events-none" style={{ width: 350, height: 350, background: '#059669', filter: 'blur(100px)', opacity: 0.35, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
 
-      {/* Login card */}
+      {/* Glass card - matching Forgot Password modal exactly */}
       <div
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         className="relative w-[400px] max-w-[calc(100vw-32px)]"
         style={{
-          background: '#ffffff',
-          border: '1px solid rgba(76,175,80,0.15)',
+          background: 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
           borderRadius: 24,
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 8px 32px 0 rgba(31,38,135,0.08)',
           padding: 32,
@@ -158,15 +160,16 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Demo credentials info box */}
+        {/* Demo credentials - glass info box */}
         <div
           className="relative"
           style={{
             marginTop: 20,
             padding: '12px 14px',
             borderRadius: 10,
-            background: '#f0fdf4',
-            border: '1px solid rgba(76,175,80,0.2)',
+            background: 'rgba(255, 255, 255, 0.4)',
+            border: '1px solid rgba(255, 255, 255, 0.5)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
             zIndex: 1,
           }}
         >

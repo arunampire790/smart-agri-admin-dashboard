@@ -181,8 +181,8 @@ export default function ActivityLog() {
             {dropdownOpen && (
               <div style={{
                 position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
-                background: '#ffffff',
-                border: '1px solid rgba(76,175,80,0.15)', borderRadius: '14px',
+                background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)',
+                border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
               }}>
                 {timeOptions.map((opt) => {

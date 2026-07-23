@@ -139,8 +139,8 @@ function Select({ label, options, value, onChange, width }) {
           <div style={{
             position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
             maxHeight: '240px', overflowY: 'auto',
-            background: '#ffffff',
-            border: '1px solid rgba(76,175,80,0.15)', borderRadius: '14px',
+            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
           }}>
             {options.map((opt) => {

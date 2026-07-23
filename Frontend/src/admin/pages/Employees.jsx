@@ -34,8 +34,10 @@ const StatusDropdown = ({ value, onChange, options }) => {
         <div
           className="absolute z-50 w-full mt-1 overflow-hidden"
           style={{
-            background: '#ffffff',
-            border: '1px solid rgba(76,175,80,0.15)',
+            background: 'rgba(245,245,247,0.75)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
             borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
             outline: 'none !important',
@@ -100,8 +102,10 @@ function Select({ options, value, onChange, placeholder }) {
       {open && (
         <div className="absolute z-[100] w-full mt-1 overflow-hidden"
           style={{
-            background: '#ffffff',
-            border: '1px solid rgba(76,175,80,0.15)',
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)',
             borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
@@ -171,8 +175,8 @@ function FilterSelect({ label, options, value, onChange, width }) {
           <div style={{
             position: 'absolute', zIndex: 100, top: '100%', left: 0, right: 0, marginTop: '4px',
             maxHeight: '240px', overflowY: 'auto',
-            background: '#ffffff',
-            border: '1px solid rgba(76,175,80,0.15)', borderRadius: '14px',
+            background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255,255,255,0.6)', borderRadius: '14px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}>
             {options.map((opt) => {
@@ -459,7 +463,7 @@ export default function Employees() {
         </button>
       </div>
 
-      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: '#ffffff', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'var(--clr-card)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-4">
           <div className="text-sm font-semibold text-[#1a2e1a] mb-3">{t('allEmployees')} ({employees.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={glassInput} />
@@ -544,9 +548,9 @@ export default function Employees() {
 
       {/* Add Employee Modal */}
       {showAddModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -565,7 +569,7 @@ export default function Employees() {
             </div>
 
             <form onSubmit={handleAdd}>
-              <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(76,175,80,0.15)', marginBottom: '20px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
@@ -635,9 +639,9 @@ export default function Employees() {
 
       {/* Edit Employee Modal */}
       {editEmployee && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setEditEmployee(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditEmployee(null)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -656,7 +660,7 @@ export default function Employees() {
             </div>
 
             <form onSubmit={handleEdit}>
-              <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(76,175,80,0.15)', marginBottom: '20px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                   <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
@@ -732,9 +736,9 @@ export default function Employees() {
 
       {/* Activity History Modal (Master Admin only) */}
       {viewActivity && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setViewActivity(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setViewActivity(null)}>
           <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
+            style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -750,7 +754,7 @@ export default function Employees() {
                 onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.transform = ''; }}
               ><i className="ph ph-x text-lg" /></button>
             </div>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(76,175,80,0.15)' }}>
+            <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
                 <Activity size={15} color="#4caf50" />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('activityHistory')}</span>
@@ -764,8 +768,8 @@ export default function Employees() {
 
       {/* Delete Employee Modal */}
       {deleteEmployee && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteEmployee(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
+          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-primary mb-2">{t('deleteTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
               {t('deleteConfirmPrefix')} <strong className="text-primary font-medium">{deleteEmployee.name}</strong>{t('deleteConfirmSuffix')}
