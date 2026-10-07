@@ -228,6 +228,49 @@ class RobotSerializer(serializers.ModelSerializer):
     def get_isPaired(self, obj):
         return obj.paired_at is not None
 
+    def validate(self, attrs):
+        if not ({"farmer", "farm"} & attrs.keys()):
+            return attrs
+
+        farmer = attrs.get(
+            "farmer", self.instance.farmer if self.instance is not None else None
+        )
+        farm_name = attrs.get(
+            "farm", self.instance.farm if self.instance is not None else ""
+        )
+
+        if (
+            self.instance is not None
+            and "farmer" in attrs
+            and (farmer or "").strip() != (self.instance.farmer or "").strip()
+            and "farm" not in attrs
+        ):
+            farm_name = ""
+            attrs["farm"] = ""
+
+        if farm_name:
+            farms = Farm.objects.filter(name=farm_name).order_by("id")
+            if not farms.exists():
+                raise serializers.ValidationError(
+                    {"farm": "Select an existing farm."}
+                )
+            if not farmer or not any(
+                farm.owner.strip() == farmer.strip() for farm in farms
+            ):
+                raise serializers.ValidationError(
+                    {"farm": "The selected farm must belong to the assigned farmer."}
+                )
+        return attrs
+
+    def update(self, instance, validated_data):
+        new_farmer = validated_data.get("farmer", instance.farmer)
+        if (new_farmer or "").strip() != (instance.farmer or "").strip():
+            instance.paired_at = None
+            instance.pair_token = ""
+            if instance.status == "Active":
+                validated_data["status"] = "Assigned"
+        return super().update(instance, validated_data)
+
 
 class RobotHistorySerializer(serializers.ModelSerializer):
     # camelCase key to match the frontend history objects.
