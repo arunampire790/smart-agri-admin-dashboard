@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { farmsApi } from '../api/farms';
+import { useAuth } from './AuthContext';
 
 // Status → Tailwind badge classes. Kept on the client since it's purely a
 // display concern the backend doesn't need to store.
@@ -16,12 +17,17 @@ const normalize = (farm) => ({ ...farm, cls: clsForStatus(farm.status) });
 const FarmContext = createContext(null);
 
 export function FarmProvider({ children }) {
+  const { isAuthenticated } = useAuth();
   const [farms, setFarms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Nothing to wait for while signed out - the fetch below never starts.
+  const [loading, setLoading] = useState(isAuthenticated);
   const [error, setError] = useState(null);
 
-  // Load farms from the backend once, on mount.
+  // Load farms once the admin is signed in; the API is staff-only, so
+  // fetching before login would just 401. App.jsx remounts this provider when
+  // the session changes, so a logout leaves nothing behind.
   useEffect(() => {
+    if (!isAuthenticated) return undefined;
     let active = true;
     farmsApi
       .list()
@@ -32,7 +38,7 @@ export function FarmProvider({ children }) {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [isAuthenticated]);
 
   const addFarm = useCallback(async (farm) => {
     const created = await farmsApi.create(farm);

@@ -50,9 +50,8 @@ const valStyle = {
   color: '#111827',
 };
 
+// Columns come from .resp-grid-2 (two columns, one on phones).
 const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
   gap: '16px 32px',
 };
 
@@ -129,7 +128,7 @@ export default function FarmProfileModal({ farm, onClose }) {
   return (
     <>{createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
         style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -159,7 +158,7 @@ export default function FarmProfileModal({ farm, onClose }) {
             <Target size={15} color="#2e7d32" />
             <span style={sectionTitleTextStyle}>Core Identity Matrix</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> Farm Name</div>
               <div style={valStyle}>{farm?.name || '\u2014'}</div>
@@ -187,7 +186,7 @@ export default function FarmProfileModal({ farm, onClose }) {
             <Map size={15} color="#2e7d32" />
             <span style={sectionTitleTextStyle}>Crop & Size Infrastructure</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><Layers size={12} color="#9CA3AF" /> Crop Types</div>
               <div style={valStyle}>{farm?.cropTypes || farm?.crop || '\u2014'}</div>
@@ -213,7 +212,7 @@ export default function FarmProfileModal({ farm, onClose }) {
             <Bot size={15} color="#2e7d32" />
             <span style={sectionTitleTextStyle}>Assigned Robots Dynamic Data</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><Bot size={12} color="#9CA3AF" /> Robot Fleet</div>
               <div style={{ ...valStyle, wordBreak: 'break-word' }}>{robotFleet}</div>

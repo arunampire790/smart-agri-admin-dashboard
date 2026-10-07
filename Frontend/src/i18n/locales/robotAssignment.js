@@ -73,6 +73,9 @@ export default {
     // QR modal
     qrCodeTitle: 'QR Code',
     qrCodeSub: 'Scan to identify this robot',
+    qrScanToConnect: "Give this to the owner. Holding it up to the robot's camera connects the robot to their farm.",
+    qrAlreadyConnected: 'Already connected. This code no longer pairs.',
+    qrNoOwner: 'Assign this robot to a customer to generate a pairing code.',
     downloadQr: 'Download',
     printQr: 'Print',
 
@@ -167,6 +170,9 @@ export default {
     // QR modal
     qrCodeTitle: 'QRコード',
     qrCodeSub: 'スキャンしてこのロボットを識別',
+    qrScanToConnect: 'このコードを所有者に渡してください。ロボットのカメラにかざすと、農場に接続されます。',
+    qrAlreadyConnected: 'すでに接続済みです。このコードでは接続できません。',
+    qrNoOwner: 'ペアリングコードを生成するには、このロボットを顧客に割り当ててください。',
     downloadQr: 'ダウンロード',
     printQr: '印刷',
 

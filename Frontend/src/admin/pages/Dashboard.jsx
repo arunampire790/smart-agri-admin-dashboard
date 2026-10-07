@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
-import { useTaskStore } from '../../stores/taskStore';
+import { useTasks } from '../../context/TaskContext';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -106,7 +106,7 @@ export default function Dashboard() {
   const activeRobots = robots.filter((r) => r.status === 'Active').length;
   const idleRobots = robots.filter((r) => r.status === 'Idle').length;
   const offlineRobots = robots.filter((r) => r.status === 'Offline').length;
-  const tasks = useTaskStore((s) => s.tasks);
+  const { tasks } = useTasks();
   const activeCount = tasks.filter((t) => t.status === 'In Progress').length;
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
@@ -156,7 +156,7 @@ export default function Dashboard() {
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <GlowCard onClick={() => navigate('/admin/tasks')} className="glass-card rounded-2xl p-5">
           <div className="text-sm font-semibold text-primary mb-3">{t('taskLifecycle')}</div>
           <TaskDonut activeCount={activeCount} pendingCount={pendingCount} completedCount={completedCount} totalTasks={totalTasks} />
@@ -185,7 +185,7 @@ export default function Dashboard() {
         </GlowCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
           <div className="text-sm font-semibold text-primary mb-4">{t('userGrowth')}</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -234,44 +234,46 @@ export default function Dashboard() {
             <i className="ph ph-arrow-right" /> {t('viewAll')}
           </button>
         </div>
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colTask')}</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colUser')}</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colFarm')}</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colPriority')}</th>
-              <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colStatus')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tasks.slice(0, 5).map((task) => (
-              <tr key={task.id}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                style={{ transition: 'background 0.15s ease' }}
-              >
-                <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
-                <td className="px-4 py-4 border-b border-table-sep">
-                  <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
-                    style={{ cursor: 'pointer', fontWeight: 600, color: '#1a2e1a', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#1a2e1a'; }}
-                  >{task.assignedTo}</span>
-                </td>
-                <td className="px-4 py-4 border-b border-table-sep">
-                  <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
-                    style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.textDecoration = 'none'; }}
-                  >{task.farm}</span>
-                </td>
-                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>
-                <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.status === 'Completed' ? 'bg-brand-light text-brand-dark' : task.status === 'In Progress' ? 'bg-warning-bg text-warning-text' : 'bg-warning-bg text-warning-text'}`}>{task.status}</span></td>
+        <div className="table-scroll" style={{ '--table-min': '640px' }}>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colTask')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colUser')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colFarm')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colPriority')}</th>
+                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b border-table-sep">{t('colStatus')}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tasks.slice(0, 5).map((task) => (
+                <tr key={task.id}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  style={{ transition: 'background 0.15s ease' }}
+                >
+                  <td className="px-4 py-4 border-b border-table-sep"><strong className="text-primary font-medium">{task.title}</strong></td>
+                  <td className="px-4 py-4 border-b border-table-sep">
+                    <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#1a2e1a', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#1a2e1a'; }}
+                    >{task.assignedTo}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b border-table-sep">
+                    <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.textDecoration = 'none'; }}
+                    >{task.farm}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.priority === 'High' ? 'bg-danger-bg text-danger-text' : task.priority === 'Medium' ? 'bg-warning-bg text-warning-text' : 'bg-brand-light text-brand-dark'}`}>{task.priority}</span></td>
+                  <td className="px-4 py-4 border-b border-table-sep"><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${task.status === 'Completed' ? 'bg-brand-light text-brand-dark' : task.status === 'In Progress' ? 'bg-warning-bg text-warning-text' : 'bg-warning-bg text-warning-text'}`}>{task.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
       {profileFarm && <FarmProfileModal farm={profileFarm} onClose={() => setProfileFarm(null)} />}

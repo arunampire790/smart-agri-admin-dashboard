@@ -27,6 +27,10 @@ export default {
     userAssignedRobotsDynamicData: 'Assigned Robots Dynamic Data',
     userRobotFleet: 'Robot Fleet',
     userLastSyncTimestamp: 'Last Sync Timestamp',
+    adminRoleMaster: 'Master Admin',
+    adminRoleAdmin: 'Admin',
+    adminNameEmailRequired: 'Name and email are required.',
+    adminSaveFailed: 'Could not save your profile. Please try again.',
   },
   ja: {
     // AdminProfileModal
@@ -55,5 +59,9 @@ export default {
     userAssignedRobotsDynamicData: '割り当てロボットの動的データ',
     userRobotFleet: 'ロボット群',
     userLastSyncTimestamp: '最終同期日時',
+    adminRoleMaster: 'マスター管理者',
+    adminRoleAdmin: '管理者',
+    adminNameEmailRequired: '名前とメールアドレスは必須です。',
+    adminSaveFailed: 'プロフィールを保存できませんでした。もう一度お試しください。',
   },
 };

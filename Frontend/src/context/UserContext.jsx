@@ -1,25 +1,66 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { usersApi } from '../api/users';
+import { useAuth } from './AuthContext';
 
-const initialUsers = [
-  { name: 'John Smith', email: 'john.smith@example.com', phone: '+1-555-0101', farms: 3, status: 'Active', cls: 'active', joined: '2025-12-15' },
-  { name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1-555-0102', farms: 2, status: 'Active', cls: 'active', joined: '2026-01-10' },
-  { name: 'Michael Brown', email: 'michael.b@example.com', phone: '+1-555-0103', farms: 5, status: 'Active', cls: 'active', joined: '2025-11-20' },
-  { name: 'Emily Davis', email: 'emily.davis@example.com', phone: '+1-555-0104', farms: 1, status: 'Inactive', cls: 'inactive', joined: '2026-02-05' },
-  { name: 'David Wilson', email: 'david.w@example.com', phone: '+1-555-0105', farms: 4, status: 'Active', cls: 'active', joined: '2025-10-12' },
-];
+// Status → Tailwind badge classes. Kept on the client since it's purely a
+// display concern the backend doesn't need to store.
+const clsForStatus = (status) =>
+  status === 'Active'
+    ? 'bg-brand-light text-brand-dark'
+    : 'bg-danger-bg text-danger-text';
+
+// Attach UI-only derived fields the components expect but the API doesn't return.
+const normalize = (user) => ({ ...user, cls: clsForStatus(user.status) });
 
 const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const [users, setUsers] = useState(initialUsers);
+  const { isAuthenticated } = useAuth();
+  const [users, setUsers] = useState([]);
+  // Nothing to wait for while signed out - the fetch below never starts.
+  const [loading, setLoading] = useState(isAuthenticated);
+  const [error, setError] = useState(null);
 
-  const addUser = (user) => setUsers((prev) => [...prev, user]);
-  const updateUser = (oldUser, newData) =>
-    setUsers((prev) => prev.map((u) => (u === oldUser ? { ...u, ...newData } : u)));
-  const removeUser = (user) => setUsers((prev) => prev.filter((u) => u !== user));
+  // Load customers once the admin is signed in; the API is staff-only, so
+  // fetching before login would just 401. App.jsx remounts this provider when
+  // the session changes, so a logout leaves nothing behind.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    let active = true;
+    usersApi
+      .list()
+      .then((data) => { if (active) setUsers(data.map(normalize)); })
+      .catch((err) => {
+        if (active) setError(err.message);
+        console.error('Failed to load users:', err);
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [isAuthenticated]);
+
+  // `user` carries the login password alongside the profile fields - the
+  // admin issues the credentials, the customer never creates their own.
+  const addUser = useCallback(async (user) => {
+    const created = await usersApi.create(user);
+    setUsers((prev) => [normalize(created), ...prev]);
+    return created;
+  }, []);
+
+  // Signature kept as (oldUser, newData) so existing pages don't change;
+  // we route the update through the user's backend id.
+  const updateUser = useCallback(async (oldUser, newData) => {
+    const updated = await usersApi.update(oldUser.id, newData);
+    setUsers((prev) => prev.map((u) => (u.id === oldUser.id ? normalize(updated) : u)));
+    return updated;
+  }, []);
+
+  const removeUser = useCallback(async (user) => {
+    await usersApi.remove(user.id);
+    setUsers((prev) => prev.filter((u) => u.id !== user.id));
+  }, []);
 
   return (
-    <UserContext.Provider value={{ users, addUser, updateUser, removeUser }}>
+    <UserContext.Provider value={{ users, loading, error, addUser, updateUser, removeUser }}>
       {children}
     </UserContext.Provider>
   );

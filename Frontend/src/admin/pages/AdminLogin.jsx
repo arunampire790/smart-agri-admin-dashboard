@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sprout } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useAuth } from '../../context/AuthContext';
+import { authApi, apiErrorMessage } from '../../api/auth';
 
 export default function AdminLogin() {
   const t = useT('login');
@@ -15,7 +16,8 @@ export default function AdminLogin() {
 
   const [flowStep, setFlowStep] = useState('login');
   const [resetEmail, setResetEmail] = useState('');
-  const [generatedCode, setGeneratedCode] = useState('');
+  const [sendError, setSendError] = useState('');
+  const [flowBusy, setFlowBusy] = useState(false);
   const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,8 +45,8 @@ export default function AdminLogin() {
 
   const openForgotPassword = () => {
     setFlowStep('email');
-    setResetEmail('');
-    setGeneratedCode('');
+    setResetEmail(email.trim());
+    setSendError('');
     setCodeDigits(['', '', '', '', '', '']);
     setNewPassword('');
     setConfirmPassword('');
@@ -52,13 +54,23 @@ export default function AdminLogin() {
     setPasswordError('');
   };
 
-  const handleSendCode = () => {
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    setGeneratedCode(code);
-    setFlowStep('code');
-    setCodeDigits(['', '', '', '', '', '']);
-    setCodeError('');
-    setTimeout(() => { if (codeInputRefs.current[0]) codeInputRefs.current[0].focus(); }, 100);
+  // Asks the backend to email a 6-digit code. It answers the same way for
+  // unknown emails, so this only fails when the server can't send mail.
+  const handleSendCode = async () => {
+    if (flowBusy) return;
+    setFlowBusy(true);
+    setSendError('');
+    try {
+      await authApi.requestPasswordReset(resetEmail.trim());
+      setFlowStep('code');
+      setCodeDigits(['', '', '', '', '', '']);
+      setCodeError('');
+      setTimeout(() => { if (codeInputRefs.current[0]) codeInputRefs.current[0].focus(); }, 100);
+    } catch (err) {
+      setSendError(apiErrorMessage(err, t('sendCodeFailed')));
+    } finally {
+      setFlowBusy(false);
+    }
   };
 
   const handleDigitChange = (index, value) => {
@@ -76,19 +88,24 @@ export default function AdminLogin() {
     }
   };
 
-  const handleVerifyCode = () => {
-    const entered = codeDigits.join('');
-    if (entered === generatedCode) {
+  const handleVerifyCode = async () => {
+    if (flowBusy) return;
+    setFlowBusy(true);
+    try {
+      await authApi.verifyResetCode(resetEmail.trim(), codeDigits.join(''));
       setFlowStep('reset');
       setNewPassword('');
       setConfirmPassword('');
       setPasswordError('');
-    } else {
-      setCodeError(t('invalidCode'));
+    } catch (err) {
+      setCodeError(apiErrorMessage(err, t('invalidCode')));
+    } finally {
+      setFlowBusy(false);
     }
   };
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
+    if (flowBusy) return;
     if (newPassword.length < 8) {
       setPasswordError(t('passwordTooShort'));
       return;
@@ -97,7 +114,22 @@ export default function AdminLogin() {
       setPasswordError(t('passwordsDoNotMatch'));
       return;
     }
-    setFlowStep('success');
+    setFlowBusy(true);
+    try {
+      await authApi.confirmPasswordReset(resetEmail.trim(), codeDigits.join(''), newPassword);
+      setFlowStep('success');
+    } catch (err) {
+      if (err.data?.code) {
+        // Code expired or ran out of tries meanwhile - back to the code step.
+        setFlowStep('code');
+        setCodeDigits(['', '', '', '', '', '']);
+        setCodeError(apiErrorMessage(err, t('invalidCode')));
+      } else {
+        setPasswordError(apiErrorMessage(err, t('resetFailed')));
+      }
+    } finally {
+      setFlowBusy(false);
+    }
   };
 
   const closeFlow = () => setFlowStep('login');
@@ -259,20 +291,18 @@ export default function AdminLogin() {
                     onMouseEnter={inputHover} onMouseLeave={inputLeave}
                   />
                 </div>
-                <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim()} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                {sendError && <div style={{ fontSize: 12, color: '#DC2626', marginTop: -12, marginBottom: 12 }}>{sendError}</div>}
+                <button type="button" onClick={handleSendCode} disabled={!resetEmail.trim() || flowBusy} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
-                >{t('sendCode')}</button>
+                >{flowBusy ? t('sending') : t('sendCode')}</button>
               </div>
             )}
 
             {flowStep === 'code' && (
               <div>
-                <div style={{ marginBottom: 4, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)', fontSize: 13, color: '#374151' }}>
+                <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: '#f8fdf8', border: '1px solid rgba(46,125,50,0.15)', fontSize: 13, color: '#374151' }}>
                   {t('codeSentPrefix')}<strong>{resetEmail || t('yourEmail')}</strong>{t('codeSentSuffix')}
-                </div>
-                <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: '#f0f5f0', fontSize: 13, color: '#6b7280' }}>
-                  {t('demoCode')} <strong style={{ color: '#1a1a1a', letterSpacing: '0.1em' }}>{generatedCode}</strong>
                 </div>
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('verificationCode')}</label>
@@ -294,7 +324,7 @@ export default function AdminLogin() {
                   </div>
                   {codeError && <div style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', marginTop: 4 }}>{codeError}</div>}
                 </div>
-                <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d)} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                <button type="button" onClick={handleVerifyCode} disabled={codeDigits.some((d) => !d) || flowBusy} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >{t('verifyCode')}</button>
@@ -320,7 +350,7 @@ export default function AdminLogin() {
                   />
                   {passwordError && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 4 }}>{passwordError}</div>}
                 </div>
-                <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
+                <button type="button" onClick={handleResetPassword} disabled={!newPassword || !confirmPassword || flowBusy} style={{ ...primaryBtn }} className="disabled:opacity-40 disabled:cursor-not-allowed"
                   onMouseEnter={(e) => { if (!e.currentTarget.disabled) { primaryBtnEnter(e); } }}
                   onMouseLeave={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.background = 'linear-gradient(180deg, #2d5a3d 0%, #1a3a2a 100%)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
                 >{t('resetPasswordButton')}</button>

@@ -24,6 +24,8 @@ import employees from './locales/employees';
 import tasks from './locales/tasks';
 import settings from './locales/settings';
 import activityLog from './locales/activityLog';
+import advisory from './locales/advisory';
+import robotData from './locales/robotData';
 import login from './locales/login';
 import profile from './locales/profile';
 
@@ -42,6 +44,8 @@ const dicts = {
   tasks,
   settings,
   activityLog,
+  advisory,
+  robotData,
   login,
   profile,
 };

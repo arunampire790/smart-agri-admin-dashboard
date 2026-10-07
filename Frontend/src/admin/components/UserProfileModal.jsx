@@ -48,9 +48,8 @@ const valStyle = {
   color: '#111827',
 };
 
+// Columns come from .resp-grid-2 (two columns, one on phones).
 const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
   gap: '16px 32px',
 };
 
@@ -60,7 +59,14 @@ export default function UserProfileModal({ user, onClose }) {
   const { robots } = useRobots();
 
   const userFarms = useMemo(() => farms.filter((f) => f.owner === user.name), [farms, user.name]);
-  const userRobots = useMemo(() => robots.filter((r) => userFarms.some((f) => f.name === r.farm)), [robots, userFarms]);
+  // A robot belongs to this user two ways: assigned straight to them on the
+  // Robot Assignment page (which sets only the farmer, no farm), or parked on
+  // one of their farms via the Robots page. Matching on farms alone hid every
+  // robot handed out from the assignment page.
+  const userRobots = useMemo(
+    () => robots.filter((r) => r.farmer === user.name || userFarms.some((f) => f.name === r.farm)),
+    [robots, userFarms, user.name]
+  );
 
   const primaryFarm = userFarms.length > 0 ? userFarms[0].name : '\u2014';
   const sectors = userFarms.length > 0
@@ -81,7 +87,7 @@ export default function UserProfileModal({ user, onClose }) {
   return (
     <>{createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
         style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -113,7 +119,7 @@ export default function UserProfileModal({ user, onClose }) {
             <UsersIcon size={15} color="#10B981" />
             <span style={sectionTitleTextStyle}>{t('userCoreIdentityMatrix')}</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> {t('userName')}</div>
               <div style={valStyle}>{user.name}</div>
@@ -142,7 +148,7 @@ export default function UserProfileModal({ user, onClose }) {
             <Map size={15} color="#10B981" />
             <span style={sectionTitleTextStyle}>{t('userFarmDetailsInfrastructure')}</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><MapPin size={12} color="#9CA3AF" /> {t('userPrimaryFarmAnchor')}</div>
               <div style={valStyle}>{primaryFarm}</div>
@@ -164,7 +170,7 @@ export default function UserProfileModal({ user, onClose }) {
             <Bot size={15} color="#10B981" />
             <span style={sectionTitleTextStyle}>{t('userAssignedRobotsDynamicData')}</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><Bot size={12} color="#9CA3AF" /> {t('userRobotFleet')}</div>
               <div style={{ ...valStyle, wordBreak: 'break-word' }}>{robotFleet}</div>

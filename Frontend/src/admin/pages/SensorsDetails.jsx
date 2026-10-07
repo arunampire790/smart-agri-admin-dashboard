@@ -467,7 +467,7 @@ export default function SensorsDetails() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div className="text-sm font-semibold text-primary">{t('gridTitle').replace('{count}', filteredRobots.length)}</div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center flex-wrap gap-4">
           <div>
             <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('owner')}</div>
             <Select options={ownerFilterOptions} value={ownerFilter} onChange={setOwnerFilter} width="180px"

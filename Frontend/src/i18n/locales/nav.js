@@ -14,6 +14,8 @@ export default {
     employees: 'Employees',
     auditLog: 'Audit Log',
     settings: 'Settings',
+    advisory: 'Crop Advisory',
+    robotData: 'Robot Data',
   },
   ja: {
     brand: 'スマート農業',
@@ -29,5 +31,7 @@ export default {
     employees: '従業員',
     auditLog: '監査ログ',
     settings: '設定',
+    advisory: '作物アドバイザリー',
+    robotData: 'ロボットデータ',
   },
 };

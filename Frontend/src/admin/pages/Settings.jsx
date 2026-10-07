@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { useActivityLog } from '../../context/ActivityLogContext';
 import { useT } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
+import { authApi, apiErrorMessage } from '../../api/auth';
+import { initialsOf } from '../../utils/initials';
 
 const Toggle = ({ checked, onChange }) => (
   <label className="relative w-[51px] h-[31px] cursor-pointer shrink-0">
@@ -84,18 +87,40 @@ export default function Settings() {
   const { clearLog } = useActivityLog();
   const t = useT('settings');
 
-  const [firstName, setFirstName] = useState('Admin');
-  const [lastName, setLastName] = useState('User');
-  const [profileEmail, setProfileEmail] = useState('admin@smartagri.com');
-  const [phone, setPhone] = useState('+1-555-0199');
+  const { currentUser, updateAccount } = useAuth();
+  const [firstName, setFirstName] = useState(currentUser?.first_name || '');
+  const [lastName, setLastName] = useState(currentUser?.last_name || '');
+  const [profileEmail, setProfileEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [taskAssign, setTaskAssign] = useState(true);
-  const [robotAlerts, setRobotAlerts] = useState(true);
+  // Notification preferences, saved to the account as soon as they change.
+  const [emailNotif, setEmailNotif] = useState(currentUser?.notify_email ?? true);
+  const [taskAssign, setTaskAssign] = useState(currentUser?.notify_task_assignments ?? true);
+  const [robotAlerts, setRobotAlerts] = useState(currentUser?.notify_robot_alerts ?? true);
+
+  // Refill the form when the account reloads (page load or after a save).
+  // Done during render rather than in an effect - React's recommended way to
+  // reset state from a changed prop/context value.
+  const [syncedUser, setSyncedUser] = useState(currentUser);
+  if (currentUser && currentUser !== syncedUser) {
+    setSyncedUser(currentUser);
+    setFirstName(currentUser.first_name || '');
+    setLastName(currentUser.last_name || '');
+    setProfileEmail(currentUser.email || '');
+    setPhone(currentUser.phone || '');
+    setEmailNotif(currentUser.notify_email ?? true);
+    setTaskAssign(currentUser.notify_task_assignments ?? true);
+    setRobotAlerts(currentUser.notify_robot_alerts ?? true);
+  }
+
 
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState('');
 
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -105,13 +130,74 @@ export default function Settings() {
     setToast(message);
   }, []);
 
+  const handleSaveProfile = async () => {
+    if (!profileEmail.trim()) {
+      setProfileError(t('emailRequired'));
+      return;
+    }
+    setProfileSaving(true);
+    setProfileError('');
+    try {
+      await updateAccount({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: profileEmail.trim(),
+        phone: phone.trim(),
+      });
+      showToast(t('toastProfileSaved'));
+    } catch (err) {
+      setProfileError(apiErrorMessage(err, t('profileSaveFailed')));
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setPwError('');
+    if (!currentPw || !newPw) {
+      setPwError(t('passwordFieldsRequired'));
+      return;
+    }
+    if (newPw.length < 8) {
+      setPwError(t('passwordHint'));
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwError(t('passwordsDoNotMatch'));
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await authApi.changePassword(currentPw, newPw);
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+      showToast(t('toastPasswordUpdated'));
+    } catch (err) {
+      setPwError(apiErrorMessage(err, t('passwordUpdateFailed')));
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   const handleClearLog = () => {
     clearLog();
     setShowClearDialog(false);
     showToast(t('toastLogCleared'));
   };
 
-  const handleResetSettings = () => {
+  // Flip one toggle straight away, then save it; put it back if saving fails.
+  const saveNotification = async (field, value, setter) => {
+    setter(value);
+    try {
+      await updateAccount({ [field]: value });
+    } catch {
+      setter(!value);
+      showToast(t('toastNotificationSaveFailed'));
+    }
+  };
+
+  const handleResetSettings = async () => {
     setEmailNotif(true);
     setTaskAssign(true);
     setRobotAlerts(true);
@@ -119,7 +205,12 @@ export default function Settings() {
     setNewPw('');
     setConfirmPw('');
     setShowResetDialog(false);
-    showToast(t('toastSettingsReset'));
+    try {
+      await updateAccount({ notify_email: true, notify_task_assignments: true, notify_robot_alerts: true });
+      showToast(t('toastSettingsReset'));
+    } catch {
+      showToast(t('toastNotificationSaveFailed'));
+    }
   };
 
   useEffect(() => {
@@ -200,18 +291,14 @@ export default function Settings() {
       <SettingsSection title={t('profileTitle')} subtitle={t('profileSubtitle')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1a3a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ color: '#ffffff', fontSize: 20, fontWeight: 700 }}>AD</span>
+            <span style={{ color: '#ffffff', fontSize: 20, fontWeight: 700 }}>{initialsOf(currentUser?.name)}</span>
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>Admin User</div>
-            <button type="button" className="bg-none border-none p-0 cursor-pointer"
-              style={{ fontSize: 13, fontWeight: 500, color: '#2e7d2e', transition: 'color 0.15s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#1a5c2a'; e.currentTarget.style.textDecoration = 'underline'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#2e7d2e'; e.currentTarget.style.textDecoration = 'none'; }}
-            >{t('edit')}</button>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>{currentUser?.name}</div>
+            <div style={{ fontSize: 13, color: '#6b7280' }}>{currentUser?.email}</div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4" style={{ marginBottom: 16 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ marginBottom: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 6 }}>{t('firstName')}</label>
             <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
@@ -245,24 +332,29 @@ export default function Settings() {
             onMouseEnter={inputHover} onMouseLeave={inputLeave}
           />
         </div>
+        {profileError && (
+          <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+            {profileError}
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="button" style={btnStyle}
+          <button type="button" style={{ ...btnStyle, opacity: profileSaving ? 0.6 : 1 }} disabled={profileSaving}
             onMouseEnter={btnEnter} onMouseLeave={btnLeave}
-            onClick={() => { /* save profile */ }}
-          >{t('saveChanges')}</button>
+            onClick={handleSaveProfile}
+          >{profileSaving ? t('saving') : t('saveChanges')}</button>
         </div>
       </SettingsSection>
 
       {/* Notification Settings */}
       <SettingsSection title={t('notificationTitle')} subtitle={t('notificationSubtitle')}>
         <SettingsRow label={t('emailNotifications')} sublabel={t('emailNotificationsDesc')}>
-          <Toggle checked={emailNotif} onChange={() => setEmailNotif((p) => !p)} />
+          <Toggle checked={emailNotif} onChange={() => saveNotification('notify_email', !emailNotif, setEmailNotif)} />
         </SettingsRow>
         <SettingsRow label={t('taskAssignments')} sublabel={t('taskAssignmentsDesc')}>
-          <Toggle checked={taskAssign} onChange={() => setTaskAssign((p) => !p)} />
+          <Toggle checked={taskAssign} onChange={() => saveNotification('notify_task_assignments', !taskAssign, setTaskAssign)} />
         </SettingsRow>
         <SettingsRow label={t('robotStatusAlerts')} sublabel={t('robotStatusAlertsDesc')} noBorder>
-          <Toggle checked={robotAlerts} onChange={() => setRobotAlerts((p) => !p)} />
+          <Toggle checked={robotAlerts} onChange={() => saveNotification('notify_robot_alerts', !robotAlerts, setRobotAlerts)} />
         </SettingsRow>
       </SettingsSection>
 
@@ -296,11 +388,16 @@ export default function Settings() {
           {t('passwordHint')}
         </div>
 
+        {pwError && (
+          <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+            {pwError}
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-          <button type="button" style={btnStyle}
+          <button type="button" style={{ ...btnStyle, opacity: pwSaving ? 0.6 : 1 }} disabled={pwSaving}
             onMouseEnter={btnEnter} onMouseLeave={btnLeave}
-            onClick={() => { /* update password */ }}
-          >{t('updatePassword')}</button>
+            onClick={handleUpdatePassword}
+          >{pwSaving ? t('saving') : t('updatePassword')}</button>
         </div>
       </SettingsSection>
 
@@ -326,7 +423,7 @@ export default function Settings() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={() => setShowClearDialog(false)}
         >
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
+          <div className="rounded-[20px] p-4 sm:p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
             onClick={(e) => e.stopPropagation()}
             style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >
@@ -353,7 +450,7 @@ export default function Settings() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
           onClick={() => setShowResetDialog(false)}
         >
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
+          <div className="rounded-[20px] p-4 sm:p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50"
             onClick={(e) => e.stopPropagation()}
             style={{ background: '#ffffff', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}
           >

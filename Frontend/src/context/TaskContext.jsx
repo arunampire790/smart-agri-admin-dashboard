@@ -1,32 +1,72 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { tasksApi } from '../api/tasks';
+import { useAuth } from './AuthContext';
 
-const initialTasks = [
-  { id: 't1', title: 'Water wheat fields', assignedTo: 'John Smith', farm: 'Green Valley Farm', type: 'Irrigation', priority: 'High', dueDate: '2026-04-09', status: 'Pending', waterQuantity: 1000 },
-  { id: 't2', title: 'Apply nitrogen fertilizer', assignedTo: 'Michael Brown', farm: 'Golden Harvest', type: 'Fertilizer', priority: 'Medium', dueDate: '2026-04-10', status: 'Pending', fertilizerLevel: 25.5 },
-  { id: 't3', title: 'Monitor soil moisture', assignedTo: 'Emily Davis', farm: 'Maple Ridge Farm', type: 'Inspection', priority: 'Medium', dueDate: '2026-04-11', status: 'Pending' },
-  { id: 't4', title: 'Prune grapevines', assignedTo: 'David Wilson', farm: 'River Bend Agriculture', type: 'Maintenance', priority: 'Low', dueDate: '2026-04-12', status: 'Pending' },
-  { id: 't5', title: 'Inspect irrigation lines', assignedTo: 'Sarah Johnson', farm: 'Sunrise Orchards', type: 'Inspection', priority: 'High', dueDate: '2026-04-08', status: 'Pending' },
-  { id: 't6', title: 'Inspect apple trees', assignedTo: 'Sarah Johnson', farm: 'Sunrise Orchards', type: 'Inspection', priority: 'Low', dueDate: '2026-04-07', status: 'In Progress' },
-  { id: 't7', title: 'Harvest tomatoes', assignedTo: 'John Smith', farm: 'Green Valley Farm', type: 'Harvest', priority: 'High', dueDate: '2026-04-13', status: 'In Progress' },
-  { id: 't8', title: 'Plant cover crops', assignedTo: 'Michael Brown', farm: 'Golden Harvest', type: 'Planting', priority: 'Medium', dueDate: '2026-04-04', status: 'Completed' },
-  { id: 't9', title: 'Install drip irrigation', assignedTo: 'Emily Davis', farm: 'Maple Ridge Farm', type: 'Irrigation', priority: 'High', dueDate: '2026-04-02', status: 'Completed', waterQuantity: 500 },
-  { id: 't10', title: 'Apply herbicide', assignedTo: 'David Wilson', farm: 'Highland Crops', type: 'Fertilizer', priority: 'Low', dueDate: '2026-03-30', status: 'Completed', fertilizerLevel: 15 },
-];
-
+// The single source of tasks for the whole admin side. Everything here comes
+// from the API - including the tasks the advisory engine raises - so the board
+// and the engine can never disagree about what needs doing.
+//
+// Server order is significant: rows arrive ranked by the engine's priority
+// score, most urgent first. Filtering is fine; re-sorting throws that away.
 const TaskContext = createContext(null);
 
 export function TaskProvider({ children }) {
-  const [tasks, setTasks] = useState(initialTasks);
+  const { isAuthenticated } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  // Nothing to wait for while signed out - the fetch below never starts.
+  const [loading, setLoading] = useState(isAuthenticated);
+  const [error, setError] = useState(null);
 
-  const addTask = (task) => setTasks((prev) => [...prev, { ...task, id: task.id || 't' + Date.now() }]);
-  const updateTaskStatus = (id, status) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
-  const updateTask = (id, newData) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...newData } : t)));
-  const removeTask = (id) => setTasks((prev) => prev.filter((t) => t.id !== id));
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    let active = true;
+    tasksApi
+      .list()
+      .then((data) => { if (active) setTasks(data); })
+      .catch((err) => {
+        if (active) setError(err.message);
+        console.error('Failed to load tasks:', err);
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [isAuthenticated]);
+
+  // Running the advisory raises tasks behind the board's back, so a page that
+  // can trigger it needs a way to pull the new ones in.
+  const refreshTasks = useCallback(async () => {
+    const data = await tasksApi.list();
+    setTasks(data);
+    return data;
+  }, []);
+
+  const addTask = useCallback(async (task) => {
+    const created = await tasksApi.create(task);
+    // Straight to the front: a hand-written task scores 0, so by server order
+    // it would appear somewhere down the list with no sign it was created.
+    setTasks((prev) => [created, ...prev]);
+    return created;
+  }, []);
+
+  const updateTask = useCallback(async (id, newData) => {
+    const updated = await tasksApi.update(id, newData);
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    return updated;
+  }, []);
+
+  const updateTaskStatus = useCallback(
+    (id, status) => updateTask(id, { status }),
+    [updateTask],
+  );
+
+  const removeTask = useCallback(async (id) => {
+    await tasksApi.remove(id);
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, updateTaskStatus, updateTask, removeTask }}>
+    <TaskContext.Provider
+      value={{ tasks, loading, error, addTask, updateTask, updateTaskStatus, removeTask, refreshTasks }}
+    >
       {children}
     </TaskContext.Provider>
   );
