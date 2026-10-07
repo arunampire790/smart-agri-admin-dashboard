@@ -25,6 +25,7 @@ export default {
     colRobotId: 'Robot ID',
     colQrCode: 'QR Code',
     colFarmerAssigned: 'Farmer Assigned',
+    colFarm: 'Farm',
     colModel: 'Model',
     colStatus: 'Status',
     colRegistered: 'Registered',
@@ -37,7 +38,7 @@ export default {
     // Bulk assign
     bulkAssign: 'Bulk Assign',
     bulkAssignTitle: 'Bulk Assign Robots',
-    bulkAssignSub: 'Select a farmer and choose robots to assign',
+    bulkAssignSub: 'Select a farmer, farm, and robots to assign',
     assignSelected: 'Assign {n} Selected',
     selectAll: 'Select All',
     deselectAll: 'Deselect All',
@@ -72,12 +73,19 @@ export default {
 
     // QR modal
     qrCodeTitle: 'QR Code',
-    qrCodeSub: 'Scan to identify this robot',
-    qrScanToConnect: "Give this to the owner. Holding it up to the robot's camera connects the robot to their farm.",
+    qrCodeSub: 'Pair this robot with its assigned farm',
+    qrScanToConnect: "This QR contains pairing data for the robot. A compatible robot camera/firmware must scan it; a phone camera alone will only display the data.",
+    testPairing: 'Test pairing with the development simulator',
     qrAlreadyConnected: 'Already connected. This code no longer pairs.',
     qrNoOwner: 'Assign this robot to a customer to generate a pairing code.',
     downloadQr: 'Download',
     printQr: 'Print',
+    farm: 'Farm',
+    selectFarm: 'Select farm',
+    selectFarmerFirst: 'Select a farmer first',
+    farmerNeedsFarm: 'Create a farm for this farmer before assigning the robot.',
+    selectFarmBeforeAssigning: 'Select a farm owned by this farmer before assigning the robot.',
+    actionFailed: 'The operation failed. Check the backend and try again.',
 
     // Edit modal
     editRobotAssignment: 'Edit Robot Assignment',
@@ -122,6 +130,7 @@ export default {
     colRobotId: 'ロボットID',
     colQrCode: 'QRコード',
     colFarmerAssigned: '割り当て農家',
+    colFarm: '農場',
     colModel: 'モデル',
     colStatus: 'ステータス',
     colRegistered: '登録日',
@@ -134,7 +143,7 @@ export default {
     // Bulk assign
     bulkAssign: '一括割り当て',
     bulkAssignTitle: 'ロボットを一括割り当て',
-    bulkAssignSub: '農家を選択して割り当てるロボットを選んでください',
+    bulkAssignSub: '農家と農場を選択し、割り当てるロボットを選んでください',
     assignSelected: '選択した{n}台を割り当て',
     selectAll: 'すべて選択',
     deselectAll: 'すべて解除',
@@ -169,12 +178,19 @@ export default {
 
     // QR modal
     qrCodeTitle: 'QRコード',
-    qrCodeSub: 'スキャンしてこのロボットを識別',
-    qrScanToConnect: 'このコードを所有者に渡してください。ロボットのカメラにかざすと、農場に接続されます。',
+    qrCodeSub: 'ロボットを割り当てた農場にペアリング',
+    qrScanToConnect: 'このQRコードにはロボットのペアリング情報が含まれています。対応するロボットのカメラ／ファームウェアで読み取ってください。スマートフォンのカメラでは情報が表示されるだけです。',
+    testPairing: '開発用シミュレーターでペアリングをテスト',
     qrAlreadyConnected: 'すでに接続済みです。このコードでは接続できません。',
     qrNoOwner: 'ペアリングコードを生成するには、このロボットを顧客に割り当ててください。',
     downloadQr: 'ダウンロード',
     printQr: '印刷',
+    farm: '農場',
+    selectFarm: '農場を選択',
+    selectFarmerFirst: '先に農家を選択してください',
+    farmerNeedsFarm: 'ロボットを割り当てる前に、この農家の農場を作成してください。',
+    selectFarmBeforeAssigning: 'ロボットを割り当てる前に、この農家の農場を選択してください。',
+    actionFailed: '操作に失敗しました。バックエンドを確認して再試行してください。',
 
     // Edit modal
     editRobotAssignment: 'ロボット割り当てを編集',
