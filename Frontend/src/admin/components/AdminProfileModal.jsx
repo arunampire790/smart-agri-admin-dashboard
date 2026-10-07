@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { User, Mail, Shield, Activity, Pencil, X, Check } from 'lucide-react';
 import { logActivity } from '../../utils/activityLogger';
 import { useT } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
+import { apiErrorMessage } from '../../api/auth';
+import { initialsOf } from '../../utils/initials';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 
@@ -49,83 +52,32 @@ const valStyle = {
   color: '#111827',
 };
 
+// Columns come from .resp-grid-2 (two columns, one on phones).
 const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
   gap: '16px 32px',
 };
 
-const RoleDropdown = ({ value, onChange }) => {
+export default function AdminProfileModal({ onClose }) {
   const t = useT('profile');
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const options = ['Master Admin', 'Admin'];
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        className={glassInput}
-        style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-      >
-        <span>{value || t('adminSelectRole')}</span>
-        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="absolute z-50 w-full mt-1 overflow-hidden"
-          style={{
-            background: 'rgba(245,245,247,0.75)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)',
-            borderRadius: '14px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          }}
-        >
-          {options.map((opt) => (
-            <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
-              style={{
-                padding: '12px 16px',
-                fontSize: '14px',
-                color: opt === value ? '#10B981' : '#1d1d1f',
-                background: opt === value ? 'rgba(16,185,129,0.12)' : 'transparent',
-                cursor: 'pointer',
-                transition: 'background 0.15s, color 0.15s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-              onMouseEnter={(e) => { if (opt !== value) { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10B981'; } }}
-              onMouseLeave={(e) => { if (opt !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; } }}
-            >
-              {opt}
-              {opt === value && <i className="ph ph-check text-sm" />}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default function AdminProfileModal({ currentName, currentEmail, onClose, onSave }) {
-  const t = useT('profile');
+  const { currentUser, updateAccount } = useAuth();
+  const currentName = currentUser?.name || '';
+  const currentEmail = currentUser?.email || '';
+  const role = currentUser?.role === 'masterAdmin' ? t('adminRoleMaster', 'Master Admin') : t('adminRoleAdmin', 'Admin');
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(currentName || 'Admin User');
-  const [email, setEmail] = useState(currentEmail || 'admin@smartagri.com');
-  const [role, setRole] = useState('Master Admin');
+  const [name, setName] = useState(currentName);
+  const [email, setEmail] = useState(currentEmail);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const initials = (name || 'Admin User').split(' ').map((n) => n[0]).join('').toUpperCase();
+  const initials = initialsOf(name);
 
-  useEffect(() => {
-    setName(currentName || 'Admin User');
-    setEmail(currentEmail || 'admin@smartagri.com');
-  }, [currentName, currentEmail]);
+  // Pick up a reloaded account (e.g. after saving) without an effect.
+  const [synced, setSynced] = useState({ currentName, currentEmail });
+  if (synced.currentName !== currentName || synced.currentEmail !== currentEmail) {
+    setSynced({ currentName, currentEmail });
+    setName(currentName);
+    setEmail(currentEmail);
+  }
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') onClose();
@@ -136,22 +88,39 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const handleSave = () => {
-    logActivity({
-      userId: currentEmail || 'admin@smartagri.com',
-      userName: currentName || 'Admin User',
-      action: 'Edited Profile',
-      target: 'Self',
-      details: `Name: ${currentName || 'Admin User'} → ${name.trim()}, Email: ${currentEmail || 'admin@smartagri.com'} → ${email.trim()}, Role: ${role}`,
-    });
-    onSave?.(name.trim(), email.trim());
-    setEditing(false);
+  const handleSave = async () => {
+    const newName = name.trim();
+    const newEmail = email.trim();
+    if (!newName || !newEmail) {
+      setError(t('adminNameEmailRequired', 'Name and email are required.'));
+      return;
+    }
+    // The account stores first and last name separately; split at the
+    // first space so "Asha Rao Patil" keeps "Rao Patil" together.
+    const [firstName, ...rest] = newName.split(/\s+/);
+    setSaving(true);
+    setError('');
+    try {
+      await updateAccount({ first_name: firstName, last_name: rest.join(' '), email: newEmail });
+      logActivity({
+        userId: newEmail,
+        userName: newName,
+        action: 'Edited Profile',
+        target: 'Self',
+        details: `Name: ${currentName} → ${newName}, Email: ${currentEmail} → ${newEmail}`,
+      });
+      setEditing(false);
+    } catch (err) {
+      setError(apiErrorMessage(err, t('adminSaveFailed', 'Could not save your profile. Please try again.')));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    setName(currentName || 'Admin User');
-    setEmail(currentEmail || 'admin@smartagri.com');
-    setRole('Master Admin');
+    setName(currentName);
+    setEmail(currentEmail);
+    setError('');
     setEditing(false);
   };
 
@@ -159,18 +128,18 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
     <div className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={onClose}>
-      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
+      <div className="w-[680px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60"
         onClick={(e) => e.stopPropagation()}
         style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: 1 }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ color: '#fff', fontSize: '18px', fontWeight: 700 }}>{initials}</span>
             </div>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3' }}>{name}</div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px' }}>{email}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827', lineHeight: '1.3', overflowWrap: 'anywhere' }}>{name}</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '1px', overflowWrap: 'anywhere' }}>{email}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -194,13 +163,13 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
             <Shield size={15} color="#10B981" />
             <span style={sectionTitleTextStyle}>{t('adminInformation')}</span>
           </div>
-          <div style={gridStyle}>
+          <div className="resp-grid-2" style={gridStyle}>
             <div>
               <div style={labelRowStyle}><User size={12} color="#9CA3AF" /> {t('adminName')}</div>
               {editing ? (
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('adminEnterFullName')} className={glassInput} />
               ) : (
-                <div style={valStyle}>{name}</div>
+                <div style={{ ...valStyle, overflowWrap: 'anywhere' }}>{name}</div>
               )}
             </div>
             <div>
@@ -208,18 +177,14 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
               {editing ? (
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('adminEnterEmail')} className={glassInput} />
               ) : (
-                <div style={valStyle}>{email}</div>
+                <div style={{ ...valStyle, overflowWrap: 'anywhere' }}>{email}</div>
               )}
             </div>
             <div>
               <div style={labelRowStyle}><Shield size={12} color="#9CA3AF" /> {t('adminRole')}</div>
-              {editing ? (
-                <RoleDropdown value={role} onChange={setRole} />
-              ) : (
-                <div style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ padding: '2px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, background: 'rgba(16,185,129,0.12)', color: '#059669' }}>{role}</span>
-                </div>
-              )}
+              <div style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ padding: '2px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, background: 'rgba(16,185,129,0.12)', color: '#059669' }}>{role}</span>
+              </div>
             </div>
             <div>
               <div style={labelRowStyle}><Activity size={12} color="#9CA3AF" /> {t('adminSystemStatus')}</div>
@@ -231,6 +196,12 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
           </div>
         </div>
 
+        {editing && error && (
+          <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+            {error}
+          </div>
+        )}
+
         {editing && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
             <button type="button" onClick={handleCancel}
@@ -240,8 +211,8 @@ export default function AdminProfileModal({ currentName, currentEmail, onClose, 
               onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
               onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >{t('adminCancel')}</button>
-            <button type="button" onClick={handleSave}
-              style={{ background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            <button type="button" onClick={handleSave} disabled={saving}
+              style={{ opacity: saving ? 0.6 : 1, background: '#10B981', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = '#10B981'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
               onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}

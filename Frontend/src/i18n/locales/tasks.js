@@ -35,6 +35,10 @@ export default {
     // Empty state
     emptyTitle: 'No tasks match your current filters',
     emptySubtitle: 'Try adjusting or clearing your filters',
+    loading: 'Loading tasks...',
+    fromAdvisory: 'Advisory',
+    score: 'Score',
+    reassign: 'Reassign to...',
     // Action buttons
     start: 'Start',
     complete: 'Complete',
@@ -103,6 +107,10 @@ export default {
     // Empty state
     emptyTitle: '現在のフィルターに一致するタスクはありません',
     emptySubtitle: 'フィルターを調整またはクリアしてください',
+    loading: 'タスクを読み込み中...',
+    fromAdvisory: '提案',
+    score: 'スコア',
+    reassign: '再割り当て...',
     // Action buttons
     start: '開始',
     complete: '完了',

@@ -1,10 +1,11 @@
 import { createPortal } from 'react-dom';
-import { Check, ChevronDown, Clock, UserPlus, User, Mail, Phone, Shield, Activity, UserPen, Trash2 } from 'lucide-react';
+import { Check, ChevronDown, Clock, UserPlus, User, Mail, Phone, Shield, Activity, UserPen, Trash2, KeyRound } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { logActivity, getActivityLog } from '../../utils/activityLogger';
 import { useT } from '../../i18n';
+import { apiErrorMessage } from '../../api/auth';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
 const inputClass = "add-input-field";
@@ -338,18 +339,21 @@ function AccessDenied() {
 export default function Employees() {
   const t = useT('employees');
   const { currentUser } = useAuth();
-  const { employees, addEmployee, removeEmployee, updateEmployee } = useEmployees();
+  const { employees, loading, error, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);
   const [deleteEmployee, setDeleteEmployee] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'Admin', status: 'Active', password: '' });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [viewActivity, setViewActivity] = useState(null);
 
-  // TODO: Enforce this role check server-side once backend is added - this is a frontend-only gate for now and can be bypassed via dev tools.
+  // The backend enforces this too (/api/employees/ is master-admin only);
+  // this just decides what to render.
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
 
   const filtered = useMemo(() => {
@@ -362,9 +366,9 @@ export default function Employees() {
 
   const statusFilterOptions = useMemo(() => ['All Statuses', ...new Set(employees.map(e => e.status).filter(Boolean))], [employees]);
 
-  const openAdd = () => { setForm({ name: '', email: '', phone: '', role: 'Admin', status: 'Active' }); setErrors({}); setShowAddModal(true); };
-  const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, role: emp.role || 'Admin', status: emp.status }); setErrors({}); setEditEmployee(emp); };
-  const openDelete = (emp) => setDeleteEmployee(emp);
+  const openAdd = () => { setForm({ name: '', email: '', phone: '', role: 'Admin', status: 'Active', password: '' }); setErrors({}); setShowAddModal(true); };
+  const openEdit = (emp) => { setForm({ name: emp.name, email: emp.email, phone: emp.phone, role: emp.role || 'Admin', status: emp.status, password: '' }); setErrors({}); setEditEmployee(emp); };
+  const openDelete = (emp) => { setDeleteError(''); setDeleteEmployee(emp); };
 
   const validate = () => {
     const errs = {};
@@ -372,41 +376,78 @@ export default function Employees() {
     if (!form.email.trim()) errs.email = t('errEmailRequired');
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('errEmailInvalid');
     if (!form.phone.trim()) errs.phone = t('errPhone');
+    // A new employee needs a password to sign in; on edit it's optional
+    // (fill it in only to reset theirs).
+    if (!editEmployee && !form.password) errs.password = t('errPasswordRequired');
+    else if (form.password && form.password.length < 8) errs.password = t('errPasswordShort');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
-  const handleAdd = (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    const status = form.status;
-    addEmployee({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      role: form.role,
-      status,
-      joined: new Date().toISOString().slice(0, 10),
-    });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Employee', target: form.name.trim(), details: `Email: ${form.email.trim()}, Role: ${form.role}` });
-    setShowAddModal(false);
+  // Server field errors ({ email: ["..."] }) go under their inputs; anything
+  // else shows above the buttons.
+  const showServerErrors = (err) => {
+    const data = err?.data;
+    const errs = {};
+    if (data && typeof data === 'object') {
+      for (const [key, value] of Object.entries(data)) {
+        const msg = Array.isArray(value) ? value[0] : value;
+        if (['name', 'email', 'phone', 'role', 'status', 'password'].includes(key)) errs[key] = msg;
+        else errs.general = msg;
+      }
+    }
+    if (!Object.keys(errs).length) errs.general = apiErrorMessage(err, t('errSaveFailed'));
+    setErrors(errs);
   };
 
-  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
-  const handleEdit = (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    const status = form.status;
-    updateEmployee(editEmployee, { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), role: form.role, status });
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Employee', target: editEmployee.name, details: `Role: ${form.role}, Status: ${editEmployee.status} → ${status}` });
-    setEditEmployee(null);
+  const payload = () => {
+    const data = { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), role: form.role, status: form.status };
+    if (form.password) data.password = form.password;
+    return data;
   };
 
-  // TODO: Replace with real backend API call once backend is added - this is a frontend-only simulation.
-  const handleDelete = () => {
-    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Employee', target: deleteEmployee.name, details: `Email: ${deleteEmployee.email}` });
-    removeEmployee(deleteEmployee); setDeleteEmployee(null);
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (saving || !validate()) return;
+    setSaving(true);
+    try {
+      await addEmployee(payload());
+      logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Added Employee', target: form.name.trim(), details: `Email: ${form.email.trim()}, Role: ${form.role}` });
+      setShowAddModal(false);
+    } catch (err) {
+      showServerErrors(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    if (saving || !validate()) return;
+    setSaving(true);
+    try {
+      await updateEmployee(editEmployee, payload());
+      logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited Employee', target: editEmployee.name, details: `Role: ${form.role}, Status: ${editEmployee.status} → ${form.status}` });
+      setEditEmployee(null);
+    } catch (err) {
+      showServerErrors(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await removeEmployee(deleteEmployee);
+      logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Employee', target: deleteEmployee.name, details: `Email: ${deleteEmployee.email}` });
+      setDeleteEmployee(null);
+    } catch (err) {
+      setDeleteError(apiErrorMessage(err, t('errDeleteFailed')));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
@@ -453,7 +494,7 @@ export default function Employees() {
 @keyframes pulseGlowGray { 0%, 100% { box-shadow: 0 0 4px rgba(0,0,0,0.06); } 50% { box-shadow: 0 0 12px rgba(0,0,0,0.12); } }
 @keyframes pulseGlowRed { 0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.12); } 50% { box-shadow: 0 0 14px rgba(220,38,38,0.25); } }
       `}</style>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <div className="text-2xl font-bold text-[#000000]">{t('title')}</div>
           <div className="text-sm text-text-secondary mt-1">{t('subtitle')}</div>
@@ -481,7 +522,11 @@ export default function Employees() {
             >{t('clearFilters')}</span>
           )}
         </div>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: '40px 0', textAlign: 'center', fontSize: '13px', color: '#6b7280' }}>{t('loadingEmployees')}</div>
+        ) : error ? (
+          <div style={{ padding: '40px 0', textAlign: 'center', fontSize: '13px', color: '#DC2626' }}>{t('loadFailed')}</div>
+        ) : filtered.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('noMatchTitle')}</div>
@@ -493,63 +538,65 @@ export default function Employees() {
             >{t('clearFilters')}</span>
           </div>
         ) : (
-          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
-            <thead>
-              <tr>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colName')}</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colEmail')}</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colPhone')}</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colRole')}</th>
-                <th className="text-center px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colStatus')}</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colJoined')}</th>
-                <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((emp, i) => (
-                <tr key={i} className="group"
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  style={{ transition: 'background 0.15s ease' }}
-                >
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
-                      onClick={() => { if (isMasterAdmin) setViewActivity(emp); }}
-                    >{emp.name}</span>
-                  </td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.email}</td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.phone}</td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.role}</td>
-                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <span className="inline-flex items-center justify-center" style={{ gap: '6px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: emp.status === 'Active' ? '#4caf50' : '#EF4444', animation: emp.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
-                      <span style={{ color: emp.status === 'Active' ? '#4caf50' : '#EF4444', fontWeight: 500, fontSize: '12px', letterSpacing: '0.01em' }}>{emp.status}</span>
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.joined}</td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                    <div className="flex gap-3 items-center">
-                      <button title={t('editTooltip')} onClick={() => openEdit(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <i className="ph ph-pencil" />
-                      </button>
-                      <button title={t('deleteTooltip')} onClick={() => openDelete(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
-                        <i className="ph ph-trash" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="table-scroll" style={{ '--table-min': '820px' }}>
+            <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
+              <thead>
+                <tr>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colName')}</th>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colEmail')}</th>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colPhone')}</th>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colRole')}</th>
+                  <th className="text-center px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colStatus')}</th>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colJoined')}</th>
+                  <th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colActions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((emp, i) => (
+                  <tr key={i} className="group"
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{ transition: 'background 0.15s ease' }}
+                  >
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                      <span style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.15s ease, text-decoration 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = ''; e.currentTarget.style.textDecoration = ''; }}
+                        onClick={() => { if (isMasterAdmin) setViewActivity(emp); }}
+                      >{emp.name}</span>
+                    </td>
+                    <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.email}</td>
+                    <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.phone}</td>
+                    <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.role}</td>
+                    <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                      <span className="inline-flex items-center justify-center" style={{ gap: '6px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: emp.status === 'Active' ? '#4caf50' : '#EF4444', animation: emp.status === 'Active' ? 'statusPulse 2s ease-in-out infinite' : 'none' }} />
+                        <span style={{ color: emp.status === 'Active' ? '#4caf50' : '#EF4444', fontWeight: 500, fontSize: '12px', letterSpacing: '0.01em' }}>{emp.status}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{emp.joined}</td>
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                      <div className="flex gap-3 items-center">
+                        <button title={t('editTooltip')} onClick={() => openEdit(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                          <i className="ph ph-pencil" />
+                        </button>
+                        <button title={t('deleteTooltip')} onClick={() => openDelete(emp)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                          <i className="ph ph-trash" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {/* Add Employee Modal */}
       {showAddModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -574,7 +621,7 @@ export default function Employees() {
                   <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} color="#9CA3AF" /> {t('fieldName')}
@@ -607,10 +654,25 @@ export default function Employees() {
                       <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
                     <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin', 'Employee']} />
+                    {errors.role && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.role}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <KeyRound size={12} color="#9CA3AF" /> {t('fieldPassword')}
+                    </div>
+                    <input type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder={t('placeholderPassword')}
+                      className={glassInput}
+                    />
+                    {errors.password && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.password}</span>}
                   </div>
                 </div>
               </div>
 
+              {errors.general && (
+                <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+                  {errors.general}
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setShowAddModal(false)}
                   style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
@@ -621,8 +683,8 @@ export default function Employees() {
                 >
                   {t('cancel')}
                 </button>
-                <button type="submit"
-                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                <button type="submit" disabled={saving}
+                  style={{ opacity: saving ? 0.6 : 1, background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
@@ -640,7 +702,7 @@ export default function Employees() {
       {/* Edit Employee Modal */}
       {editEmployee && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditEmployee(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -665,7 +727,7 @@ export default function Employees() {
                   <User size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('employeeInfo')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} color="#9CA3AF" /> {t('fieldName')}
@@ -698,16 +760,32 @@ export default function Employees() {
                       <Shield size={12} color="#9CA3AF" /> {t('fieldRole')}
                     </div>
                     <StatusDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} options={['Master Admin', 'Admin', 'Employee']} />
+                    {errors.role && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.role}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Activity size={12} color="#9CA3AF" /> {t('fieldStatus')}
                     </div>
                     <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={statusOptions} />
+                    {errors.status && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.status}</span>}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <KeyRound size={12} color="#9CA3AF" /> {t('fieldPassword')}
+                    </div>
+                    <input type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder={t('placeholderPasswordReset')}
+                      className={glassInput}
+                    />
+                    {errors.password && <span className="text-[10px]" style={{ color: '#DC2626', marginTop: '4px', display: 'block' }}>{errors.password}</span>}
                   </div>
                 </div>
               </div>
 
+              {errors.general && (
+                <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, fontWeight: 500 }}>
+                  {errors.general}
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setEditEmployee(null)}
                   style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', color: '#4B5563', fontWeight: 600, borderRadius: '12px', cursor: 'pointer', transition: 'all 0.15s ease', padding: '9px 18px', fontSize: '13px' }}
@@ -718,8 +796,8 @@ export default function Employees() {
                 >
                   {t('cancel')}
                 </button>
-                <button type="submit"
-                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                <button type="submit" disabled={saving}
+                  style={{ opacity: saving ? 0.6 : 1, background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
@@ -737,7 +815,7 @@ export default function Employees() {
       {/* Activity History Modal (Master Admin only) */}
       {viewActivity && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setViewActivity(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -769,16 +847,17 @@ export default function Employees() {
       {/* Delete Employee Modal */}
       {deleteEmployee && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteEmployee(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[20px] p-4 sm:p-6 w-[400px] max-w-[calc(100vw-32px)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-primary mb-2">{t('deleteTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
               {t('deleteConfirmPrefix')} <strong className="text-primary font-medium">{deleteEmployee.name}</strong>{t('deleteConfirmSuffix')}
             </div>
+            {deleteError && <div className="text-xs mb-4" style={{ color: '#DC2626' }}>{deleteError}</div>}
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeleteEmployee(null)}
                 className="text-xs px-3.5 py-1.5 border border-[rgba(0,0,0,0.05)] rounded-xl bg-white text-text-secondary font-medium hover:bg-[#d1e8d1] hover:border-[rgba(0,0,0,0.15)] cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none cancel-btn"
               >{t('cancel')}</button>
-              <button onClick={handleDelete} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
+              <button onClick={handleDelete} disabled={saving} className="bg-danger-bg text-danger-text border-none rounded-xl px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.97] hover:scale-[1.04] focus-visible:scale-[1.04] focus:outline-none delete-btn">
                 <Trash2 size={14} /> {t('deleteButton')}
               </button>
             </div>

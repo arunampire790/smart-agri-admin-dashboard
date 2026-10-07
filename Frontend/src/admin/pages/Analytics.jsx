@@ -513,7 +513,7 @@ export default function Analytics() {
   return (
     <>
       <div className="mb-6">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div className="text-2xl font-bold text-primary">
               {t('title')}{selectedFarm ? ` \u2014 ${selectedFarm.name} (${selectedFarm.cropTypes})` : ''}
@@ -522,7 +522,7 @@ export default function Analytics() {
               {t('subtitle')}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <Select
               label={t('selectFarm')}
               options={farmOptions}
@@ -546,7 +546,7 @@ export default function Analytics() {
         <div data-section="crop" className="section-entrance" style={{ animationDelay: '0s' }}>
           <div style={sectionTitle}>{t('cropPerformance')}</div>
           <div style={sectionSub}>{t('keyMetrics').replace('{farm}', farmDisplayName)}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4" style={{ gap: '12px' }}>
             {/* Card 1 */}
             <div className="card-hover" style={statCardStyle} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(26,46,26,0.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(46,125,50,0.08)'; }} onClick={() => setSelectedCrop(selectedCrop === 'growth' ? null : 'growth')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -613,7 +613,7 @@ export default function Analytics() {
               <Select label={t('graphType')} options={graphOptions} value={graphType} onChange={setGraphType} width="160px" />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
             {sensorConfigs.map((s) => {
               const readings = sensorReadings[s.key];
               const lastVal = readings[readings.length - 1];
@@ -665,7 +665,7 @@ export default function Analytics() {
 
         {/* SECTION 4: Fleet Intelligence */}
         <div data-section="fleet" className="section-entrance" style={{ animationDelay: '0.4s' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: '16px' }}>
           {/* Left: Battery Health */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>

@@ -5,7 +5,7 @@ import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
 import { ChevronDown, Check } from 'lucide-react';
@@ -108,7 +108,7 @@ function FormFields({ form, setForm, errors, userNames, isEditing }) {
         <i className="ph ph-robot text-[15px]" style={{ color: '#4caf50' }} />
         <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('robotInformation')}</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+      <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
             <i className="ph ph-robot text-xs" style={{ color: '#9CA3AF' }} /> {t('robotName')}
@@ -240,6 +240,17 @@ function FilterSelect({ label, options, value, onChange, width }) {
   );
 }
 
+// The battery line under each count used to be a fixed string - "85-100%
+// battery" was printed whether the robots on screen read 85% or 0%. Read it
+// off the rows in that bucket instead, and say plainly when there are none.
+function batteryRange(rows) {
+  if (rows.length === 0) return null;
+  const levels = rows.map((r) => Number(r.battery) || 0);
+  const min = Math.min(...levels);
+  const max = Math.max(...levels);
+  return min === max ? `${min}%` : `${min}–${max}%`;
+}
+
 export default function Robots() {
   const t = useT('robots');
   const navigate = useNavigate();
@@ -249,7 +260,10 @@ export default function Robots() {
   const { currentUser } = useAuth();
   const userNames = users.length ? users.map((u) => u.name) : [];
   const defaultFarmer = userNames.length ? userNames[0] : '';
-  const [searchTerm, setSearchTerm] = useState('');
+  // A notification about a robot names its farm, so land filtered to that farm
+  // instead of on the whole fleet.
+  const { state: navState } = useLocation();
+  const [searchTerm, setSearchTerm] = useState(() => navState?.focus || '');
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [farmFilter, setFarmFilter] = useState('All Farms');
@@ -290,10 +304,14 @@ export default function Robots() {
     removeRobot(deleteRobot); setDeleteRobot(null);
   };
 
-  const active = robots.filter((r) => r.status === 'Active').length;
-  const idle = robots.filter((r) => r.status === 'Idle').length;
-  const maintenance = robots.filter((r) => r.status === 'Maintenance').length;
-  const offline = robots.filter((r) => r.status === 'Offline' || r.status === 'Inactive' || r.status === 'Lost').length;
+  const activeRobots = robots.filter((r) => r.status === 'Active');
+  const idleRobots = robots.filter((r) => r.status === 'Idle');
+  const maintenanceRobots = robots.filter((r) => r.status === 'Maintenance');
+  const offlineRobots = robots.filter((r) => r.status === 'Offline' || r.status === 'Inactive' || r.status === 'Lost');
+  const active = activeRobots.length;
+  const idle = idleRobots.length;
+  const maintenance = maintenanceRobots.length;
+  const offline = offlineRobots.length;
 
   const filteredRobots = useMemo(() => {
     let result = robots;
@@ -341,20 +359,24 @@ export default function Robots() {
         .dropdown-scroll::-webkit-scrollbar-thumb:hover { background: rgba(76,175,80,0.5); }
         .dropdown-scroll { scrollbar-width: thin; scrollbar-color: rgba(76,175,80,0.3) transparent; }
       `}</style>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <div className="text-2xl font-bold text-primary">{t('pageTitle')}</div>
           <div className="text-sm text-text-secondary mt-1">{t('pageSubtitle')}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <GlowCard onClick={() => navigate('/admin/robots')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">{t('cardOnline')}</div>
               <div className="text-3xl font-extrabold text-primary">{active}</div>
-              <div className="text-[10px] text-[#22C55E] mt-1">{t('cardOnlineBattery')}</div>
+              <div className="text-[10px] text-[#22C55E] mt-1">
+                {batteryRange(activeRobots)
+                  ? t('cardBattery').replace('{range}', batteryRange(activeRobots))
+                  : t('cardNoRobots')}
+              </div>
             </div>
             <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ph ph-activity" style={{ fontSize: '20px', color: '#2e7d2e' }} />
@@ -366,7 +388,11 @@ export default function Robots() {
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">{t('cardIdle')}</div>
               <div className="text-3xl font-extrabold text-primary">{idle}</div>
-              <div className="text-[10px] text-[#D97706] mt-1">{t('cardIdleBattery')}</div>
+              <div className="text-[10px] text-[#D97706] mt-1">
+                {batteryRange(idleRobots)
+                  ? t('cardBattery').replace('{range}', batteryRange(idleRobots))
+                  : t('cardNoRobots')}
+              </div>
             </div>
             <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ph ph-clock" style={{ fontSize: '20px', color: '#2e7d2e' }} />
@@ -378,7 +404,11 @@ export default function Robots() {
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">{t('cardMaintenance')}</div>
               <div className="text-3xl font-extrabold text-primary">{maintenance}</div>
-              <div className="text-[10px] text-text-secondary mt-1">{t('cardMaintenanceBattery')}</div>
+              <div className="text-[10px] text-text-secondary mt-1">
+                {batteryRange(maintenanceRobots)
+                  ? t('cardBattery').replace('{range}', batteryRange(maintenanceRobots))
+                  : t('cardNoRobots')}
+              </div>
             </div>
             <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ph ph-toolbox" style={{ fontSize: '20px', color: '#2e7d2e' }} />
@@ -390,7 +420,13 @@ export default function Robots() {
             <div>
               <div className="text-xs font-semibold text-secondary mb-2">{t('cardOffline')}</div>
               <div className="text-3xl font-extrabold text-primary">{offline}</div>
-              <div className="text-[10px] text-[#EF4444] mt-1">{t('cardOfflineBattery')}</div>
+              <div className="text-[10px] text-[#EF4444] mt-1">
+                {/* An offline robot is not reporting, so its battery is the
+                    last value it managed to send, not a live one. */}
+                {batteryRange(offlineRobots)
+                  ? t('cardBatteryLastSeen').replace('{range}', batteryRange(offlineRobots))
+                  : t('cardNoRobots')}
+              </div>
             </div>
             <div style={{ background: 'rgba(46,125,50,0.1)', borderRadius: '10px', padding: '10px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ph ph-wifi-slash" style={{ fontSize: '20px', color: '#2e7d2e' }} />
@@ -420,90 +456,92 @@ export default function Robots() {
             >{t('clearFilters')}</span>
           )}
         </div>
-        <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
-          <colgroup>
-            <col style={{ width: '16%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '18%' }} />
-            <col style={{ width: '11%' }} />
-            <col style={{ width: '11%' }} />
-            <col style={{ width: '8%' }} />
-            <col style={{ width: '8%' }} />
-          </colgroup>
-          <thead>
-            <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colName')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colId')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colFarmer')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colFarm')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colModel')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colBattery')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colStatus')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colActions')}</th></tr>
-          </thead>
-          <tbody>
-            {filteredRobots.length === 0 ? (
-              <tr><td colSpan="8"><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
-                <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('emptyTitle')}</div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('emptySubtitle')}</div>
-                <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setFarmFilter('All Farms'); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); }}
-                  style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
+        <div className="table-scroll" style={{ '--table-min': '900px' }}>
+          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '16%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '11%' }} />
+              <col style={{ width: '11%' }} />
+              <col style={{ width: '8%' }} />
+              <col style={{ width: '8%' }} />
+            </colgroup>
+            <thead>
+              <tr><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colName')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colId')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colFarmer')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colFarm')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colModel')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colBattery')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colStatus')}</th><th className="text-left px-4 py-3 text-[10px] uppercase font-semibold text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{t('colActions')}</th></tr>
+            </thead>
+            <tbody>
+              {filteredRobots.length === 0 ? (
+                <tr><td colSpan="8"><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
+                  <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('emptyTitle')}</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('emptySubtitle')}</div>
+                  <span onClick={() => { setSearchTerm(''); setOwnerFilter('All Owners'); setFarmFilter('All Farms'); setStatusFilter('All Statuses'); setBatteryFilter('All Levels'); }}
+                    style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >{t('clearFilters')}</span>
+                </div></td></tr>
+              ) : filteredRobots.map((r, i) => (
+                <tr key={i}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >{t('clearFilters')}</span>
-              </div></td></tr>
-            ) : filteredRobots.map((r, i) => (
-              <tr key={i}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                style={{ transition: 'background 0.15s ease' }}
-              >
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  {r.farmer ? (
-                    <span onClick={() => { const u = users.find((x) => x.name === r.farmer); if (u) setProfileUser(u); }}
-                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
-                    >{r.farmer}</span>
-                  ) : (
-                    <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
-                  )}
-                </td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
-                    style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
-                  >{r.farm}</span>
-                </td>
-                <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.3)' }}>
-                      <div className="h-full rounded-full" style={{ width: `${r.battery}%`, background: r.battery >= 60 ? '#22C55E' : r.battery >= 30 ? '#F59E0B' : '#EF4444' }} />
+                  style={{ transition: 'background 0.15s ease' }}
+                >
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><strong className="text-primary font-medium">{r.name}</strong></td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}><code className="text-xs bg-white/30 px-1.5 py-0.5 rounded-xl text-primary">{r.id}</code></td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    {r.farmer ? (
+                      <span onClick={() => { const u = users.find((x) => x.name === r.farmer); if (u) setProfileUser(u); }}
+                        style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                      >{r.farmer}</span>
+                    ) : (
+                      <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <span onClick={() => { const f = farms.find(x => x.name === r.farm); if (f) setProfileFarm(f); }}
+                      style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
+                    >{r.farm}</span>
+                  </td>
+                  <td className="px-4 py-4 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>{r.model}</td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.3)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${r.battery}%`, background: r.battery >= 60 ? '#22C55E' : r.battery >= 30 ? '#F59E0B' : '#EF4444' }} />
+                      </div>
+                      <span className="text-xs font-medium text-primary">{r.battery}%</span>
                     </div>
-                    <span className="text-xs font-medium text-primary">{r.battery}%</span>
-                  </div>
-                </td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600,
-                    color: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#92400E' : r.status === 'Maintenance' ? '#92400E' : r.status === 'Inactive' ? '#991B1B' : '#991B1B' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%',
-                      background: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#F59E0B' : r.status === 'Maintenance' ? '#f97316' : r.status === 'Inactive' ? '#dc2626' : '#ef4444', flexShrink: 0 }} />
-                    {r.status}
-                  </span>
-                </td>
-                <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-                  <div className="flex gap-3 items-center">
-                    <button title={t('editTooltip')} onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-pencil" /></button>
-                    <button title={t('deleteTooltip')} onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-trash" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600,
+                      color: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#92400E' : r.status === 'Maintenance' ? '#92400E' : r.status === 'Inactive' ? '#991B1B' : '#991B1B' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%',
+                        background: r.status === 'Active' ? '#16a34a' : r.status === 'Assigned' ? '#2e7d2e' : r.status === 'Available' ? '#6b7280' : r.status === 'Idle' ? '#F59E0B' : r.status === 'Maintenance' ? '#f97316' : r.status === 'Inactive' ? '#dc2626' : '#ef4444', flexShrink: 0 }} />
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <div className="flex gap-3 items-center">
+                      <button title={t('editTooltip')} onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-pencil" /></button>
+                      <button title={t('deleteTooltip')} onClick={() => openDelete(r)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110"><i className="ph ph-trash" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {editRobot && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditRobot(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -552,7 +590,7 @@ export default function Robots() {
 
       {deleteRobot && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteRobot(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[20px] p-4 sm:p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-primary mb-2">{t('deleteRobotTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
               {t('deleteConfirmPre')}<strong className="text-primary font-medium">{deleteRobot.name}</strong>{t('deleteConfirmPost').replace('{id}', deleteRobot.id)}

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,12 @@ SECRET_KEY = "django-insecure-^vn@=au#52dzhwvk=droi7nzrk8qmiink^dof9zy*5a!$gz$ij
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# .loca.lt is here only for the temporary `npx localtunnel` used to demo QR
+# pairing from a phone before real robot hardware exists. Remove it, and
+# localhost/127.0.0.1 with it, once that's no longer needed - Django only
+# auto-allows those two for a bare `ALLOWED_HOSTS = []`, and setting the list
+# explicitly like this opts out of that default.
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".loca.lt"]
 
 
 # Application definition
@@ -135,11 +141,17 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
-    # Open by default during development; tighten to IsAuthenticated
-    # once the frontend login flow is wired up (Phase 2).
+    # Locked by default: nothing is readable without signing in. Most
+    # endpoints tighten this further to core.permissions.IsAdmin; the few
+    # public ones (login, QR pair lookup) opt out explicitly.
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ),
+    # Only the "Forgot password" endpoints opt in (ScopedRateThrottle), so a
+    # stranger can't spam someone's inbox or hammer the code check.
+    "DEFAULT_THROTTLE_RATES": {
+        "password_reset": "10/hour",
+    },
 }
 
 SIMPLE_JWT = {
@@ -148,8 +160,42 @@ SIMPLE_JWT = {
 }
 
 
-# CORS - allow the Vite dev server to call the API from the browser.
+# CORS - allow the Vite dev server to call the API from the browser. Vite
+# falls back to the next free port (5174, 5175, ...) whenever 5173 is already
+# taken by another running instance, so a small range is allowed rather than
+# just the default port.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    f"http://{host}:{port}"
+    for host in ("localhost", "127.0.0.1")
+    for port in range(5173, 5178)
 ]
+
+# WeatherAPI.com - the forecast half of the advisory engine. Free tier is
+# 1M calls/month and 3 forecast days, which is all the rules look at.
+# Grab a key at https://www.weatherapi.com/ and export it before runserver:
+#     PowerShell:  $env:WEATHERAPI_KEY = "your-key"
+#     bash:        export WEATHERAPI_KEY=your-key
+# Without a key the advisory still runs - it just falls back to whatever
+# weather rows are already in the database, or skips the weather rules.
+WEATHERAPI_KEY = os.environ.get("WEATHERAPI_KEY", "")
+WEATHERAPI_BASE_URL = "https://api.weatherapi.com/v1"
+# Don't re-hit the API if the farm already has a reading this fresh.
+WEATHER_CACHE_MINUTES = 30
+
+# Email - used for "Forgot password" codes. Set EMAIL_HOST (plus user and
+# password) to send real mail over SMTP. Without it, emails are printed to
+# the runserver terminal instead, which is handy while developing.
+#     PowerShell:  $env:EMAIL_HOST = "smtp.gmail.com"; $env:EMAIL_HOST_USER = "..."; $env:EMAIL_HOST_PASSWORD = "..."
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() == "true"
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "Smart Agriculture <no-reply@smartagri.local>"
+)

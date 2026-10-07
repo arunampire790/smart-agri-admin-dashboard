@@ -242,12 +242,16 @@ export default function Farms() {
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
-  const handleEdit = (e) => {
+  const handleEdit = async (e) => {
     e.preventDefault();
     if (!validateEdit()) return;
     const status = editForm.status;
-    const cls = status === 'Active' ? 'bg-brand-light text-brand-dark' : 'bg-danger-bg text-danger-text';
-    updateUser(editUser, { name: editForm.name.trim(), email: editForm.email.trim(), phone: editForm.phone.trim(), status, cls });
+    try {
+      await updateUser(editUser, { name: editForm.name.trim(), email: editForm.email.trim(), phone: editForm.phone.trim(), status });
+    } catch (err) {
+      setEditErrors({ email: err?.data?.email?.[0] || err.message });
+      return;
+    }
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Edited User', target: editForm.name.trim(), details: `Name: ${editUser.name} → ${editForm.name.trim()}, Status: ${status}` });
     setEditUser(null);
   };
@@ -403,7 +407,7 @@ export default function Farms() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <div className="text-2xl font-bold text-primary">{t('farmManagement')}</div>
           <div className="text-sm text-text-secondary mt-1">{t('pageSubtitle')}</div>
@@ -411,7 +415,7 @@ export default function Farms() {
         <button onClick={openAdd} className={btnPrimary}><i className="ph ph-plus" /> {t('addFarm')}</button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {statCards.map((card) => {
           const { Icon, bg, color } = getIconConfig(card.label);
           const isActive = card.onClick && (card.label === 'Total Farms' ? (activeCardLabel === 'Total Farms') : (card.label === 'Active Robots' && statusFilter === 'Active'));
@@ -441,7 +445,7 @@ export default function Farms() {
         })}
       </div>
 
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-4 sm:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
           <div className="text-sm font-semibold text-primary mb-3">{t('allFarms')} ({farms.length})</div>
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label={t('searchAria')} className={inputClass} />
@@ -466,83 +470,85 @@ export default function Farms() {
             >{t('clearFilters')}</span>
           </div>
         ) : (
-          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '8%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarmName')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colOwner')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colCropType')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colSoilType')}</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>{t('colConnectedDevices')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAssignedRobot')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colStatus')}</th>
-                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {farmRows.map(({ farm, connectedCount, status, assignedRobotIds }, i) => (
-                <tr key={i}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  style={{ transition: 'background 0.15s ease' }}
-                >
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span onClick={() => setProfileFarm(farm)}
-                      className="text-primary font-medium"
-                      style={{ cursor: 'pointer', fontWeight: 700, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.textDecoration = 'none'; }}
-                    >{farm.name}</span>
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
-                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
-                    >{farm.owner}</span>
-                  </td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.cropTypes || '-'}</td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.soil || '-'}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600, textAlign: 'center' }}>{connectedCount}</td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    {assignedRobotIds.length > 0 ? assignedRobotIds.join(', ') : <span style={{ color: '#6b7280', fontStyle: 'italic' }}>-</span>}
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#4caf50' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ fontSize: '13px', fontWeight: 500, color: status.label === 'Active' ? '#2e7d2e' : status.label === 'Idle' ? '#D97706' : '#DC2626' }}>{status.label}</span>
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <div className="flex gap-3 items-center">
-                      <button title={t('tooltipEdit')} onClick={() => openEditFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
-                        <i className="ph ph-pencil" style={{ pointerEvents: 'none' }} />
-                      </button>
-                      <button title={t('tooltipDelete')} onClick={() => setDeleteFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
-                        <i className="ph ph-trash" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="table-scroll" style={{ '--table-min': '900px' }}>
+            <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '8%' }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarmName')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colOwner')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colCropType')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colSoilType')}</th>
+                  <th className="px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>{t('colConnectedDevices')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAssignedRobot')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colStatus')}</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colActions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {farmRows.map(({ farm, connectedCount, status, assignedRobotIds }, i) => (
+                  <tr key={i}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{ transition: 'background 0.15s ease' }}
+                  >
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span onClick={() => setProfileFarm(farm)}
+                        className="text-primary font-medium"
+                        style={{ cursor: 'pointer', fontWeight: 700, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.textDecoration = 'none'; }}
+                      >{farm.name}</span>
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span onClick={() => { const u = users.find((x) => x.name === farm.owner); if (u) setProfileUser(u); }}
+                        style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                      >{farm.owner}</span>
+                    </td>
+                    <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.cropTypes || '-'}</td>
+                    <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{farm.soil || '-'}</td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)', color: '#111827', fontWeight: 600, textAlign: 'center' }}>{connectedCount}</td>
+                    <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      {assignedRobotIds.length > 0 ? assignedRobotIds.join(', ') : <span style={{ color: '#6b7280', fontStyle: 'italic' }}>-</span>}
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.label === 'Active' ? '#4caf50' : status.label === 'Idle' ? '#F59E0B' : '#EF4444', display: 'inline-block', flexShrink: 0 }} />
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: status.label === 'Active' ? '#2e7d2e' : status.label === 'Idle' ? '#D97706' : '#DC2626' }}>{status.label}</span>
+                      </span>
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <div className="flex gap-3 items-center">
+                        <button title={t('tooltipEdit')} onClick={() => openEditFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-text-secondary text-lg transition-all duration-200 hover:scale-110">
+                          <i className="ph ph-pencil" style={{ pointerEvents: 'none' }} />
+                        </button>
+                        <button title={t('tooltipDelete')} onClick={() => setDeleteFarm(farm)} className="bg-none border-none cursor-pointer text-text-placeholder hover:text-danger-text text-lg transition-all duration-200 hover:scale-110">
+                          <i className="ph ph-trash" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {showAddModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAddModal(false)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -567,7 +573,7 @@ export default function Farms() {
                   <Sprout size={15} style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('farmInformation')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Home size={12} style={{ color: '#9CA3AF' }} /> {t('fieldFarmName')}
@@ -653,7 +659,7 @@ export default function Farms() {
       )}
       {editFarm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditFarm(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -676,7 +682,7 @@ export default function Farms() {
                   <Sprout size={15} style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('farmInformation')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <Home size={12} style={{ color: '#9CA3AF' }} /> {t('fieldFarmName')}
@@ -760,7 +766,7 @@ export default function Farms() {
       )}
       {deleteFarm && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteFarm(null)}>
-          <div className="rounded-[20px] p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
+          <div className="rounded-[20px] p-4 sm:p-6 w-[400px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-white/50" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-modal)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)' }}>
             <div className="text-lg font-bold text-primary mb-2">{t('deleteFarmTitle')}</div>
             <div className="text-sm text-text-secondary mb-6">
               {t('deleteConfirmPre')}<strong className="text-primary font-medium">{deleteFarm.name}</strong>{t('deleteConfirmPost')}
@@ -779,7 +785,7 @@ export default function Farms() {
       )}
       {editUser && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setEditUser(null)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -804,7 +810,7 @@ export default function Farms() {
                   <i className="ph ph-user text-[15px]" style={{ color: '#4caf50' }} />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('userInformation')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <i className="ph ph-user text-xs" style={{ color: '#9CA3AF' }} /> {t('fieldName')}

@@ -1,8 +1,9 @@
 ﻿import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
 import { useRobots } from '../../context/RobotContext';
-import { Bot, User, AlertTriangle, Pencil, Trash2, X, UserCheck, UserX, Download, Printer, FileText, Activity } from 'lucide-react';
+import { Bot, User, AlertTriangle, Pencil, Trash2, X, UserCheck, UserX, Download, Printer, FileText, Activity, BatteryMedium } from 'lucide-react';
 import { modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
 import UserProfileModal from '../components/UserProfileModal';
@@ -116,7 +117,10 @@ export default function RobotAssignment() {
   const { users } = useUsers();
   const { robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
-  const [searchTerm, setSearchTerm] = useState('');
+  // A "no robot assigned to <farm>" notification sends the farm name here, so
+  // the list opens already narrowed to it.
+  const { state: navState } = useLocation();
+  const [searchTerm, setSearchTerm] = useState(() => navState?.focus || '');
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeCard, setActiveCard] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
@@ -297,9 +301,21 @@ export default function RobotAssignment() {
       const errors = {};
       for (const robot of robots) {
         try {
-          codes[robot.id] = await QRCodeLib.toDataURL(robot.id, {
-            width: 200,
-            errorCorrectionLevel: 'M',
+          // This code is read by the robot's camera, not by a phone. It
+          // carries the signed pairing payload, which the robot compares
+          // against the copy flashed into it before it calls home.
+          //
+          // The backend stops issuing a payload once the robot is paired (or
+          // if it has no owner yet), and we fall back to the plain id - a
+          // code that says only "this is ROB-0001", which is all a paired
+          // robot's label needs to say.
+          //
+          // Error correction is H rather than M here: the farmer is holding
+          // this up to a camera in daylight, possibly creased or dusty, and
+          // the extra redundancy buys a readable scan in bad conditions.
+          codes[robot.id] = await QRCodeLib.toDataURL(robot.pairPayload || robot.id, {
+            width: 320,
+            errorCorrectionLevel: 'H',
             color: { dark: '#166534', light: '#ffffff' },
             margin: 2,
           });
@@ -363,7 +379,7 @@ export default function RobotAssignment() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <div className="text-2xl font-bold text-primary">{t('title')}</div>
           <div className="text-sm text-text-secondary mt-1">{t('subtitle')}</div>
@@ -378,7 +394,7 @@ export default function RobotAssignment() {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <GlowCard onClick={() => handleCardClick('total', 'All')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -426,7 +442,7 @@ export default function RobotAssignment() {
       </div>
 
       {/* Robot Registry Table */}
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-4 sm:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex flex-col items-stretch mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold text-primary">{t('allRobots')} ({filteredRobots.length})</div>
@@ -441,7 +457,7 @@ export default function RobotAssignment() {
           <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} aria-label="Search robots" className={glassInput} />
         </div>
 
-        <div className="flex mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+        <div className="flex mb-5 border-b overflow-x-auto" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           {tabs.map((tab) => {
             const isActive = activeTabKey === tab.key;
             return (
@@ -449,7 +465,7 @@ export default function RobotAssignment() {
                 key={tab.key}
                 onClick={() => handleTabClick(tab.key)}
                 style={{
-                  padding: '8px 4px', fontSize: '14px', cursor: 'pointer', marginRight: '20px',
+                  padding: '8px 4px', fontSize: '14px', cursor: 'pointer', marginRight: '20px', whiteSpace: 'nowrap', flexShrink: 0,
                   borderBottom: isActive ? '2px solid #2e7d2e' : '2px solid transparent',
                   marginBottom: '-1px', transition: 'color 0.15s ease, border-color 0.15s ease',
                   color: isActive ? '#2e7d2e' : '#6b7280',
@@ -467,120 +483,126 @@ export default function RobotAssignment() {
         {filteredRobots.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">{t('noRobotsFound')}</div>
         ) : (
-          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
+          <div className="table-scroll" style={{ '--table-min': '820px' }}>
+            <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
+              <thead>
+                <tr>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>{t('colRobotId')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colQrCode')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>{t('colFarmerAssigned')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>{t('colModel')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>{t('colStatus')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>{t('colRegistered')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colActions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRobots.map((r, i) => (
+                  <tr key={i}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{ transition: 'background 0.15s ease' }}
+                  >
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>{r.id}</span>
+                    </td>
+                    <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {qrLoading ? (
+                        <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6', margin: '0 auto' }} />
+                      ) : qrErrors[r.id] ? (
+                        <span style={{ fontSize: '13px', color: '#DC2626' }}>{t('qrFailed')}</span>
+                      ) : (
+                        <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
+                          title={t('viewQrTooltip').replace('{id}', r.id)}
+                          onClick={() => setShowQRModal(r)}
+                          style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', margin: '0 auto' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                        />
+                      )}
+                    </td>
+                    <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {r.farmer
+                        ? <span onClick={() => { const found = users.find(u => u.name === r.farmer); if (found) setProfileUser(found); }}
+                            style={{ cursor: 'pointer', fontWeight: 600, color: '#1a1a1a', transition: 'color 0.15s ease' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#1a1a1a'; }}
+                          >{r.farmer}</span>
+                        : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
+                      }
+                    </td>
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.model}</span>
+                    </td>
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {statusBadge(r.status)}
+                      {(r.status === 'Active' || r.status === 'Assigned') && r.battery > 0 && (
+                        <span style={{ fontSize: '12px', color: '#9CA3AF', marginLeft: '8px', display: 'inline-flex', alignItems: 'center', gap: '3px', verticalAlign: 'middle' }}>
+                          <BatteryMedium size={14} />{r.battery}%
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.registered}</span>
+                    </td>
+                    <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div className="flex items-center justify-center" style={{ gap: '12px' }}>
+                        <button title={t('editAssignmentTooltip')} onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#1a1a1a'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button title={t('deleteRobotTooltip')} onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#DC2626'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Assignment History */}
+      <div className="rounded-[20px] p-4 sm:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 mt-6" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+        <div className="mb-5">
+          <div className="text-sm font-semibold text-primary">{t('assignmentHistory')}</div>
+          <div className="text-xs text-text-secondary mt-1">{t('assignmentHistorySub')}</div>
+        </div>
+        <div className="table-scroll" style={{ '--table-min': '640px' }}>
+          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
             <thead>
               <tr>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>{t('colRobotId')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colQrCode')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>{t('colFarmerAssigned')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>{t('colModel')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>{t('colStatus')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>{t('colRegistered')}</th>
-                <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colActions')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColRobotId')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColAction')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColFarmer')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColPerformedBy')}</th>
+                <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColDate')}</th>
               </tr>
             </thead>
             <tbody>
-              {filteredRobots.map((r, i) => (
+              {(showAllHistory ? sortedHistory : sortedHistory.slice(0, 5)).map((h, i) => (
                 <tr key={i}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   style={{ transition: 'background 0.15s ease' }}
                 >
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>{r.id}</span>
-                  </td>
-                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {qrLoading ? (
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#F3F4F6', margin: '0 auto' }} />
-                    ) : qrErrors[r.id] ? (
-                      <span style={{ fontSize: '13px', color: '#DC2626' }}>{t('qrFailed')}</span>
-                    ) : (
-                      <img src={qrCodes[r.id]} alt={`QR for ${r.id}`}
-                        title={t('viewQrTooltip').replace('{id}', r.id)}
-                        onClick={() => setShowQRModal(r)}
-                        style={{ width: 28, height: 28, borderRadius: 6, cursor: 'pointer', display: 'block', margin: '0 auto' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-                      />
-                    )}
-                  </td>
-                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {r.farmer
-                      ? <span onClick={() => { const found = users.find(u => u.name === r.farmer); if (found) setProfileUser(found); }}
-                          style={{ cursor: 'pointer', fontWeight: 600, color: '#1a1a1a', transition: 'color 0.15s ease' }}
-                          onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = '#1a1a1a'; }}
-                        >{r.farmer}</span>
-                      : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
-                    }
-                  </td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.model}</span>
-                  </td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {statusBadge(r.status)}
-                    {(r.status === 'Active' || r.status === 'Assigned') && r.battery > 0 && (
-                      <span style={{ fontSize: '12px', color: '#9CA3AF', marginLeft: '8px' }}>ðŸ”‹{r.battery}%</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.registered}</span>
-                  </td>
-                  <td className="px-4 py-4 border-b text-center" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <div className="flex items-center justify-center" style={{ gap: '12px' }}>
-                      <button title={t('editAssignmentTooltip')} onClick={() => openEdit(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#1a1a1a'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button title={t('deleteRobotTooltip')} onClick={() => setDeleteTarget(r)} className="bg-none border-none cursor-pointer transition-all duration-200 hover:scale-110" style={{ color: '#9CA3AF', padding: 0, display: 'flex' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#DC2626'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+                  <td className="px-5 py-5 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.robotId}</td>
+                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{actionPill(h.action)}</td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.farmer ? h.farmer : <span style={{ color: '#9ca3af', fontSize: '13px' }}>—</span>}</td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.by}</td>
+                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
-
-      {/* Assignment History */}
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50 mt-6" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
-        <div className="mb-5">
-          <div className="text-sm font-semibold text-primary">{t('assignmentHistory')}</div>
-          <div className="text-xs text-text-secondary mt-1">{t('assignmentHistorySub')}</div>
         </div>
-        <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
-          <thead>
-            <tr>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColRobotId')}</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColAction')}</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColFarmer')}</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColPerformedBy')}</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('histColDate')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(showAllHistory ? sortedHistory : sortedHistory.slice(0, 5)).map((h, i) => (
-              <tr key={i}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                style={{ transition: 'background 0.15s ease' }}
-              >
-                <td className="px-5 py-5 border-b font-medium text-primary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.robotId}</td>
-                <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{actionPill(h.action)}</td>
-                <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.farmer ? h.farmer : <span style={{ color: '#9ca3af', fontSize: '13px' }}>—</span>}</td>
-                <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.by}</td>
-                <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{h.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
         <div className="mt-3 text-center">
           <button type="button" onClick={() => setShowAllHistory(!showAllHistory)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2e7d2e', fontSize: '13px', fontWeight: 500, transition: 'color 0.15s ease' }}
@@ -596,7 +618,7 @@ export default function RobotAssignment() {
       {showGenerateModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowGenerateModal(false)}>
           <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)] border border-white/50" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw - 32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -618,7 +640,7 @@ export default function RobotAssignment() {
                   <Bot size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('robotDetails')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <i className="ph ph-hash" style={{ fontSize: '12px', color: '#9CA3AF' }} /> {t('numberOfRobots')}
@@ -694,7 +716,7 @@ export default function RobotAssignment() {
       {showQRModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowQRModal(null)}>
           <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', width: '400px', maxWidth: 'calc(100vw-32px)' }}>
+            style={{ background: '#ffffff', width: '400px', maxWidth: 'calc(100vw - 32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -721,6 +743,17 @@ export default function RobotAssignment() {
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginTop: '16px' }}>{showQRModal.id}</div>
               <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || t('unassigned')}</div>
               <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{showQRModal.model} &middot; {showQRModal.status}</div>
+              {/* Three states, not two: a code that pairs, a robot already
+                  paired, and a robot nobody owns yet - the last one gets no
+                  payload either, and saying "already connected" there would
+                  be wrong. */}
+              <div style={{ fontSize: '11px', marginTop: '10px', lineHeight: 1.5, color: showQRModal.pairPayload ? '#2e7d2e' : '#9CA3AF' }}>
+                {showQRModal.pairPayload
+                  ? t('qrScanToConnect')
+                  : showQRModal.isPaired
+                    ? t('qrAlreadyConnected')
+                    : t('qrNoOwner')}
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
               <button type="button" onClick={() => handleDownloadQR(showQRModal.id)}
@@ -747,7 +780,7 @@ export default function RobotAssignment() {
       {showEditModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowEditModal(null)}>
           <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw - 32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -769,7 +802,7 @@ export default function RobotAssignment() {
                   <Activity size={15} color="#4caf50" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('assignmentDetails')}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
@@ -853,7 +886,7 @@ export default function RobotAssignment() {
       {showBulkAssignModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowBulkAssignModal(false)}>
           <div className="rounded-[16px] p-7 shadow-[0_8px_40px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}
-            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw-32px)' }}>
+            style={{ background: '#ffffff', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto', width: '560px', maxWidth: 'calc(100vw - 32px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #4caf50, #2e7d2e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

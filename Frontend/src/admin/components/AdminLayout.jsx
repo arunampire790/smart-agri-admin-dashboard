@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { initialsOf } from '../../utils/initials';
 import { useT } from '../../i18n';
 import GlobalHeader from './GlobalHeader';
 
@@ -12,6 +13,15 @@ export default function AdminLayout() {
   const isMasterAdmin = currentUser?.role === 'masterAdmin';
   const [robotsOpen, setRobotsOpen] = useState(false);
   const [employeesOpen, setEmployeesOpen] = useState(false);
+  // Below the lg breakpoint the sidebar is a slide-in drawer (see
+  // .admin-sidebar in index.css); on desktop this flag does nothing.
+  const [navOpen, setNavOpen] = useState(false);
+
+  // Navigating from the drawer should also close it on phones/tablets.
+  const go = (path) => {
+    navigate(path);
+    setNavOpen(false);
+  };
 
   const isActive = (path) => location.pathname === path;
   const isRobotsActive = location.pathname === '/admin/robots' || location.pathname === '/admin/sensors' || location.pathname === '/admin/robot-assignment';
@@ -71,7 +81,11 @@ export default function AdminLayout() {
       <div className="fixed pointer-events-none z-0" style={{ width: 500, height: 500, background: '#2e7d2e', filter: 'blur(150px)', opacity: 0.08, top: '30%', right: '-5%' }} />
       <div className="fixed pointer-events-none z-0" style={{ width: 350, height: 350, background: '#4caf50', filter: 'blur(100px)', opacity: 0.06, bottom: '-5%', left: '15%' }} />
 
-      <aside style={{
+      {navOpen && (
+        <div className="admin-sidebar-backdrop lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />
+      )}
+
+      <aside className="admin-sidebar" data-open={navOpen} style={{
         width: 220,
         minWidth: 220,
         minHeight: '100%',
@@ -93,9 +107,9 @@ export default function AdminLayout() {
         </div>
         <div style={{ margin: '0 18px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }} />
 
-        <nav style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
           <div
-            onClick={() => navigate('/admin/dashboard')}
+            onClick={() => go('/admin/dashboard')}
             className={isActive('/admin/dashboard') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/dashboard') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/dashboard')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -105,7 +119,7 @@ export default function AdminLayout() {
           </div>
 
           <div
-            onClick={() => navigate('/admin/analytics')}
+            onClick={() => go('/admin/analytics')}
             className={isActive('/admin/analytics') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/analytics') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/analytics')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -137,7 +151,7 @@ export default function AdminLayout() {
               {robotsOpen && (
                 <>
                   <div
-                    onClick={() => navigate('/admin/sensors')}
+                    onClick={() => go('/admin/sensors')}
                     className={isActive('/admin/sensors') ? 'nav-active-indicator' : undefined}
                     style={isActive('/admin/sensors') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
                     onMouseEnter={(e) => { if (!isActive('/admin/sensors')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
@@ -146,7 +160,7 @@ export default function AdminLayout() {
                     {t('robotSensorDetails')}
                   </div>
                   <div
-                    onClick={() => navigate('/admin/robot-assignment')}
+                    onClick={() => go('/admin/robot-assignment')}
                     className={isActive('/admin/robot-assignment') ? 'nav-active-indicator' : undefined}
                     style={isActive('/admin/robot-assignment') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
                     onMouseEnter={(e) => { if (!isActive('/admin/robot-assignment')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
@@ -159,7 +173,7 @@ export default function AdminLayout() {
           </div>
 
           <div
-            onClick={() => navigate('/admin/users')}
+            onClick={() => go('/admin/users')}
             className={isActive('/admin/users') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/users') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/users')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -169,7 +183,7 @@ export default function AdminLayout() {
           </div>
 
           <div
-            onClick={() => navigate('/admin/farms')}
+            onClick={() => go('/admin/farms')}
             className={isActive('/admin/farms') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/farms') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/farms')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -179,7 +193,7 @@ export default function AdminLayout() {
           </div>
 
           <div
-            onClick={() => navigate('/admin/tasks')}
+            onClick={() => go('/admin/tasks')}
             className={isActive('/admin/tasks') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/tasks') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/tasks')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -211,7 +225,7 @@ export default function AdminLayout() {
               </div>
               {employeesOpen && (
                 <div
-                  onClick={() => navigate('/admin/activity-log')}
+                  onClick={() => go('/admin/activity-log')}
                   className={isActive('/admin/activity-log') ? 'nav-active-indicator' : undefined}
                   style={isActive('/admin/activity-log') ? { ...childItemInactive, color: '#4caf50', fontWeight: 500 } : childItemInactive}
                   onMouseEnter={(e) => { if (!isActive('/admin/activity-log')) { e.currentTarget.style.background = 'rgba(76,175,80,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
@@ -224,7 +238,7 @@ export default function AdminLayout() {
           )}
 
           <div
-            onClick={() => navigate('/admin/settings')}
+            onClick={() => go('/admin/settings')}
             className={isActive('/admin/settings') ? 'nav-active-indicator' : undefined}
             style={isActive('/admin/settings') ? navItemActive : navItemInactive}
             onMouseEnter={(e) => { if (!isActive('/admin/settings')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
@@ -232,20 +246,44 @@ export default function AdminLayout() {
           >
             <span>{t('settings')}</span>
           </div>
+
+          {/* Both temporary, and paired: Robot Data stands in for the machine
+              that does not exist yet, Crop Advisory shows what the engine
+              makes of what it sends. Deleted once the robot is real and the
+              farmer app has its own advisory screen. */}
+          <div
+            onClick={() => go('/admin/advisory')}
+            className={isActive('/admin/advisory') ? 'nav-active-indicator' : undefined}
+            style={isActive('/admin/advisory') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/advisory')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/advisory')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
+          >
+            <span>{t('advisory')}</span>
+          </div>
+
+          <div
+            onClick={() => go('/admin/robot-data')}
+            className={isActive('/admin/robot-data') ? 'nav-active-indicator' : undefined}
+            style={isActive('/admin/robot-data') ? navItemActive : navItemInactive}
+            onMouseEnter={(e) => { if (!isActive('/admin/robot-data')) { e.currentTarget.style.background = 'rgba(76,175,80,0.15)'; e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.paddingLeft = '32px'; } }}
+            onMouseLeave={(e) => { if (!isActive('/admin/robot-data')) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.paddingLeft = '24px'; } }}
+          >
+            <span>{t('robotData')}</span>
+          </div>
         </nav>
 
         <div style={{ padding: '14px 18px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#2e7d2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#fff', flexShrink: 0 }}>AD</div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#ffffff' }}>Admin User</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>admin@smartagri.com</div>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#2e7d2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#fff', flexShrink: 0 }}>{initialsOf(currentUser?.name)}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.name}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
           </div>
         </div>
       </aside>
 
       <div className="relative z-10 flex-1 flex flex-col min-w-0">
-        <GlobalHeader />
-        <main className="p-6 flex-1 overflow-y-auto overflow-x-hidden content-visibility-auto">
+        <GlobalHeader onMenuClick={() => setNavOpen(true)} />
+        <main className="p-4 sm:p-6 flex-1 overflow-y-auto overflow-x-hidden content-visibility-auto">
           <Outlet />
         </main>
       </div>

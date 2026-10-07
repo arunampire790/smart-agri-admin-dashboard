@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useTaskStore } from '../../stores/taskStore';
+import { useLocation } from 'react-router-dom';
+import { useTasks } from '../../context/TaskContext';
 import { useUsers } from '../../context/UserContext';
 import { useFarms } from '../../context/FarmContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +10,7 @@ import { useT } from '../../i18n';
 import DatePicker from '../components/DatePicker';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
-import { ClipboardList, FileText, User, MapPin, Tag, AlertCircle, Calendar, Check, ChevronDown, Droplets, Sprout, Search, Wrench, Wheat, Trash2 } from 'lucide-react';
+import { ClipboardList, FileText, User, MapPin, Tag, AlertCircle, Calendar, Check, ChevronDown, Droplets, Sprout, Search, Wrench, Wheat, Trash2, Sparkles } from 'lucide-react';
 
 const priorityStyles = {
   High: { cls: 'bg-danger-bg text-danger-text' },
@@ -191,19 +192,21 @@ function FilterSelect({ label, options, value, onChange, width }) {
 
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('all');
-  const tasks = useTaskStore((s) => s.tasks);
-  const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
-  const addTask = useTaskStore((s) => s.addTask);
-  const removeTask = useTaskStore((s) => s.removeTask);
+  const { tasks, loading: tasksLoading, addTask, updateTask, updateTaskStatus, removeTask } = useTasks();
   const { users } = useUsers();
   const { farms } = useFarms();
   const { currentUser } = useAuth();
+  const userNames = useMemo(() => (users || []).map((u) => u.name).filter(Boolean), [users]);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [form, setForm] = useState({ title: '', assignedTo: '', farm: '', type: 'Irrigation', priority: 'Medium', dueDate: '' });
   const [formErrors, setFormErrors] = useState({});
   const [profileUser, setProfileUser] = useState(null);
   const [profileFarm, setProfileFarm] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Arriving from a notification, land on the row it was about rather than on
+  // the whole board. Lazy initial value, so no effect has to correct it after
+  // the first render.
+  const { state: navState } = useLocation();
+  const [searchTerm, setSearchTerm] = useState(() => navState?.focus || '');
   const [priorityFilter, setPriorityFilter] = useState('All Priorities');
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [farmerFilter, setFarmerFilter] = useState('All Farmers');
@@ -236,7 +239,7 @@ export default function Tasks() {
     setShowAssignModal(true);
   };
 
-  const handleAssignTaskSubmit = (e) => {
+  const handleAssignTaskSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     if (!form.title.trim()) errs.title = t('errTitleRequired');
@@ -262,18 +265,24 @@ export default function Tasks() {
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    addTask({
-      id: `TSK-${Date.now().toString().slice(-4)}`,
-      title: form.title.trim(),
-      assignedTo: form.assignedTo,
-      farm: form.farm,
-      type: form.type,
-      priority: form.priority,
-      dueDate: form.dueDate,
-      status: 'Pending',
-      fertilizerLevel: form.type === 'Fertilizer' ? parseFloat(fertilizerLevel) : null, // TODO: Connect to hardware API for fertilizer dispensing control
-      waterQuantity: form.type === 'Irrigation' ? parseFloat(waterQuantity) : null, // TODO: Connect to hardware API for irrigation water flow control
-    });
+    // The id, status and priority score come from the server. A hand-written
+    // task scores 0, so it ranks below anything the advisory engine raised.
+    try {
+      await addTask({
+        title: form.title.trim(),
+        description: '',
+        assignedTo: form.assignedTo,
+        farm: form.farm,
+        type: form.type,
+        priority: form.priority,
+        dueDate: form.dueDate,
+        fertilizerLevel: form.type === 'Fertilizer' ? parseFloat(fertilizerLevel) : null, // TODO: Connect to hardware API for fertilizer dispensing control
+        waterQuantity: form.type === 'Irrigation' ? parseFloat(waterQuantity) : null, // TODO: Connect to hardware API for irrigation water flow control
+      });
+    } catch (err) {
+      setFormErrors({ title: err.message });
+      return;
+    }
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Assigned Task', target: form.title.trim(), details: `Assigned to: ${form.assignedTo}, Farm: ${form.farm}, Priority: ${form.priority}` });
     setShowAssignModal(false);
   };
@@ -291,6 +300,14 @@ export default function Tasks() {
   const handleDeleteTask = (task) => {
     removeTask(task.id);
     logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Deleted Task', target: task.title, details: `Assigned to: ${task.assignedTo}, Farm: ${task.farm}` });
+  };
+
+  // Advisory tasks land on the farm's owner. Handing one to somebody else is
+  // the admin's call, so it stays a plain edit rather than a separate flow.
+  const handleReassign = (task, name) => {
+    if (!name || name === task.assignedTo) return;
+    updateTask(task.id, { assignedTo: name });
+    logActivity({ userId: currentUser?.email, userName: currentUser?.name, action: 'Reassigned Task', target: task.title, details: `${task.assignedTo || '-'} → ${name}` });
   };
 
   const totalTasks = tasks.length;
@@ -329,7 +346,7 @@ export default function Tasks() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <div className="text-2xl font-bold text-primary">{t('title')}</div>
           <div className="text-sm text-text-secondary mt-1">{t('subtitle')}</div>
@@ -339,7 +356,7 @@ export default function Tasks() {
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <GlowCard onClick={() => setActiveTab('all')} className="glass-card rounded-2xl p-5" style={{ contentVisibility: 'auto' }}>
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -386,7 +403,7 @@ export default function Tasks() {
         </GlowCard>
       </div>
 
-      <div className="rounded-[20px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
+      <div className="rounded-[20px] p-4 sm:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] border border-white/50" style={{ background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', contentVisibility: 'auto', willChange: 'transform' }}>
         <div className="flex gap-6 mb-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
           {tabs.map((tab) => (
             <div
@@ -421,73 +438,114 @@ export default function Tasks() {
           )}
         </div>
 
-        <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
-          <thead>
-            <tr><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colTask')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAssignedTo')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarm')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colType')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colPriority')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colDueDate')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAction')}</th></tr>
-          </thead>
-          <tbody>
-            {filteredTasks.length === 0 ? (
-              <tr><td colSpan="7"><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
-                <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('emptyTitle')}</div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('emptySubtitle')}</div>
-                <span onClick={() => { setSearchTerm(''); setPriorityFilter('All Priorities'); setTypeFilter('All Types'); setFarmerFilter('All Farmers'); }}
-                  style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >{t('clearFilters')}</span>
-              </div></td></tr>
-            ) : (
-              filteredTasks.map((task) => (
-                <tr key={task.id}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  style={{ transition: 'background 0.15s ease' }}
-                >
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><strong className="text-primary font-medium">{task.title}</strong></td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
-                      style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
-                    >{task.assignedTo}</span>
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
-                      style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
-                    >{task.farm}</span>
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span>
-                      {task.fertilizerLevel != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.fertilizerLevel).toFixed(1)} L</span>}
-                      {task.waterQuantity != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.waterQuantity).toFixed(1)} L</span>}
-                    </div>
-                  </td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}><span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span></td>
-                  <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.dueDate}</td>
-                  <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-                    {task.status === 'Pending' && (
-                      <button onClick={() => handleStartTask(task)} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(59,130,246,0.18)]">{t('start')}</button>
-                    )}
-                    {task.status === 'In Progress' && (
-                      <button onClick={() => handleCompleteTask(task)} style={{ background: 'rgba(46,125,50,0.1)', color: '#2e9e6b', border: '1px solid rgba(46,125,50,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(46,125,50,0.18)]">{t('complete')}</button>
-                    )}
-                    {task.status === 'Completed' && (
-                      <button onClick={() => handleDeleteTask(task)} style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }} className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(239,68,68,0.16)]" title={t('deleteTooltip')}><Trash2 size={13} /><span>{t('delete')}</span></button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="table-scroll" style={{ '--table-min': '820px' }}>
+          <table className="w-full border-collapse text-sm" style={{ userSelect: 'none' }}>
+            <thead>
+              <tr><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colTask')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAssignedTo')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colFarm')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colType')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colPriority')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colDueDate')}</th><th className="text-left px-5 py-3.5 text-[11px] uppercase font-semibold tracking-wider text-text-secondary border-b" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>{t('colAction')}</th></tr>
+            </thead>
+            <tbody>
+              {tasksLoading ? (
+                <tr><td colSpan="7"><div style={{ textAlign: 'center', padding: '40px 0', fontSize: '13px', color: '#6b7280' }}>{t('loading')}</div></td></tr>
+              ) : filteredTasks.length === 0 ? (
+                <tr><td colSpan="7"><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
+                  <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.3 }}><i className="ph ph-funnel" /></div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>{t('emptyTitle')}</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>{t('emptySubtitle')}</div>
+                  <span onClick={() => { setSearchTerm(''); setPriorityFilter('All Priorities'); setTypeFilter('All Types'); setFarmerFilter('All Farmers'); }}
+                    style={{ color: '#2e7d32', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(76,175,80,0.3)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(76,175,80,0.08)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >{t('clearFilters')}</span>
+                </div></td></tr>
+              ) : (
+                filteredTasks.map((task) => (
+                  <tr key={task.id}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{ transition: 'background 0.15s ease' }}
+                  >
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <strong className="text-primary font-medium">{task.title}</strong>
+                        {task.source === 'Advisory' && (
+                          <span title={task.description}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 600, color: '#2e7d32', background: 'rgba(46,125,50,0.1)', border: '1px solid rgba(46,125,50,0.2)', borderRadius: '999px', padding: '2px 8px' }}>
+                            <Sparkles size={11} />{t('fromAdvisory')}
+                          </span>
+                        )}
+                      </div>
+                      {task.source === 'Advisory' && task.description && (
+                        <div style={{ fontSize: '11.5px', color: '#6b7280', marginTop: '4px', maxWidth: '380px', lineHeight: 1.5 }}>
+                          {task.description.split('\n')[0]}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span onClick={() => { const u = users.find((x) => x.name === task.assignedTo); if (u) setProfileUser(u); }}
+                        style={{ cursor: 'pointer', fontWeight: 600, color: '#111827', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#111827'; }}
+                      >{task.assignedTo || '-'}</span>
+                      {task.status !== 'Completed' && userNames.length > 0 && (
+                        <select
+                          value=""
+                          aria-label={t('reassign')}
+                          onChange={(e) => handleReassign(task, e.target.value)}
+                          style={{ display: 'block', marginTop: '4px', fontSize: '11px', color: '#6b7280', background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}
+                        >
+                          <option value="">{t('reassign')}</option>
+                          {userNames.filter((n) => n !== task.assignedTo).map((n) => (
+                            <option key={n} value={n}>{n}</option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span onClick={() => { const f = farms.find(x => x.name === task.farm); if (f) setProfileFarm(f); }}
+                        style={{ cursor: 'pointer', fontWeight: 600, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#4caf50'; e.currentTarget.style.textDecoration = 'underline'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.textDecoration = 'none'; }}
+                      >{task.farm}</span>
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span className="pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold" style={{ gap: '5px', background: (typeStyles[task.type] || { bg: 'rgba(255,255,255,0.25)' }).bg, color: (typeStyles[task.type] || { color: '#6B7280' }).color }}>{(() => { const Icon = typeIconMap[task.type]; const ts = typeStyles[task.type]; return Icon ? <Icon size={14} color={ts?.color || '#6B7280'} /> : null; })()}{task.type}</span>
+                        {task.fertilizerLevel != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.fertilizerLevel).toFixed(1)} L</span>}
+                        {task.waterQuantity != null && <span style={{ fontSize: '11px', color: '#6b7280' }}>{parseFloat(task.waterQuantity).toFixed(1)} L</span>}
+                      </div>
+                    </td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span className={`pill inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold ${priorityStyles[task.priority]?.cls || 'bg-white/30 text-text-secondary'}`}>{task.priority}</span>
+                      {/* The engine's raw score, so two "High" rows can be told
+                          apart - and so the board's order is explainable. */}
+                      {task.priorityScore > 0 && (
+                        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>
+                          {t('score')} {task.priorityScore}/21
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-5 py-5 border-b text-text-secondary" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>{task.dueDate}</td>
+                    <td className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+                      {task.status === 'Pending' && (
+                        <button onClick={() => handleStartTask(task)} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(59,130,246,0.18)]">{t('start')}</button>
+                      )}
+                      {task.status === 'In Progress' && (
+                        <button onClick={() => handleCompleteTask(task)} style={{ background: 'rgba(46,125,50,0.1)', color: '#2e9e6b', border: '1px solid rgba(46,125,50,0.25)' }} className="text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(46,125,50,0.18)]">{t('complete')}</button>
+                      )}
+                      {task.status === 'Completed' && (
+                        <button onClick={() => handleDeleteTask(task)} style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }} className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-1.5 rounded-xl cursor-pointer font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-[rgba(239,68,68,0.16)]" title={t('deleteTooltip')}><Trash2 size={13} /><span>{t('delete')}</span></button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {showAssignModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} onClick={() => setShowAssignModal(false)}>
-          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
+          <div className="w-[560px] max-w-[calc(100vw-32px)] rounded-[24px] p-5 sm:p-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border border-white/60" onClick={(e) => e.stopPropagation()}
             style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -513,7 +571,7 @@ export default function Tasks() {
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('taskDetails')}</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 32px' }}>
+                <div className="resp-grid-2" style={{ gap: '16px 32px' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <FileText size={12} color="#9CA3AF" /> {t('fieldTaskTitle')}

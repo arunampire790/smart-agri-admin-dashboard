@@ -6,37 +6,62 @@ import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useTasks } from '../../context/TaskContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { useT, useLang } from '../../i18n';
 import { useAuth } from '../../context/AuthContext';
 import AdminProfileModal from './AdminProfileModal';
+import { initialsOf } from '../../utils/initials';
 
-// TODO: Replace placeholder notifications with real backend/notification service integration once available
-const initialNotifications = [
-  { id: 1, text: 'Robot AgriBot Gamma battery low (45%)', time: '2 min ago', read: false },
-  { id: 2, text: 'New task assigned: Irrigate Plot 4', time: '15 min ago', read: false },
-  { id: 3, text: 'Farm Golden Harvest status changed to Idle', time: '1 hr ago', read: false },
-];
+// "2 min ago" / "3 days ago". Coarse on purpose - the exact minute an advisory
+// was generated is never what the reader wants to know.
+function timeAgo(iso, t) {
+  const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return t('justNow');
+  const steps = [
+    [60, 'agoMinutes'],
+    [24, 'agoHours'],
+    [7, 'agoDays'],
+  ];
+  let value = seconds / 60;
+  for (const [divisor, key] of steps) {
+    if (value < divisor) return t(key).replace('{n}', Math.floor(value));
+    value /= divisor;
+  }
+  return t('agoWeeks').replace('{n}', Math.floor(value));
+}
 
-export default function GlobalHeader() {
+// Priority -> the dot beside each row. Matches the advisory page's colours so
+// an "Urgent" here reads the same as an "Urgent" there.
+const priorityDot = { High: '#dc2626', Medium: '#d97706', Low: '#4caf50' };
+
+// Route -> the locale key naming it, for the "where this goes" line.
+const DESTINATION_KEYS = {
+  '/admin/advisory': 'goAdvisory',
+  '/admin/tasks': 'goTasks',
+  '/admin/robots': 'goRobots',
+  '/admin/robot-assignment': 'goRobotAssignment',
+  '/admin/robot-data': 'goRobotData',
+};
+const destinationKey = (path) => DESTINATION_KEYS[path] || 'goAdvisory';
+
+export default function GlobalHeader({ onMenuClick }) {
   const navigate = useNavigate();
   const { users } = useUsers();
   const { farms } = useFarms();
   const { robots } = useRobots();
   const { tasks } = useTasks();
   const { employees } = useEmployees();
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const t = useT('header');
   const { lang, toggleLang } = useLang();
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [notifPos, setNotifPos] = useState(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [adminName, setAdminName] = useState('Admin User');
-  const [adminEmail, setAdminEmail] = useState('admin@smartagri.com');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
@@ -49,8 +74,6 @@ export default function GlobalHeader() {
   const overlayInputRef = useRef(null);
   const resultsRef = useRef(null);
   const notifButtonRef = useRef(null);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
     if (searchOpen && overlayInputRef.current) {
@@ -154,14 +177,16 @@ export default function GlobalHeader() {
   };
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const initials = adminName.split(' ').map((n) => n[0]).join('').toUpperCase();
+  const initials = initialsOf(currentUser?.name);
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const markOneRead = (id) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  // Each suggestion knows the page where it can actually be acted on - a robot
+  // problem goes to the robot screens, crop advice to the advisory page, an
+  // accepted suggestion to the task board. See routeFor() in NotificationContext.
+  const openNotification = (notification) => {
+    markRead(notification.id);
+    setNotifOpen(false);
+    setNotifPos(null);
+    navigate(notification.route.path, { state: notification.route.state });
   };
 
   const navigateTo = (path) => { setSearchOpen(false); setSearchQuery(''); navigate(path); };
@@ -173,7 +198,10 @@ export default function GlobalHeader() {
       setProfileModalOpen(false);
       if (notifButtonRef.current) {
         const rect = notifButtonRef.current.getBoundingClientRect();
-        setNotifPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+        // Line up under the bell, but never let the 320px panel run off the
+        // left edge on a narrow phone.
+        const right = Math.max(12, Math.min(window.innerWidth - rect.right, window.innerWidth - 332));
+        setNotifPos({ top: rect.bottom + 8, right });
       }
     }
     setNotifOpen((o) => !o);
@@ -195,11 +223,23 @@ export default function GlobalHeader() {
   return (
     <>
     <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
-    <header className="flex justify-between items-center w-full h-[72px] px-6 shrink-0"
+    <header className="flex justify-between items-center gap-3 w-full h-[64px] sm:h-[72px] px-3 sm:px-6 shrink-0"
       style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(20,46,28,0.08)' }}
       onKeyDown={searchShortcut}>
-      <div className="flex items-center relative" ref={searchRef}>
-        <div className="flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[320px]" style={{ background: '#FFFFFF', border: '1px solid rgba(20,46,28,0.12)' }}>
+      <div className="flex items-center gap-1 relative min-w-0" ref={searchRef}>
+        {/* Sidebar is a drawer below lg - this opens it. */}
+        <button type="button" onClick={onMenuClick} aria-label="Open menu"
+          className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-none border-none cursor-pointer text-2xl leading-none shrink-0"
+          style={{ color: '#1F2937' }}>
+          <i className="ph ph-list" />
+        </button>
+        {/* Phones get a search icon; it opens the same full search overlay. */}
+        <button type="button" onClick={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} aria-label="Search"
+          className="sm:hidden flex items-center justify-center w-10 h-10 rounded-full bg-none border-none cursor-pointer text-xl leading-none shrink-0"
+          style={{ color: '#1F2937' }}>
+          <i className="ph ph-magnifying-glass" />
+        </button>
+        <div className="hidden sm:flex items-center gap-2.5 rounded-3xl px-4 py-2.5 w-[220px] md:w-[320px]" style={{ background: '#FFFFFF', border: '1px solid rgba(20,46,28,0.12)' }}>
           <i className="ph ph-magnifying-glass" style={{ color: '#9CA3AF', fontSize: '14px' }} />
           <input ref={searchInputRef} value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onFocus={() => { setNotifOpen(false); setProfileModalOpen(false); setSearchOpen(true); }} onKeyDown={handleSearchKeyDown} placeholder={t('searchPlaceholder')} aria-label="Search" className="border-none bg-transparent text-sm w-full outline-none"
             style={{ color: '#111827' }}
@@ -288,19 +328,23 @@ export default function GlobalHeader() {
         )}
       </div>
 
-      <div className="flex items-center gap-5 shrink-0">
+      <div className="flex items-center gap-3 sm:gap-5 shrink-0">
         <button
           type="button"
           onClick={toggleLang}
           title={lang === 'en' ? 'Switch to Japanese / 日本語に切り替え' : 'Switch to English / 英語に切り替え'}
           aria-label="Toggle language"
-          className="flex items-center gap-1 px-1 py-1 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer"
+          className="lang-switch relative p-1 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer"
           style={{ background: 'rgba(20,46,28,0.05)', border: 'none' }}
         >
-          <span className="px-2.5 py-1 rounded-full transition-colors" style={{ background: lang === 'en' ? '#142E1C' : 'transparent', color: lang === 'en' ? '#ffffff' : '#6b7280' }}>EN</span>
-          <span className="px-2.5 py-1 rounded-full transition-colors" style={{ background: lang === 'ja' ? '#142E1C' : 'transparent', color: lang === 'ja' ? '#ffffff' : '#6b7280' }}>日本語</span>
+          {/* The dark pill slides under whichever language is active. */}
+          <span aria-hidden="true" className="lang-switch-thumb" data-lang={lang} />
+          <span className="lang-switch-labels relative grid grid-cols-2">
+            <span className="px-2.5 py-1 text-center transition-colors duration-300" style={{ color: lang === 'en' ? '#ffffff' : '#6b7280' }}>EN</span>
+            <span className="px-2.5 py-1 text-center transition-colors duration-300" style={{ color: lang === 'ja' ? '#ffffff' : '#6b7280' }}>日本語</span>
+          </span>
         </button>
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap" style={{ color: '#111827', background: 'rgba(20,46,28,0.05)', border: 'none' }}>
           <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#4caf50', animation: 'pulse-dot 1.8s ease-in-out infinite' }} />
           {t('systemOnline')}
         </div>
@@ -323,6 +367,7 @@ export default function GlobalHeader() {
                 top: notifPos.top,
                 right: notifPos.right,
                 width: 320,
+                maxWidth: 'calc(100vw - 24px)',
                 background: '#ffffff',
                 border: '1px solid rgba(76,175,80,0.15)',
                 borderRadius: 14,
@@ -330,31 +375,44 @@ export default function GlobalHeader() {
                 overflow: 'hidden',
               }}>
                 <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'rgba(76,175,80,0.08)' }}>
-                  <span className="text-sm font-semibold" style={{ color: '#1a2e1a' }}>Notifications</span>
+                  <span className="text-sm font-semibold" style={{ color: '#1a2e1a' }}>{t('notifications')}</span>
                   {unreadCount > 0 && (
                     <button onClick={markAllRead}
                       className="bg-none border-none text-xs cursor-pointer hover:underline font-medium"
                       style={{ color: '#2e7d2e' }}
-                    >Mark all as read</button>
+                    >{t('markAllRead')}</button>
                   )}
                 </div>
-                <div className="max-h-64 overflow-y-auto">
+                <div className="max-h-80 overflow-y-auto">
                   {notifications.map((n) => (
-                    <button key={n.id} onClick={() => markOneRead(n.id)}
-                      className={`flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150 ${n.read ? '' : ''}`}
-                      style={{ hover: { background: '#f1f8f1' } }}
+                    <button key={n.id} onClick={() => openNotification(n)}
+                      className="flex items-start gap-3 w-full px-4 py-3 text-left bg-none border-none cursor-pointer transition-colors duration-150"
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f8f1'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
                     >
-                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? 'bg-transparent' : ''}`} style={{ background: n.read ? 'transparent' : '#4caf50' }} />
+                      <div className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                        style={{ background: n.read ? 'transparent' : (priorityDot[n.priority] || '#4caf50') }} />
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm ${n.read ? '' : 'font-medium'}`} style={{ color: n.read ? '#5a7a5a' : '#1a2e1a' }}>{n.text}</div>
-                        <div className="text-[10px] mt-0.5" style={{ color: '#5a7a5a' }}>{n.time}</div>
+                        <div className={`text-sm ${n.read ? '' : 'font-medium'}`} style={{ color: n.read ? '#5a7a5a' : '#1a2e1a' }}>{n.title}</div>
+                        <div className="text-[10px] mt-0.5 flex items-center gap-1.5 flex-wrap" style={{ color: '#5a7a5a' }}>
+                          <span>{n.farm}</span>
+                          <span>·</span>
+                          <span>{n.type}</span>
+                          <span>·</span>
+                          <span>{timeAgo(n.at, t)}</span>
+                        </div>
+                        {/* Says where the click goes, so it is never a guess. */}
+                        <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#2e7d2e' }}>
+                          {t(destinationKey(n.route.path))}
+                          <i className="ph ph-arrow-right" style={{ fontSize: '9px' }} />
+                        </div>
                       </div>
                     </button>
                   ))}
+                  {notifications.length === 0 && (
+                    <div className="px-4 py-8 text-center text-sm" style={{ color: '#5a7a5a' }}>{t('noNotifications')}</div>
+                  )}
                 </div>
-                {notifications.length === 0 && (
-                  <div className="px-4 py-8 text-center text-sm" style={{ color: '#5a7a5a' }}>No notifications</div>
-                )}
               </div>
             </div>,
             document.body
@@ -382,12 +440,7 @@ export default function GlobalHeader() {
       </div>
     </header>
       {profileModalOpen && (
-        <AdminProfileModal
-          currentName={adminName}
-          currentEmail={adminEmail}
-          onClose={() => setProfileModalOpen(false)}
-          onSave={(newName, newEmail) => { setAdminName(newName); setAdminEmail(newEmail); }}
-        />
+        <AdminProfileModal onClose={() => setProfileModalOpen(false)} />
       )}
     </>
   );

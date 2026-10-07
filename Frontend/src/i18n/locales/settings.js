@@ -54,6 +54,15 @@ export default {
 
     toastLogCleared: 'Activity log cleared successfully',
     toastSettingsReset: 'Settings reset to defaults',
+    saving: 'Saving...',
+    emailRequired: 'Email is required.',
+    toastProfileSaved: 'Profile saved',
+    profileSaveFailed: 'Could not save your profile. Please try again.',
+    passwordFieldsRequired: 'Enter your current and new password.',
+    passwordsDoNotMatch: 'New passwords do not match.',
+    toastPasswordUpdated: 'Password updated',
+    passwordUpdateFailed: 'Could not update the password. Please try again.',
+    toastNotificationSaveFailed: 'Could not save notification settings. Please try again.',
   },
   ja: {
     pageTitle: '設定',
@@ -109,5 +118,14 @@ export default {
 
     toastLogCleared: 'アクティビティログを消去しました',
     toastSettingsReset: '設定を既定値にリセットしました',
+    saving: '保存中...',
+    emailRequired: 'メールアドレスは必須です。',
+    toastProfileSaved: 'プロフィールを保存しました',
+    profileSaveFailed: 'プロフィールを保存できませんでした。もう一度お試しください。',
+    passwordFieldsRequired: '現在のパスワードと新しいパスワードを入力してください。',
+    passwordsDoNotMatch: '新しいパスワードが一致しません。',
+    toastPasswordUpdated: 'パスワードを更新しました',
+    passwordUpdateFailed: 'パスワードを更新できませんでした。もう一度お試しください。',
+    toastNotificationSaveFailed: '通知設定を保存できませんでした。もう一度お試しください。',
   },
 };

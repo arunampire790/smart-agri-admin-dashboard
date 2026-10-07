@@ -5,13 +5,13 @@ export default {
     pageSubtitle: 'Monitor and control agricultural robots',
 
     cardOnline: 'Online',
-    cardOnlineBattery: '85–100% battery',
     cardIdle: 'Idle',
-    cardIdleBattery: '45–62% battery',
     cardMaintenance: 'Maintenance',
-    cardMaintenanceBattery: 'N/A',
     cardOffline: 'Offline',
-    cardOfflineBattery: '12% battery last seen',
+    // {range} is read off the robots in that card, e.g. "0%" or "45–92%".
+    cardBattery: '{range} battery',
+    cardBatteryLastSeen: '{range} battery last seen',
+    cardNoRobots: 'No robots',
 
     allRobots: 'All Robots ({count})',
     searchPlaceholder: 'Search robots by name, ID, farmer, farm, or model...',
@@ -68,13 +68,12 @@ export default {
     pageSubtitle: '農業ロボットの監視と制御',
 
     cardOnline: 'オンライン',
-    cardOnlineBattery: 'バッテリー85〜100%',
     cardIdle: 'アイドル',
-    cardIdleBattery: 'バッテリー45〜62%',
     cardMaintenance: 'メンテナンス',
-    cardMaintenanceBattery: '該当なし',
     cardOffline: 'オフライン',
-    cardOfflineBattery: '最終確認時バッテリー12%',
+    cardBattery: 'バッテリー{range}',
+    cardBatteryLastSeen: '最終確認時バッテリー{range}',
+    cardNoRobots: 'ロボットなし',
 
     allRobots: 'すべてのロボット（{count}）',
     searchPlaceholder: '名前・ID・農家・農場・モデルでロボットを検索...',

@@ -146,39 +146,13 @@ export default function Login() {
             Sign in
           </button>
 
-          {/* Register link */}
-          <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: '#8E8E93' }}>
-            Don't have an account?{' '}
-            <a
-              href="/register"
-              style={{ color: '#059669', fontWeight: 500, textDecoration: 'none', transition: 'opacity 0.15s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-            >
-              Register
-            </a>
+          {/* No sign-up: accounts are issued by the admin with each robot. */}
+          <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: '#8E8E93', lineHeight: 1.6 }}>
+            Accounts are created by the administrator when you purchase a robot.
+            Contact support if you don't have your credentials yet.
           </p>
         </div>
 
-        {/* Demo credentials - glass info box */}
-        <div
-          className="relative"
-          style={{
-            marginTop: 20,
-            padding: '12px 14px',
-            borderRadius: 10,
-            background: 'rgba(255, 255, 255, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.5)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
-            zIndex: 1,
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#059669' }}>Demo Credentials</div>
-          <div style={{ fontSize: 12, lineHeight: 1.6, color: '#6B7280' }}>
-            <span style={{ color: '#8E8E93' }}>Email:</span> admin@smartagri.com<br />
-            <span style={{ color: '#8E8E93' }}>Password:</span> admin123
-          </div>
-        </div>
       </div>
     </div>
   );
