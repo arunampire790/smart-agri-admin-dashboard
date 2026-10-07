@@ -2,7 +2,9 @@
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
+import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
+import { API_BASE_URL } from '../../api/client';
 import { Bot, User, AlertTriangle, Pencil, Trash2, X, UserCheck, UserX, Download, Printer, FileText, Activity, BatteryMedium } from 'lucide-react';
 import { modelOptions, statusOptions } from '../../data/mockRobotAssignments';
 import QRCodeLib from 'qrcode';
@@ -115,8 +117,10 @@ const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 export default function RobotAssignment() {
   const t = useT('robotAssignment');
   const { users } = useUsers();
-  const { robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
+  const { farms } = useFarms();
+  const { robots, history, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry, refreshRobots } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
+  const farmsForFarmer = (farmer) => farms.filter((farm) => farm.owner === farmer);
   // A "no robot assigned to <farm>" notification sends the farm name here, so
   // the list opens already narrowed to it.
   const { state: navState } = useLocation();
@@ -131,13 +135,14 @@ export default function RobotAssignment() {
   const [genForm, setGenForm] = useState({ quantity: 1, model: 'AB-X1000' });
   const [toast, setToast] = useState(null);
   const [sortGenerated, setSortGenerated] = useState(false);
-  const [editForm, setEditForm] = useState({ farmer: '', status: '', model: '', notes: '' });
+  const [editForm, setEditForm] = useState({ farmer: '', farm: '', status: '', model: '', notes: '' });
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [qrCodes, setQrCodes] = useState({});
   const [qrLoading, setQrLoading] = useState(true);
   const [qrErrors, setQrErrors] = useState({});
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [bulkAssignFarmer, setBulkAssignFarmer] = useState('');
+  const [bulkAssignFarm, setBulkAssignFarm] = useState('');
   const [bulkAssignSelected, setBulkAssignSelected] = useState(new Set());
 
   const total = robots.length;
@@ -206,7 +211,12 @@ export default function RobotAssignment() {
     setShowGenerateModal(true);
   };
 
-  const handleGenerate = (e) => {
+  const showError = (error) => {
+    setToast({ message: error?.data?.detail || error?.message || t('actionFailed'), error: true });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const handleGenerate = async (e) => {
     e.preventDefault();
     const qty = parseInt(genForm.quantity, 10);
     if (isNaN(qty) || qty < 1 || qty > 100) return;
@@ -233,9 +243,13 @@ export default function RobotAssignment() {
       });
       newHistoryEntries.push({ robotId, action: 'Generated', farmer: '', by: 'Admin User', date: today });
     }
-    // TODO: Replace with real backend bulk generation API call once available
-    bulkAddRobots(newRobots);
-    newHistoryEntries.forEach((entry) => addHistoryEntry(entry));
+    try {
+      await bulkAddRobots(newRobots);
+      await Promise.all(newHistoryEntries.map((entry) => addHistoryEntry(entry)));
+    } catch (error) {
+      showError(error);
+      return;
+    }
     const firstId = `ROB-${String(maxId + 1).padStart(4, '0')}`;
     const lastId = `ROB-${String(maxId + qty).padStart(4, '0')}`;
     setSortGenerated(true);
@@ -245,11 +259,20 @@ export default function RobotAssignment() {
   };
 
   const openEdit = (robot) => {
-    setEditForm({ farmer: robot.farmer || '', status: robot.status, model: robot.model, notes: robot.notes || '' });
+    const availableFarms = farmsForFarmer(robot.farmer || '');
+    setEditForm({
+      farmer: robot.farmer || '',
+      farm: availableFarms.some((farm) => farm.name === robot.farm)
+        ? robot.farm
+        : availableFarms.length === 1 ? availableFarms[0].name : '',
+      status: robot.status,
+      model: robot.model,
+      notes: robot.notes || '',
+    });
     setShowEditModal(robot);
   };
 
-  const handleEditSave = (e) => {
+  const handleEditSave = async (e) => {
     e.preventDefault();
     if (!showEditModal) return;
     const prevFarmer = showEditModal.farmer;
@@ -276,10 +299,34 @@ export default function RobotAssignment() {
       historyAction = newStatus;
     }
 
-    updateRobot(showEditModal, { farmer: newFarmer, status: newStatus, model: editForm.model, notes: editForm.notes });
-    addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
-    setShowEditModal(null);
+    if (newFarmer && !editForm.farm) {
+      showError({ data: { detail: t('selectFarmBeforeAssigning') } });
+      return;
+    }
+    try {
+      await updateRobot(showEditModal, {
+        farmer: newFarmer,
+        farm: newFarmer ? editForm.farm : '',
+        status: newStatus,
+        model: editForm.model,
+        notes: editForm.notes,
+      });
+      await addHistoryEntry({ robotId: showEditModal.id, action: historyAction, farmer: newFarmer || '', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+      setShowEditModal(null);
+    } catch (error) {
+      showError(error);
+    }
   };
+
+  useEffect(() => {
+    const refreshOnReturn = () => {
+      if (document.visibilityState === 'visible') {
+        refreshRobots().catch((error) => console.error('Failed to refresh robots:', error));
+      }
+    };
+    window.addEventListener('focus', refreshOnReturn);
+    return () => window.removeEventListener('focus', refreshOnReturn);
+  }, [refreshRobots]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') { setShowGenerateModal(false); setShowQRModal(null); setShowEditModal(null); setDeleteTarget(null); } };
@@ -353,18 +400,24 @@ export default function RobotAssignment() {
     addHistoryEntry({ robotId: deleteTarget.id, action: 'Deleted', farmer: deleteTarget.farmer || '', by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
     setDeleteTarget(null);
   };
-  const handleBulkAssign = () => {
-    if (!bulkAssignFarmer || bulkAssignSelected.size === 0) return;
+  const handleBulkAssign = async () => {
+    if (!bulkAssignFarmer || !bulkAssignFarm || bulkAssignSelected.size === 0) return;
     const selectedRobots = robots.filter(r => bulkAssignSelected.has(r.id));
-    selectedRobots.forEach(robot => {
-      const newStatus = robot.status === 'Available' ? 'Assigned' : robot.status;
-      updateRobot(robot, { farmer: bulkAssignFarmer, status: newStatus });
-      addHistoryEntry({ robotId: robot.id, action: 'Assigned', farmer: bulkAssignFarmer, by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
-    });
+    try {
+      await Promise.all(selectedRobots.map(async (robot) => {
+        const newStatus = robot.status === 'Available' ? 'Assigned' : robot.status;
+        await updateRobot(robot, { farmer: bulkAssignFarmer, farm: bulkAssignFarm, status: newStatus });
+        await addHistoryEntry({ robotId: robot.id, action: 'Assigned', farmer: bulkAssignFarmer, by: 'Admin User', date: new Date().toISOString().slice(0, 10) });
+      }));
+    } catch (error) {
+      showError(error);
+      return;
+    }
     setToast({ message: t('toastBulkAssign').replace('{count}', bulkAssignSelected.size).replace('{farmer}', bulkAssignFarmer) });
     setTimeout(() => setToast(null), 3000);
     setShowBulkAssignModal(false);
     setBulkAssignFarmer('');
+    setBulkAssignFarm('');
     setBulkAssignSelected(new Set());
   };
 
@@ -388,7 +441,7 @@ export default function RobotAssignment() {
       </div>
 
       {toast && (
-        <div style={{ background: 'rgba(22,163,74,0.12)', border: '1px solid rgba(22,163,74,0.25)', borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, color: '#166534' }}>
+        <div style={{ background: toast.error ? 'rgba(220,38,38,0.1)' : 'rgba(22,163,74,0.12)', border: `1px solid ${toast.error ? 'rgba(220,38,38,0.25)' : 'rgba(22,163,74,0.25)'}`, borderRadius: '12px', padding: '10px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, color: toast.error ? '#b91c1c' : '#166534' }}>
           <span>{toast.message}</span>
         </div>
       )}
@@ -447,7 +500,7 @@ export default function RobotAssignment() {
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold text-primary">{t('allRobots')} ({filteredRobots.length})</div>
             {activeFilter === 'Unassigned' && unassigned > 0 && (
-              <button onClick={() => { setBulkAssignFarmer(''); setBulkAssignSelected(new Set()); setShowBulkAssignModal(true); }}
+              <button onClick={() => { setBulkAssignFarmer(''); setBulkAssignFarm(''); setBulkAssignSelected(new Set()); setShowBulkAssignModal(true); }}
                 style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '10px', padding: '7px 16px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(46,125,50,0.3)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
@@ -483,13 +536,14 @@ export default function RobotAssignment() {
         {filteredRobots.length === 0 ? (
           <div className="py-12 text-center text-text-secondary text-sm">{t('noRobotsFound')}</div>
         ) : (
-          <div className="table-scroll" style={{ '--table-min': '820px' }}>
+          <div className="table-scroll" style={{ '--table-min': '1010px' }}>
             <table className="w-full border-collapse text-sm" style={{ userSelect: 'none', tableLayout: 'fixed' }}>
               <thead>
                 <tr>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 130, padding: '10px 16px' }}>{t('colRobotId')}</th>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 80, padding: '10px 16px' }}>{t('colQrCode')}</th>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-center" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 200, padding: '10px 16px' }}>{t('colFarmerAssigned')}</th>
+                  <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 150, padding: '10px 16px' }}>{t('colFarm')}</th>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 110, padding: '10px 16px' }}>{t('colModel')}</th>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 140, padding: '10px 16px' }}>{t('colStatus')}</th>
                   <th className="px-4 text-[11px] uppercase font-semibold tracking-wider border-b text-left" style={{ color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', width: 120, padding: '10px 16px' }}>{t('colRegistered')}</th>
@@ -530,6 +584,9 @@ export default function RobotAssignment() {
                           >{r.farmer}</span>
                         : <span style={{ fontSize: '14px', fontStyle: 'italic', color: '#9CA3AF' }}>{t('unassigned')}</span>
                       }
+                    </td>
+                    <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '14px', color: r.farm ? '#374151' : '#9CA3AF' }}>{r.farm || '—'}</span>
                     </td>
                     <td className="px-4 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.2)', verticalAlign: 'middle', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       <span style={{ fontSize: '14px', color: '#6b7280' }}>{r.model}</span>
@@ -742,6 +799,7 @@ export default function RobotAssignment() {
               )}
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginTop: '16px' }}>{showQRModal.id}</div>
               <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px' }}>{showQRModal.farmer || t('unassigned')}</div>
+              {showQRModal.farm && <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>{t('farm')}: {showQRModal.farm}</div>}
               <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{showQRModal.model} &middot; {showQRModal.status}</div>
               {/* Three states, not two: a code that pairs, a robot already
                   paired, and a robot nobody owns yet - the last one gets no
@@ -755,6 +813,16 @@ export default function RobotAssignment() {
                     : t('qrNoOwner')}
               </div>
             </div>
+            {import.meta.env.DEV && showQRModal.pairPayload && (
+              <a
+                href={`${API_BASE_URL}/dev/pair-demo/${encodeURIComponent(showQRModal.id)}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', textAlign: 'center', color: '#166534', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}
+              >
+                {t('testPairing')}
+              </a>
+            )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
               <button type="button" onClick={() => handleDownloadQR(showQRModal.id)}
                 style={{ background: '#2e7d2e', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -807,7 +875,44 @@ export default function RobotAssignment() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                       <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
                     </div>
-                    <Select options={farmerNames.length ? ['- Remove Assignment -', ...farmerNames] : ['- Remove Assignment -']} value={editForm.farmer} onChange={(v) => setEditForm({ ...editForm, farmer: v })} placeholder={t('selectFarmer')} />
+                    <Select
+                      options={farmerNames.length ? ['- Remove Assignment -', ...farmerNames] : ['- Remove Assignment -']}
+                      value={editForm.farmer}
+                      onChange={(v) => {
+                        const farmer = v === '- Remove Assignment -' ? '' : v;
+                        const ownerFarms = farmsForFarmer(farmer);
+                        setEditForm((prev) => ({
+                          ...prev,
+                          farmer: v,
+                          farm: ownerFarms.some((farm) => farm.name === prev.farm)
+                            ? prev.farm
+                            : ownerFarms.length === 1 ? ownerFarms[0].name : '',
+                        }));
+                      }}
+                      placeholder={t('selectFarmer')}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      <Activity size={12} style={{ color: '#9CA3AF' }} /> {t('farm')}
+                    </div>
+                    {(() => {
+                      const selectedFarmer = editForm.farmer === '- Remove Assignment -' ? '' : editForm.farmer;
+                      const ownerFarms = farmsForFarmer(selectedFarmer);
+                      return (
+                        <>
+                          <Select
+                            options={ownerFarms.map((farm) => farm.name)}
+                            value={editForm.farm}
+                            onChange={(farm) => setEditForm((prev) => ({ ...prev, farm }))}
+                            placeholder={selectedFarmer ? t('selectFarm') : t('selectFarmerFirst')}
+                          />
+                          {selectedFarmer && ownerFarms.length === 0 && (
+                            <div style={{ fontSize: '12px', color: '#b91c1c', marginTop: '5px' }}>{t('farmerNeedsFarm')}</div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
@@ -840,7 +945,8 @@ export default function RobotAssignment() {
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >{t('cancel')}</button>
                 <button type="submit"
-                  style={{ background: '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  disabled={Boolean(editForm.farmer && editForm.farmer !== '- Remove Assignment -' && !editForm.farm)}
+                  style={{ background: (editForm.farmer && editForm.farmer !== '- Remove Assignment -' && !editForm.farm) ? '#9CA3AF' : '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (editForm.farmer && editForm.farmer !== '- Remove Assignment -' && !editForm.farm) ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                   onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}
@@ -903,11 +1009,36 @@ export default function RobotAssignment() {
               ><X size={20} /></button>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' }}>
-              <div style={{ marginBottom: '16px' }}>
+              <div className="resp-grid-2" style={{ gap: '16px', marginBottom: '16px' }}>
+                <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                   <User size={12} style={{ color: '#9CA3AF' }} /> {t('farmer')}
                 </div>
-                <Select options={farmerNames.length ? farmerNames : ['No users available']} value={bulkAssignFarmer} onChange={(v) => setBulkAssignFarmer(v)} placeholder={t('selectFarmer')} />
+                <Select
+                  options={farmerNames}
+                  value={bulkAssignFarmer}
+                  onChange={(farmer) => {
+                    setBulkAssignFarmer(farmer);
+                    const ownerFarms = farmsForFarmer(farmer);
+                    setBulkAssignFarm(ownerFarms.length === 1 ? ownerFarms[0].name : '');
+                  }}
+                  placeholder={t('selectFarmer')}
+                />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                    <Activity size={12} style={{ color: '#9CA3AF' }} /> {t('farm')}
+                  </div>
+                  <Select
+                    options={farmsForFarmer(bulkAssignFarmer).map((farm) => farm.name)}
+                    value={bulkAssignFarm}
+                    onChange={setBulkAssignFarm}
+                    placeholder={bulkAssignFarmer ? t('selectFarm') : t('selectFarmerFirst')}
+                  />
+                  {bulkAssignFarmer && farmsForFarmer(bulkAssignFarmer).length === 0 && (
+                    <div style={{ fontSize: '12px', color: '#b91c1c', marginTop: '5px' }}>{t('farmerNeedsFarm')}</div>
+                  )}
+                </div>
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -961,12 +1092,12 @@ export default function RobotAssignment() {
                 onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >{t('cancel')}</button>
               <button type="button" onClick={handleBulkAssign}
-                disabled={!bulkAssignFarmer || bulkAssignSelected.size === 0}
-                style={{ background: (!bulkAssignFarmer || bulkAssignSelected.size === 0) ? '#9CA3AF' : '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (!bulkAssignFarmer || bulkAssignSelected.size === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onMouseEnter={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}}
+                disabled={!bulkAssignFarmer || !bulkAssignFarm || bulkAssignSelected.size === 0}
+                style={{ background: (!bulkAssignFarmer || !bulkAssignFarm || bulkAssignSelected.size === 0) ? '#9CA3AF' : '#4caf50', color: '#FFFFFF', fontWeight: 600, borderRadius: '12px', padding: '9px 20px', cursor: (!bulkAssignFarmer || !bulkAssignFarm || bulkAssignSelected.size === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease', border: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onMouseEnter={(e) => { if (bulkAssignFarmer && bulkAssignFarm && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(46,125,50,0.35)'; }}}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                onMouseDown={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}}
-                onMouseUp={(e) => { if (bulkAssignFarmer && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}}
+                onMouseDown={(e) => { if (bulkAssignFarmer && bulkAssignFarm && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(1px) scale(0.96)'; e.currentTarget.style.opacity = '0.95'; }}}
+                onMouseUp={(e) => { if (bulkAssignFarmer && bulkAssignFarm && bulkAssignSelected.size > 0) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '1'; }}}
               ><i className="ph ph-check" /> {t('assignSelected').replace('{n}', bulkAssignSelected.size || 0)}</button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import (
     action,
@@ -154,6 +155,21 @@ class RobotViewSet(AdminModelViewSet):
     queryset = Robot.objects.all().order_by("id")
     serializer_class = RobotSerializer
 
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            robot = serializer.save()
+            _sync_robot_farm(robot.id, robot.farm, robot.farmer)
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            robot = serializer.save()
+            _sync_robot_farm(robot.id, robot.farm, robot.farmer)
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            _sync_robot_farm(instance.id)
+            instance.delete()
+
     @action(detail=True, methods=["get"], url_path="pair-code")
     def pair_code(self, request, pk=None):
         """The QR the farmer is handed, and the config the robot is flashed with.
@@ -202,6 +218,36 @@ class RobotViewSet(AdminModelViewSet):
                 },
             }
         )
+
+
+def _sync_robot_farm(robot_id, farm_name="", farmer_name=""):
+    target = None
+    if farm_name and farmer_name:
+        target = next(
+            (
+                farm
+                for farm in Farm.objects.filter(name=farm_name).order_by("id")
+                if farm.owner.strip() == farmer_name.strip()
+            ),
+            None,
+        )
+
+    for farm in Farm.objects.all():
+        assigned = list(farm.assigned_robots or [])
+        if target is not None and farm.pk == target.pk:
+            if robot_id not in assigned:
+                assigned.append(robot_id)
+        elif robot_id in assigned:
+            assigned = [assigned_id for assigned_id in assigned if assigned_id != robot_id]
+
+        robot_list = ", ".join(assigned)
+        if (
+            assigned != list(farm.assigned_robots or [])
+            or farm.robot != robot_list
+        ):
+            farm.assigned_robots = assigned
+            farm.robot = robot_list
+            farm.save(update_fields=["assigned_robots", "robot"])
 
 
 @api_view(["GET"])
@@ -325,14 +371,7 @@ def device_pair(request):
     # assigned_robots list that the dashboard tables read. Writing only the
     # robot's half is what the advisory engine's "read both, they drift"
     # comment is working around, so close the gap here rather than widen it.
-    farm = next((f for f in own_farms if f.name == robot.farm), None)
-    if farm is not None:
-        assigned = list(farm.assigned_robots or [])
-        if robot.id not in assigned:
-            assigned.append(robot.id)
-            farm.assigned_robots = assigned
-            farm.robot = ", ".join(assigned)
-            farm.save(update_fields=["assigned_robots", "robot"])
+    _sync_robot_farm(robot.id, robot.farm, farmer.full_name)
 
     RobotHistory.objects.create(
         robot_id=robot.id,

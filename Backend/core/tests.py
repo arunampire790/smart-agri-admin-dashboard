@@ -188,6 +188,61 @@ class DeviceAPITests(TestCase):
         self.robot.refresh_from_db()
         self.assertEqual(self.robot.farm, "North Field")
 
+    def test_admin_can_assign_a_robot_to_a_specific_farm(self):
+        Farm.objects.create(name="South Field", owner=self.farmer.full_name)
+
+        res = self.admin.patch(
+            f"/api/robots/{self.robot.id}/",
+            {"farm": "South Field"},
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(res.data["farm"], "South Field")
+        self.assertEqual(Farm.objects.get(name="South Field").assigned_robots, [self.robot.id])
+
+    def test_robot_cannot_be_assigned_to_another_farmers_farm(self):
+        other_farmer = Farmer.objects.create(
+            full_name="Sunita Jadhav", email="sunita@example.com", mobile="9999900002"
+        )
+        Farm.objects.create(name="South Field", owner=other_farmer.full_name)
+
+        res = self.admin.patch(
+            f"/api/robots/{self.robot.id}/",
+            {"farm": "South Field"},
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("farm", res.data)
+
+    def test_reassigning_a_paired_robot_moves_its_farm_and_requires_pairing_again(self):
+        self.pair()
+        next_farmer = Farmer.objects.create(
+            full_name="Sunita Jadhav", email="sunita@example.com", mobile="9999900002"
+        )
+        Farm.objects.create(name="South Field", owner=next_farmer.full_name)
+
+        res = self.admin.patch(
+            f"/api/robots/{self.robot.id}/",
+            {"farmer": next_farmer.full_name, "farm": "South Field"},
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertFalse(res.data["isPaired"])
+        self.assertTrue(res.data["pairPayload"])
+        self.assertEqual(Farm.objects.get(name="North Field").assigned_robots, [])
+        self.assertEqual(Farm.objects.get(name="South Field").assigned_robots, [self.robot.id])
+
+        paired = self.dev.post(
+            "/api/device/pair/",
+            {"payload": res.data["pairPayload"]},
+            format="json",
+        )
+        self.assertEqual(paired.status_code, 200, paired.content)
+        self.assertEqual(paired.data["farm"], "South Field")
+
     def test_a_second_robot_joins_the_farm_without_evicting_the_first(self):
         self.pair()
         other_dev = APIClient(HTTP_AUTHORIZATION=f"Device {self.other.device_key}")
