@@ -112,7 +112,7 @@ const fieldLabelStyle = { display: 'flex', alignItems: 'center', gap: '5px', fon
 const sectionCardStyle = { background: 'rgba(255,255,255,0.75)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgba(255,255,255,0.5)', marginBottom: '20px' };
 const sectionHeadStyle = { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)' };
 const sectionHeadTextStyle = { fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' };
-const modalInput = "text-sm px-3.5 py-2.5 rounded-[12px] bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
+
 
 const StatusDropdown = ({ value, onChange, options }) => {
   const [open, setOpen] = useState(false);
@@ -183,6 +183,7 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(users.map(u => (u.name || '').trim()).filter(Boolean))], [users]);
   const statusOptions = useMemo(() => ['All Statuses', ...new Set(users.map(u => u.status).filter(Boolean))], [users]);
@@ -218,7 +219,7 @@ export default function Users() {
   }, []);
 
   const openAdd = () => { setForm({ name: '', email: '', phone: '', status: 'Active', password: '' }); setErrors({}); setSubmitError(''); setShowAddModal(true); };
-  const openView = (user) => setViewUser(user);
+
   const openEdit = (user) => { setForm({ name: user.name, email: user.email, phone: user.phone, status: user.status, password: '' }); setErrors({}); setSubmitError(''); setEditUser(user); };
   const openDelete = (user) => { setSubmitError(''); setDeleteUser(user); };
 

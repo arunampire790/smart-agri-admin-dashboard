@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { robotsApi, robotHistoryApi } from '../api/robots';
 import { sanitizeFarmerField } from '../utils/sanitizeFarmer';

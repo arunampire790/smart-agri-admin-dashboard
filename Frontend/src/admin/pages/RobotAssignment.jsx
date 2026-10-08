@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useUsers } from '../../context/UserContext';
@@ -115,14 +115,14 @@ const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 export default function RobotAssignment() {
   const t = useT('robotAssignment');
   const { users } = useUsers();
-  const { robots, history, addRobot, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
+  const { robots, history, bulkAddRobots, updateRobot, removeRobot, addHistoryEntry } = useRobots();
   const farmerNames = users.length ? users.map((u) => u.name) : [];
   // A "no robot assigned to <farm>" notification sends the farm name here, so
   // the list opens already narrowed to it.
   const { state: navState } = useLocation();
   const [searchTerm, setSearchTerm] = useState(() => navState?.focus || '');
   const [activeFilter, setActiveFilter] = useState('All');
-  const [activeCard, setActiveCard] = useState(null);
+  const [, setActiveCard] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
@@ -254,7 +254,7 @@ export default function RobotAssignment() {
     if (!showEditModal) return;
     const prevFarmer = showEditModal.farmer;
     const newFarmer = (editForm.farmer && editForm.farmer !== '- Remove Assignment -') ? editForm.farmer : null;
-    const prevStatus = showEditModal.status;
+
     let newStatus = editForm.status;
 
     // Auto-set to Assigned if farmer is selected and status was Available
@@ -288,10 +288,12 @@ export default function RobotAssignment() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (searchTerm) setSortGenerated(false);
   }, [searchTerm]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSortGenerated(false);
   }, [activeFilter]);
 

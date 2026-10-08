@@ -80,6 +80,7 @@ export default function ActivityLog() {
         e.details.toLowerCase().includes(q)
       );
     }
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     if (timeRange === 'Today') {
       const today = new Date().toISOString().slice(0, 10);

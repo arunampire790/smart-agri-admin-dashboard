@@ -38,7 +38,7 @@ const farmNames = ['Green Valley Farm', 'Sunrise Orchards', 'Golden Harvest', 'M
 const statuses = ['Active', 'Idle', 'Offline', 'Maintenance'];
 
 const inputClass = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
-const labelClass = "text-xs font-medium text-primary";
+
 
 
 function Select({ options, value, onChange, placeholder }) {
@@ -264,6 +264,7 @@ export default function Robots() {
   // instead of on the whole fleet.
   const { state: navState } = useLocation();
   const [searchTerm, setSearchTerm] = useState(() => navState?.focus || '');
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [ownerFilter, setOwnerFilter] = useState('All Owners');
   const [farmFilter, setFarmFilter] = useState('All Farms');

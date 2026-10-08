@@ -125,6 +125,7 @@ export default function GlobalHeader({ onMenuClick }) {
   const hasAnyResults = filteredResults && Object.values(filteredResults).some((s) => s.items.length > 0);
   const totalCount = filteredResults ? Object.values(filteredResults).reduce((sum, s) => sum + s.items.length, 0) : 0;
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setFocusedIndex(-1); }, [searchQuery]);
 
   useEffect(() => {

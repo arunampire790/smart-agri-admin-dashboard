@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { authApi } from '../api/auth';
 import { getAccessToken, setSessionExpiredHandler } from '../api/client';

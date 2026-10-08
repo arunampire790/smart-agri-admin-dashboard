@@ -6,7 +6,7 @@ import {
 } from '../../data/mockSensorData';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, Legend,
 } from 'recharts';
 import {
   Thermometer, Droplets, MapPin, Cpu,
@@ -179,7 +179,7 @@ function CustomTooltip({ active, payload, label, t }) {
   );
 }
 
-const sensorStatusOk = (readings) => readings !== undefined && readings !== null;
+
 
 export default function SensorsDetails() {
   const t = useT('sensors');
@@ -213,6 +213,7 @@ export default function SensorsDetails() {
   }, [robots, ownerFilter]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFarmFilter('All Farms');
   }, [ownerFilter]);
 

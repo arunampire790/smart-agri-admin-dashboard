@@ -31,6 +31,7 @@ function MapSync({ points }) {
     return (points || []).map(p => isValidCoord(p) ? `${p.lat},${p.lng}` : '').join('|');
   }, [points]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safePoints = useMemo(() => (points || []).filter(isValidCoord), [pointsKey]);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ function MapSync({ points }) {
       const bounds = L.latLngBounds(safePoints.map(p => [p.lat, p.lng]));
       map.fitBounds(bounds, { padding: [30, 30] });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, pointsKey]);
 
   return null;

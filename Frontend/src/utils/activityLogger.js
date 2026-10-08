@@ -19,7 +19,7 @@ export function logActivity({ userId, userName, action, target, details }) {
     // Keep last 2000 entries to avoid unbounded growth
     if (log.length > 2000) log.length = 2000;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(log));
-  } catch (e) {
+  } catch {
     // localStorage full or unavailable - silently fail
   }
 

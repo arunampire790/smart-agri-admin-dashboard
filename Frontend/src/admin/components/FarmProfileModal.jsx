@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair, ClipboardList, Calendar, AlertCircle, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { MapPin, Layers, Bot, Users as UsersIcon, Map, X, HardDrive, Target, Crosshair, ClipboardList, Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
 import { useTasks } from '../../context/TaskContext';

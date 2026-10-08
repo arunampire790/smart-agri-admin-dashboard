@@ -8,11 +8,6 @@ import { useT } from '../../i18n';
 import { apiErrorMessage } from '../../api/auth';
 
 const glassInput = "text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 outline-none focus:shadow-[0_0_0_2px_rgba(52,199,89,0.3)] w-full placeholder:text-text-placeholder text-primary cursor-text hover:border-gray-400";
-const inputClass = "add-input-field";
-const cancelBtnClass = "add-cancel-btn";
-const submitBtnClass = "add-submit-btn";
-const closeBtnClass = "add-close-btn";
-const labelClass = "text-xs font-medium text-[#1a2e1a] tracking-wide";
 const statusOptions = ['Active', 'Inactive'];
 
 const StatusDropdown = ({ value, onChange, options }) => {
@@ -83,62 +78,6 @@ const StatusDropdown = ({ value, onChange, options }) => {
   );
 };
 
-function Select({ options, value, onChange, placeholder }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  return (
-    <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        className="text-sm px-3.5 py-2.5 rounded-xl bg-white/50 border border-gray-300 w-full flex items-center justify-between cursor-pointer hover:border-gray-400"
-        style={{ outline: 'none', boxShadow: open ? '0 0 0 2px rgba(52,199,89,0.3)' : 'none', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
-      >
-        <span className={value !== 'All' ? 'text-primary' : 'text-text-placeholder'}>{value || placeholder || 'Select...'}</span>
-        <i className={`ph ph-caret-down text-text-placeholder text-sm transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="absolute z-[100] w-full mt-1 overflow-hidden"
-          style={{
-            background: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            border: '1px solid rgba(255,255,255,0.6)',
-            borderRadius: '14px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          }}
-        >
-          {options.map((opt) => {
-            const selected = opt === value;
-            return (
-              <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
-                style={{
-                  padding: '12px 16px', fontSize: '14px',
-                  color: selected ? '#4caf50' : '#1d1d1f',
-                  background: selected ? 'rgba(76,175,80,0.12)' : 'transparent',
-                  cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                onMouseEnter={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'rgba(76,175,80,0.12)'; e.currentTarget.style.color = '#4caf50'; }
-                }}
-                onMouseLeave={(e) => {
-                  if (!selected) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1f'; }
-                }}
-              >
-                <span>{opt}</span>
-                {selected && <span style={{ color: '#4caf50', fontSize: '14px', fontWeight: 600 }}>✓</span>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function FilterSelect({ label, options, value, onChange, width }) {
   const [open, setOpen] = useState(false);
@@ -342,6 +281,7 @@ export default function Employees() {
   const { employees, loading, error, addEmployee, removeEmployee, updateEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployee, setEditEmployee] = useState(null);

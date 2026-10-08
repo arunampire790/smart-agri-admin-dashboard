@@ -1,6 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { useFarms } from '../../context/FarmContext';
 import { useRobots } from '../../context/RobotContext';
 import { useUsers } from '../../context/UserContext';
@@ -8,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../utils/activityLogger';
 import UserProfileModal from '../components/UserProfileModal';
 import FarmProfileModal from '../components/FarmProfileModal';
-import { MapPin, Sprout, Home, User, Ruler, Activity, Layers, Trash2, ChevronDown, Check, Bot } from 'lucide-react';
+import { MapPin, Sprout, Home, User, Ruler, Layers, Trash2, ChevronDown, Check, Bot } from 'lucide-react';
 import { computePolygonAreaAcres } from '../../utils/farmArea';
 import FarmMapDrawing from '../components/FarmMapDrawing';
 import { useT } from '../../i18n';
@@ -53,10 +52,9 @@ function getIconConfig(label) {
   }
 }
 
-const statusOpts = ['Active', 'Idle', 'Offline'];
 const userStatusOpts = ['Active', 'Inactive'];
 
-function Select({ options, value, onChange, placeholder, style, onMouseEnter, onMouseLeave, onFocus, onBlur, className }) {
+function Select({ options, value, onChange, placeholder, className }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -156,20 +154,14 @@ function FilterSelect({ label, options, value, onChange, width }) {
 export default function Farms() {
   const t = useT('farms');
   const statLabelKeys = { 'Total Farms': 'statTotalFarms', 'Soil Types': 'statSoilTypes', 'Crop Types': 'statCropTypes', 'Active Robots': 'statActiveRobots' };
-  const coordErrText = (msg) => {
-    if (msg === 'Use format: lat, lng') return t('errCoordFormat');
-    if (msg === 'Lat must be -90 to 90') return t('errLatRange');
-    if (msg === 'Lng must be -180 to 180') return t('errLngRange');
-    return msg;
-  };
-  const navigate = useNavigate();
   const { farms, addFarm, updateFarm, removeFarm } = useFarms();
-  const { robots, updateRobot } = useRobots();
+  const { robots } = useRobots();
   const { users, updateUser } = useUsers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [ownerFilter, setOwnerFilter] = useState('All Owners');
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { const v = sessionStorage.getItem('globalSearchPrefill'); if (v) { setSearchTerm(v); sessionStorage.removeItem('globalSearchPrefill'); } }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [profileUser, setProfileUser] = useState(null);
@@ -200,7 +192,7 @@ export default function Farms() {
   }, []);
 
   const userNames = (users || []).length ? (users || []).map((u) => u.name) : [];
-  const robotIds = (robots || []).length ? (robots || []).map((r) => r.id) : [];
+
 
   const validate = () => {
     const errs = {};
@@ -323,10 +315,8 @@ export default function Farms() {
   const inputHoverEnter = (e) => e.currentTarget.style.borderColor = '#9CA3AF';
   const inputHoverLeave = (e) => e.currentTarget.style.borderColor = '#D1D5DB';
 
-  const labelStyle = { color: '#374151', fontWeight: 600, fontSize: '13px' };
   const btnPrimary = "bg-brand text-white border-none rounded-xl px-4 py-2 text-sm font-medium cursor-pointer flex items-center gap-2 transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(46,125,50,0.35)]";
 
-  const cropTypes = useMemo(() => [...new Set(farms.map((f) => f.crop))], [farms]);
   const statusOptions = useMemo(() => ['All Statuses', 'Active', 'Idle', 'Offline'], []);
   const ownerOptions = useMemo(() => ['All Owners', ...new Set(farms.map(f => f.owner).filter(Boolean))], [farms]);
   const computedArea = useMemo(() => {
@@ -336,6 +326,7 @@ export default function Farms() {
   }, [formCoords, formBoundaryMeta]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (computedArea !== null) setForm(prev => ({ ...prev, acreage: computedArea.toFixed(2) }));
   }, [computedArea]);
 
@@ -346,6 +337,7 @@ export default function Farms() {
   }, [editCoords, editBoundaryMeta]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (editComputedArea !== null) setEditFarmForm(prev => ({ ...prev, acreage: editComputedArea.toFixed(2) }));
   }, [editComputedArea]);
 

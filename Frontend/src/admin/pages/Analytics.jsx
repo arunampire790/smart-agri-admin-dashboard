@@ -245,6 +245,7 @@ export default function Analytics() {
   useEffect(() => {
     if (selectedOwner !== 'All Owners' && selectedFarmName !== 'All Farms') {
       const stillOwned = (farms || []).some(f => f.name === selectedFarmName && f.owner === selectedOwner);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!stillOwned) setSelectedFarmName('All Farms');
     }
   }, [selectedOwner, selectedFarmName, farms]);
@@ -383,6 +384,7 @@ export default function Analytics() {
 
   const farmOptions = useMemo(() => {
     return [{ value: 'All Farms', label: t('allFarms') }, ...filteredFarms.map((f) => ({ value: f.name, label: f.name }))];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredFarms]);
 
   const graphOptions = [

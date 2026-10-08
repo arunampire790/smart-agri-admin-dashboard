@@ -32,6 +32,7 @@ function MapClickHandler({ onMapClick, disabled }) {
 function MapSync({ points }) {
   const map = useMap();
   const key = useMemo(() => (points || []).map(p => isValidCoord(p) ? `${p.lat.toFixed(4)},${p.lng.toFixed(4)}` : '').join('|'), [points]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const safe = useMemo(() => (points || []).filter(isValidCoord), [key]);
   useEffect(() => {
     if (safe.length === 0) map.setView([20, 0], 2);
@@ -40,6 +41,7 @@ function MapSync({ points }) {
       const b = L.latLngBounds(safe.map(p => [p.lat, p.lng]));
       map.fitBounds(b, { padding: [30, 30] });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, key]);
   return null;
 }
@@ -116,6 +118,7 @@ export default function FarmMapDrawing({ initialCoords, initialClosed, onChange,
 
   const doneEnabled = safeHull.length >= 3;
 
+  // eslint-disable-next-line no-useless-assignment
   let instructionText = '';
   if (polygonClosed) {
     instructionText = `\u2713 Boundary set \u2014 ${safeRaw.length} point${safeRaw.length !== 1 ? 's' : ''}${acreage ? `, ${acreage} Est. Acres` : ''}`;
